@@ -1,0 +1,104 @@
+================================================================================
+  ELECTRONICS ECOMMERCE - TÁCH ADMIN & USER
+  BẮT ĐẦU TẠI ĐÂY!
+================================================================================
+
+🎉 CHÚC MỪNG! Dự án đã được tách thành công!
+
+📁 CẤU TRÚC:
+   web-electronic/
+   ├── backend/           → API Server (Port 3002)
+   ├── frontend-user/     → User Interface (Port 3000)
+   ├── frontend-admin/    → Admin Dashboard (Port 3001)
+   └── Documentation/     → README, QUICK-START, etc.
+
+================================================================================
+🚀 CÁCH CHẠY NHANH (WINDOWS)
+================================================================================
+
+Bước 1: CÀI ĐẶT
+   Double-click: setup-all.bat
+   (Hoặc chạy trong terminal)
+
+Bước 2: TẠO FILE .ENV
+   Trong mỗi folder (backend, frontend-user, frontend-admin):
+   - Copy file "env-template.txt" thành ".env"
+   - Sửa username/password MySQL của bạn
+
+Bước 3: SETUP DATABASE
+   cd backend
+   npx prisma migrate dev
+   cd utills
+   node insertDemoData.js
+   cd ..\..
+
+Bước 4: CHẠY TẤT CẢ
+   Double-click: start-all.bat
+   (Hoặc chạy trong terminal)
+
+Bước 5: MỞ TRÌNH DUYỆT
+   User:  http://localhost:3000
+   Admin: http://localhost:3001
+
+================================================================================
+📚 TÀI LIỆU
+================================================================================
+
+📄 INDEX.md         → Tổng quan tất cả tài liệu (ĐỌC ĐẦU TIÊN!)
+📄 README.md        → Hướng dẫn chi tiết từng bước
+📄 QUICK-START.md   → Hướng dẫn nhanh 4 bước
+📄 STRUCTURE.md     → Kiến trúc và cấu trúc dự án
+📄 CHANGELOG.md     → Tất cả thay đổi đã thực hiện
+
+================================================================================
+❓ CẦN GIÚP ĐỠ?
+================================================================================
+
+→ Đọc INDEX.md để tìm tài liệu phù hợp
+→ Đọc README.md phần "Troubleshooting"
+→ Check logs trong backend/logs/
+
+================================================================================
+✨ CHỨC NĂNG
+================================================================================
+
+USER (localhost:3000)
+  ✅ Login / Register (Email/Password only)
+  ✅ Xem sản phẩm (không cần login)
+  ✅ Tìm kiếm (không cần login)
+  ✅ Giỏ hàng (không cần login)
+  🔒 Thanh toán (BẮT BUỘC login)
+  ✅ Wishlist
+  ❌ Đã bỏ OAuth (Google, GitHub)
+
+ADMIN (localhost:3001)
+  🔒 Login (CHỈ admin role - Email/Password)
+  ✅ CRUD Products
+  ✅ CRUD Categories
+  ✅ Quản lý Orders
+  ✅ Quản lý Users
+  ⚠️  User thường KHÔNG thể truy cập
+  ⚠️  Tự động logout nếu không phải admin
+  ❌ Đã bỏ OAuth (Google, GitHub)
+
+================================================================================
+⚙️ YÊU CẦU HỆ THỐNG
+================================================================================
+
+✓ Node.js (v18+)
+✓ MySQL (v8.0+)
+✓ npm hoặc yarn
+
+================================================================================
+
+🎯 BẮT ĐẦU NGAY:
+   1. Đọc INDEX.md
+   2. Follow hướng dẫn setup
+   3. Start coding!
+
+💡 TIP: Nếu muốn hiểu rõ hơn, đọc STRUCTURE.md
+
+================================================================================
+Happy Coding! 🚀
+================================================================================
+
