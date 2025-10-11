@@ -3,12 +3,14 @@ interface Product {
   slug: string;
   title: string;
   price: number;
+  costPrice?: number;
+  quantity: number;
   rating: number;
   description: string;
   mainImage: string;
   manufacturer: string;
   categoryId: string;
-  category: {name: string}?;
+  category: { name: string }?;
   inStock: number;
 }
 

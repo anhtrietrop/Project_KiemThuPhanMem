@@ -7,6 +7,7 @@ export type ProductInCart = {
   price: number;
   image: string;
   amount: number;
+  quantity: number;
 };
 
 export type State = {
@@ -48,7 +49,7 @@ export const useProductStore = create<State & Actions>()(
       },
       clearCart: () => {
         set((state: any) => {
-          
+
           return {
             products: [],
             allQuantity: 0,

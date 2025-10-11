@@ -17,16 +17,25 @@ import toast from "react-hot-toast";
 
 
 
-const AddToCartSingleProductBtn = ({ product, quantityCount } : SingleProductBtnProps) => {
+const AddToCartSingleProductBtn = ({ product, quantityCount }: SingleProductBtnProps) => {
   const { addToCart, calculateTotals } = useProductStore();
 
   const handleAddToCart = () => {
+    if (product?.quantity <= 0) {
+      toast.error("Product is out of stock");
+      return;
+    }
+    if (quantityCount > product?.quantity) {
+      toast.error(`Only ${product?.quantity} items available in stock`);
+      return;
+    }
     addToCart({
       id: product?.id.toString(),
       title: product?.title,
       price: product?.price,
       image: product?.mainImage,
-      amount: quantityCount
+      amount: quantityCount,
+      quantity: product?.quantity
     });
     calculateTotals();
     toast.success("Product added to the cart");

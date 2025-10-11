@@ -20,3 +20,18 @@ declare module "next-auth/jwt" {
         role: string;
     }
 }
+
+declare global {
+    interface Product {
+        id: string;
+        title: string;
+        description: string;
+        price: number;
+        costPrice?: number;
+        quantity: number;
+        inStock: boolean;
+        mainImage?: string;
+        manufacturer?: string;
+        rating?: number;
+    }
+}

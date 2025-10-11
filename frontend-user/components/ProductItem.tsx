@@ -58,6 +58,15 @@ const ProductItem = ({
       </p>
 
       <ProductItemRating productRating={product?.rating} />
+      <p
+        className={
+          color === "black"
+            ? "text-sm text-black font-normal"
+            : "text-sm text-white font-normal"
+        }
+      >
+        Quantity: {product.quantity > 0 ? `${product.quantity} in stock` : 'Out of stock'}
+      </p>
       <Link
         href={`/product/${product?.slug}`}
         className="block flex justify-center items-center w-full uppercase bg-white px-0 py-2 text-base border border-black border-gray-300 font-bold text-blue-600 shadow-sm hover:bg-black hover:bg-gray-100 focus:outline-none focus:ring-2"

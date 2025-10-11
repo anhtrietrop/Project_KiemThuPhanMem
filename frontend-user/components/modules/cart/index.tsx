@@ -24,7 +24,7 @@ export const CartModule = () => {
 
   const handleCheckout = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    
+
     // Kiểm tra xem user đã đăng nhập chưa
     if (!session) {
       toast.error("Vui lòng đăng nhập để tiếp tục thanh toán");
@@ -32,7 +32,7 @@ export const CartModule = () => {
       router.push("/login?callbackUrl=/checkout");
       return;
     }
-    
+
     // Nếu đã đăng nhập, chuyển đến trang checkout
     router.push("/checkout");
   };
@@ -100,19 +100,19 @@ export const CartModule = () => {
                 </div>
 
                 <p className="mt-4 flex space-x-2 text-sm text-gray-700">
-                  {1 ? (
+                  {product.quantity > 0 ? (
                     <FaCheck
                       className="h-5 w-5 flex-shrink-0 text-green-500"
                       aria-hidden="true"
                     />
                   ) : (
-                    <FaClock
-                      className="h-5 w-5 flex-shrink-0 text-gray-300"
+                    <FaXmark
+                      className="h-5 w-5 flex-shrink-0 text-red-500"
                       aria-hidden="true"
                     />
                   )}
 
-                  <span>{1 ? "In stock" : `Ships in 3 days`}</span>
+                  <span>{product.quantity > 0 ? "In stock" : "Out of stock"}</span>
                 </p>
               </div>
             </li>

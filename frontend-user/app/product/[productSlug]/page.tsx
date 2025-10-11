@@ -22,7 +22,7 @@ interface ImageItem {
 }
 
 interface SingleProductPageProps {
-  params: Promise<{  productSlug: string, id: string }>;
+  params: Promise<{ productSlug: string, id: string }>;
 }
 
 const SingleProductPage = async ({ params }: SingleProductPageProps) => {
@@ -72,7 +72,7 @@ const SingleProductPage = async ({ params }: SingleProductPageProps) => {
             <SingleProductRating rating={product?.rating} />
             <h1 className="text-3xl">{sanitize(product?.title)}</h1>
             <p className="text-xl font-semibold">${product?.price}</p>
-            <StockAvailabillity stock={94} inStock={product?.inStock} />
+            <StockAvailabillity stock={product?.quantity} inStock={product?.quantity > 0 ? 1 : 0} />
             <SingleProductDynamicFields product={product} />
             <div className="flex flex-col gap-y-2 max-[500px]:items-center">
               <AddToWishlistBtn product={product} slug={paramsAwaited.productSlug} />

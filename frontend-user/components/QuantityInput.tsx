@@ -13,18 +13,24 @@
 import React from "react";
 import { FaPlus } from "react-icons/fa6";
 import { FaMinus } from "react-icons/fa6";
+import toast from "react-hot-toast";
 
 interface QuantityInputProps {
   quantityCount: number;
   setQuantityCount: React.Dispatch<React.SetStateAction<number>>;
+  max: number;
 }
 
-const QuantityInput = ({quantityCount, setQuantityCount} : QuantityInputProps) => {
+const QuantityInput = ({ quantityCount, setQuantityCount, max }: QuantityInputProps) => {
 
 
   const handleQuantityChange = (actionName: string): void => {
     if (actionName === "plus") {
-      setQuantityCount(quantityCount + 1);
+      if (quantityCount < max) {
+        setQuantityCount(quantityCount + 1);
+      } else {
+        toast.error(`Cannot increase quantity beyond available stock: ${max} available`);
+      }
     } else if (actionName === "minus" && quantityCount !== 1) {
       setQuantityCount(quantityCount - 1);
     }
@@ -37,15 +43,17 @@ const QuantityInput = ({quantityCount, setQuantityCount} : QuantityInputProps) =
       <div className="flex items-center gap-1">
         <button
           type="button"
+          aria-label="Decrease quantity"
           className="size-10 leading-10 text-gray-600 transition hover:opacity-75 flex justify-center items-center border"
           onClick={() => handleQuantityChange("minus")}
         >
           <FaMinus />
         </button>
 
+        <label htmlFor="Quantity" className="sr-only">Quantity</label>
         <input
-          type="number"
           id="Quantity"
+          type="number"
           disabled={true}
           value={quantityCount}
           className="h-10 w-24 rounded border-gray-200 sm:text-sm"
@@ -53,6 +61,7 @@ const QuantityInput = ({quantityCount, setQuantityCount} : QuantityInputProps) =
 
         <button
           type="button"
+          aria-label="Increase quantity"
           className="size-10 leading-10 text-gray-600 transition hover:opacity-75 flex justify-center items-center border"
           onClick={() => handleQuantityChange("plus")}
         >

@@ -28,8 +28,8 @@ function validateAndSanitizeFilterValue(filterType, filterValue) {
       const numValue = parseInt(filterValue);
       return isNaN(numValue) ? null : numValue;
     case 'category':
-      return typeof filterValue === 'string' && filterValue.trim().length > 0 
-        ? filterValue.trim() 
+      return typeof filterValue === 'string' && filterValue.trim().length > 0
+        ? filterValue.trim()
         : null;
     default:
       return null;
@@ -39,41 +39,41 @@ function validateAndSanitizeFilterValue(filterType, filterValue) {
 // Security: Safe filter object builder
 function buildSafeFilterObject(filterArray) {
   const filterObj = {};
-  
+
   for (const item of filterArray) {
     // Validate filter type
     if (!validateFilterType(item.filterType)) {
       console.warn(`Invalid filter type: ${item.filterType}`);
       continue;
     }
-    
+
     // Validate operator
     if (!validateOperator(item.filterOperator)) {
       console.warn(`Invalid operator: ${item.filterOperator}`);
       continue;
     }
-    
+
     // Validate and sanitize filter value
     const sanitizedValue = validateAndSanitizeFilterValue(item.filterType, item.filterValue);
     if (sanitizedValue === null) {
       console.warn(`Invalid filter value for ${item.filterType}: ${item.filterValue}`);
       continue;
     }
-    
+
     // Build safe filter object
     filterObj[item.filterType] = {
       [item.filterOperator]: sanitizedValue,
     };
   }
-  
+
   return filterObj;
 }
 
 const getAllProducts = asyncHandler(async (request, response) => {
   const mode = request.query.mode || "";
-  
+
   // checking if we are on the admin products page because we don't want to have filtering, sorting and pagination there
-  if(mode === "admin"){
+  if (mode === "admin") {
     const adminProducts = await prisma.product.findMany({});
     return response.json(adminProducts);
   } else {
@@ -97,7 +97,7 @@ const getAllProducts = asyncHandler(async (request, response) => {
       for (let i = 0; i < queryArray.length; i++) {
         // Security: Use more robust parsing with validation
         const queryParam = queryArray[i];
-        
+
         // Extract filter type safely
         if (queryParam.includes("filters")) {
           if (queryParam.includes("price")) {
@@ -127,7 +127,7 @@ const getAllProducts = asyncHandler(async (request, response) => {
         // Security: Extract filter parameters safely
         if (queryParam.includes("filters") && filterType) {
           let filterValue;
-          
+
           // Extract filter value based on type
           if (filterType === "category") {
             filterValue = queryParam.substring(queryParam.indexOf("=") + 1);
@@ -139,22 +139,22 @@ const getAllProducts = asyncHandler(async (request, response) => {
           // Extract operator safely
           const operatorStart = queryParam.indexOf("$") + 1;
           const operatorEnd = queryParam.indexOf("=") - 1;
-          
+
           if (operatorStart > 0 && operatorEnd > operatorStart) {
             const filterOperator = queryParam.substring(operatorStart, operatorEnd);
-            
+
             // Only add to filter array if all values are valid
             if (filterValue !== null && filterOperator) {
-              filterArray.push({ 
-                filterType, 
-                filterOperator, 
-                filterValue 
+              filterArray.push({
+                filterType,
+                filterOperator,
+                filterValue
               });
             }
           }
         }
       }
-      
+
       // Security: Build filter object using safe function
       filterObj = buildSafeFilterObject(filterArray);
     }
@@ -266,6 +266,8 @@ const createProduct = asyncHandler(async (request, response) => {
     title,
     mainImage,
     price,
+    costPrice,
+    quantity,
     description,
     manufacturer,
     categoryId,
@@ -275,12 +277,12 @@ const createProduct = asyncHandler(async (request, response) => {
   if (!title) {
     throw new AppError("Missing required field: title", 400);
   }
-  
+
   // Basic validation
   if (!merchantId) {
     throw new AppError("Missing required field: merchantId", 400);
   }
-  
+
   if (!slug) {
     throw new AppError("Missing required field: slug", 400);
   }
@@ -300,6 +302,8 @@ const createProduct = asyncHandler(async (request, response) => {
       title,
       mainImage,
       price,
+      costPrice,
+      quantity,
       rating: 5,
       description,
       manufacturer,
@@ -319,6 +323,8 @@ const updateProduct = asyncHandler(async (request, response) => {
     title,
     mainImage,
     price,
+    costPrice,
+    quantity,
     rating,
     description,
     manufacturer,
@@ -353,6 +359,8 @@ const updateProduct = asyncHandler(async (request, response) => {
       mainImage: mainImage,
       slug: slug,
       price: price,
+      costPrice: costPrice,
+      quantity: quantity,
       rating: rating,
       description: description,
       manufacturer: manufacturer,
@@ -378,8 +386,8 @@ const deleteProduct = asyncHandler(async (request, response) => {
       productId: id,
     },
   });
-  
-  if(relatedOrderProductItems.length > 0){
+
+  if (relatedOrderProductItems.length > 0) {
     throw new AppError("Cannot delete product because of foreign key constraint", 400);
   }
 
@@ -393,7 +401,7 @@ const deleteProduct = asyncHandler(async (request, response) => {
 
 const searchProducts = asyncHandler(async (request, response) => {
   const { query } = request.query;
-  
+
   if (!query) {
     throw new AppError("Query parameter is required", 400);
   }
@@ -420,7 +428,7 @@ const searchProducts = asyncHandler(async (request, response) => {
 
 const getProductById = asyncHandler(async (request, response) => {
   const { id } = request.params;
-  
+
   if (!id) {
     throw new AppError("Product ID is required", 400);
   }
@@ -433,11 +441,11 @@ const getProductById = asyncHandler(async (request, response) => {
       category: true,
     },
   });
-  
+
   if (!product) {
     throw new AppError("Product not found", 404);
   }
-  
+
   return response.status(200).json(product);
 });
 
