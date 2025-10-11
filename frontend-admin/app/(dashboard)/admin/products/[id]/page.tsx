@@ -20,7 +20,7 @@ const DashboardProductDetails = ({
 }: DashboardProductDetailsProps) => {
   const resolvedParams = use(params);
   const id = resolvedParams.id;
-  
+
   const [product, setProduct] = useState<Product>();
   const [categories, setCategories] = useState<Category[]>();
   const [otherImages, setOtherImages] = useState<OtherImages[]>([]);
@@ -64,12 +64,9 @@ const DashboardProductDetails = ({
       return;
     }
 
-    const requestOptions = {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(product),
-    };
-    apiClient.put(`/api/products/${id}`, requestOptions)
+    apiClient.put(`/api/products/${id}`, product, {
+      headers: { "Content-Type": "application/json" }
+    })
       .then((response) => {
         if (response.status === 200) {
           return response.json();
@@ -144,7 +141,7 @@ const DashboardProductDetails = ({
       <div className="flex flex-col gap-y-7 xl:ml-5 w-full max-xl:px-5">
         <h1 className="text-3xl font-semibold">Product details</h1>
         {/* Product name input div - start */}
-        
+
         <div>
           <label className="form-control w-full max-w-xs">
             <div className="label">

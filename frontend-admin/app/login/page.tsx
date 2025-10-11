@@ -1,10 +1,17 @@
 "use client";
 import { CustomButton, SectionTitle } from "@/components";
 import { isValidEmailAddressFormat } from "@/lib/utils";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+
+// A loading component to show while session status is being determined
+const FullPageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen bg-blue-900 text-white text-xl">
+    Loading...
+  </div>
+);
 
 const LoginPage = () => {
   const router = useRouter();
@@ -13,31 +20,29 @@ const LoginPage = () => {
   const { data: session, status: sessionStatus } = useSession();
 
   useEffect(() => {
-    // Check if unauthorized (non-admin tried to access)
-    const error = searchParams.get('error');
-    if (error === 'unauthorized') {
-      setError("Access denied. Admin account required.");
-      toast.error("Please sign in with an admin account");
+    const errorParam = searchParams.get('error');
+    if (errorParam === 'unauthorized') {
+      toast.error("Access denied. Admin account required.");
     }
 
-    // Check if session expired
-    const expired = searchParams.get('expired');
-    if (expired === 'true') {
-      setError("Your session has expired. Please log in again.");
+    const expiredParam = searchParams.get('expired');
+    if (expiredParam === 'true') {
       toast.error("Your session has expired. Please log in again.");
     }
+  }, [searchParams]);
 
-    // if user has already logged in with admin role, redirect to dashboard
+  useEffect(() => {
+    // This effect handles redirection based on authentication status
     if (sessionStatus === "authenticated" && session?.user?.role === "admin") {
-      router.replace("/");
-    } else if (sessionStatus === "authenticated" && session?.user?.role !== "admin") {
-      // Non-admin user logged in, show error and sign out
-      setError("Access denied. Admin account required.");
-      toast.error("You are not authorized to access admin panel");
-      // Sign out the non-admin user
-      signOut({ redirect: false });
+      // If an admin is already logged in, redirect them to the dashboard.
+      router.replace("/admin");
+    } else if (sessionStatus === "authenticated") {
+      // If a non-admin user is somehow authenticated on the admin portal,
+      // they should be redirected away. The middleware should also handle this,
+      // but this is a good client-side fallback.
+      router.replace('/unauthorized'); // Or sign them out
     }
-  }, [sessionStatus, router, searchParams, session]);
+  }, [sessionStatus, session, router]);
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -64,22 +69,19 @@ const LoginPage = () => {
 
     if (res?.error) {
       setError("Invalid email or password");
-      toast.error("Invalid email or password");
-      if (res?.url) router.replace("/");
+      toast.error(res.error);
     } else {
-      // After successful login, verify the user is admin
-      // The middleware will handle the redirect
       setError("");
-
-      // Small delay to let session update
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 500);
+      toast.success("Login successful! Redirecting...");
+      // Use router.push for a smoother, client-side navigation
+      // The middleware will ensure only admins can access the target page.
+      router.push("/admin");
     }
   };
 
   if (sessionStatus === "loading") {
-    return <h1>Loading...</h1>;
+    // Show a loader while checking the session to prevent screen flicker
+    return <FullPageLoader />;
   }
   return (
     <div className="bg-blue-900 min-h-screen">

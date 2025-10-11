@@ -221,48 +221,41 @@ const demoCategories = [
   {
     id: "3117a1b0-6369-491e-8b8b-9fdd5ad9912e",
     name: "smart-phones",
-  },
-  {
-    id: "da6413b4-22fd-4fbb-9741-d77580dfdcd5",
-    name: "mouses"
-  },
-  {
-    id: "ss6412b4-22fd-4fbb-9741-d77580dfdcd2",
-    name: "computers"
-  },
-  {
-    id: "fs6412b4-22fd-4fbb-9741-d77512dfdfa3",
-    name: "printers"
   }
 ];
 
 async function insertDemoData() {
-  for (const merchant of demoMerchant) {
-    await prisma.merchant.upsert({
+  console.log("🚀 Starting to seed demo data...");
+
+  const merchantUpserts = demoMerchant.map(merchant =>
+    prisma.merchant.upsert({
       where: { id: merchant.id },
       update: merchant,
       create: merchant,
-    });
-  }
-  console.log("✅ Demo merchant data synced successfully!");
+    })
+  );
+  await Promise.all(merchantUpserts);
+  console.log("✅ Demo merchants synced successfully!");
 
-  for (const category of demoCategories) {
-    await prisma.category.upsert({
+  const categoryUpserts = demoCategories.map(category =>
+    prisma.category.upsert({
       where: { id: category.id },
       update: category,
       create: category,
-    });
-  }
-  console.log("✅ Demo categories data synced successfully!");
+    })
+  );
+  await Promise.all(categoryUpserts);
+  console.log("✅ Demo categories synced successfully!");
 
-  for (const product of demoProducts) {
-    await prisma.product.upsert({
+  const productUpserts = demoProducts.map(product =>
+    prisma.product.upsert({
       where: { id: product.id },
       update: product,
       create: product,
-    });
-  }
-  console.log("✅ Demo products data synced successfully!");
+    })
+  );
+  await Promise.all(productUpserts);
+  console.log("✅ Demo products synced successfully!");
   console.log("\n🎉 Database has been seeded with demo data.");
 }
 
