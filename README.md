@@ -2,7 +2,7 @@ Môn Kiểm thử phần mêm
 Thành viên nhóm: 
 -Đỗ Anh Triết 3122411223
 -Nguyễn Võ Minh Thư 3122411201
--Trần Nguyễn Phúc Mạnh 311224
+-Trần Nguyễn Phúc Mạnh 3112241121
 
 
 # Electronics eCommerce - Tách Admin và User
@@ -24,7 +24,17 @@ web-electronic/
 
 ## 🚀 Hướng dẫn cài đặt và chạy
 
-> 💡 **Cách nhanh nhất**: Xem [QUICK-START.md](./QUICK-START.md) để sử dụng scripts tự động
+### Cách nhanh (Windows)
+1. Double-click: `setup-all.bat` để cài dependencies.
+2. Tạo file .env trong backend, frontend-user, frontend-admin (sử dụng env-template.txt làm mẫu, sửa username/password MySQL).
+3. cd backend && npx prisma migrate dev
+4. cd backend/utills && node insertDemoData.js
+5. Double-click: `start-all.bat` để chạy tất cả services.
+6. Mở browser:
+   - User: http://localhost:3000
+   - Admin: http://localhost:3001
+
+> 💡 **Chi tiết**: Xem các bước dưới đây hoặc [QUICK-START.md](./QUICK-START.md) để sử dụng scripts tự động
 
 ### Yêu cầu hệ thống
 - Node.js (v18 trở lên)
@@ -43,7 +53,7 @@ web-electronic/
 1. Tải và cài đặt MySQL: https://dev.mysql.com/downloads/installer/
 2. Mở MySQL và tạo database:
 ```sql
-CREATE DATABASE singitronic_nextjs;
+CREATE DATABASE singitronic_nextjs_db;
 ```
 
 ### Bước 2: Tạo file cấu hình môi trường
@@ -55,11 +65,11 @@ create-env-files.bat
 ```
 
 **Cách 2: Thủ công**
-
+**Thay thế user name(thường là root) và password của bạn**
 Tạo file `backend/.env`:
 ```env
 NODE_ENV=development
-DATABASE_URL="mysql://username:password@localhost:3306/singitronic_nextjs?sslmode=disabled"
+DATABASE_URL="mysql://username:password@localhost:3306/singitronic_nextjs_db" 
 PORT=3002
 FRONTEND_USER_URL=http://localhost:3000
 FRONTEND_ADMIN_URL=http://localhost:3001
@@ -70,6 +80,8 @@ Tạo file `frontend-user/.env.local`:
 NEXT_PUBLIC_API_BASE_URL=http://localhost:3002
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your-secret-key-change-this-in-production
+DATABASE_URL="mysql://root:Manhtran11@localhost:3306/singitronic_nextjs_db"
+NODE_ENV=development
 ```
 
 Tạo file `frontend-admin/.env.local`:
@@ -77,6 +89,8 @@ Tạo file `frontend-admin/.env.local`:
 NEXT_PUBLIC_API_BASE_URL=http://localhost:3002
 NEXTAUTH_URL=http://localhost:3001
 NEXTAUTH_SECRET=your-secret-key-change-this-in-production
+DATABASE_URL="mysql://root:Manhtran11@localhost:3306/singitronic_nextjs_db"
+NODE_ENV=development
 ```
 
 ### Bước 3: Cấu hình Backend
@@ -93,10 +107,11 @@ npx prisma migrate dev
 # Insert demo data
 cd utills
 node insertDemoData.js
+node insertAdminUser.js
 cd ..
 
 # Chạy backend server
-node app.js
+npm start
 ```
 
 Backend sẽ chạy tại: **http://localhost:3002**
@@ -136,10 +151,10 @@ Frontend Admin sẽ chạy tại: **http://localhost:3001**
 Sau khi chạy `insertDemoData.js`, bạn sẽ có sẵn các tài khoản:
 
 ### Admin Account
-- **URL**: http://localhost:3001/login
-- **Email**: admin@example.com (hoặc kiểm tra trong database)
-- **Password**: (kiểm tra trong insertDemoData.js)
-- **⚠️ LƯU Ý**: Chỉ tài khoản có `role='admin'` mới đăng nhập được vào Admin Panel
+- **URL**: http://localhost:3001/login (Trang đăng nhập riêng dành cho admin với giao diện nền xanh đậm)
+- **Email**: admin@example.com
+- **Password**: admin123
+- **⚠️ LƯU Ý**: Chỉ tài khoản có `role='admin'` mới đăng nhập được vào Admin Panel. Script insertAdminUser.js tạo user này; thay đổi password trong production.
 
 ### User Account
 - **URL**: http://localhost:3000/login

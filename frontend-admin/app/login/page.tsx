@@ -19,14 +19,14 @@ const LoginPage = () => {
       setError("Access denied. Admin account required.");
       toast.error("Please sign in with an admin account");
     }
-    
+
     // Check if session expired
     const expired = searchParams.get('expired');
     if (expired === 'true') {
       setError("Your session has expired. Please log in again.");
       toast.error("Your session has expired. Please log in again.");
     }
-    
+
     // if user has already logged in with admin role, redirect to dashboard
     if (sessionStatus === "authenticated" && session?.user?.role === "admin") {
       router.replace("/");
@@ -70,7 +70,7 @@ const LoginPage = () => {
       // After successful login, verify the user is admin
       // The middleware will handle the redirect
       setError("");
-      
+
       // Small delay to let session update
       setTimeout(() => {
         window.location.href = "/";
@@ -82,25 +82,25 @@ const LoginPage = () => {
     return <h1>Loading...</h1>;
   }
   return (
-    <div className="bg-white">
+    <div className="bg-blue-900 min-h-screen">
       <SectionTitle title="Admin Login" path="Admin | Login" />
-      <div className="flex min-h-full flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8 bg-white">
+      <div className="flex min-h-full flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8 bg-blue-900">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h2 className="mt-6 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
+          <h2 className="mt-6 text-center text-2xl font-bold leading-9 tracking-tight text-white">
             Admin Panel
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-gray-300">
             Sign in with your admin account
           </p>
         </div>
 
         <div className="mt-5 sm:mx-auto sm:w-full sm:max-w-[480px]">
-          <div className="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12">
+          <div className="bg-blue-800 px-6 py-12 shadow sm:rounded-lg sm:px-12">
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium leading-6 text-gray-900"
+                  className="block text-sm font-medium leading-6 text-white"
                 >
                   Email address
                 </label>
@@ -119,7 +119,7 @@ const LoginPage = () => {
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium leading-6 text-gray-900"
+                  className="block text-sm font-medium leading-6 text-white"
                 >
                   Password
                 </label>
@@ -145,7 +145,7 @@ const LoginPage = () => {
                   />
                   <label
                     htmlFor="remember-me"
-                    className="ml-3 block text-sm leading-6 text-gray-900"
+                    className="ml-3 block text-sm leading-6 text-white"
                   >
                     Remember me
                   </label>
@@ -154,7 +154,7 @@ const LoginPage = () => {
                 <div className="text-sm leading-6">
                   <a
                     href="#"
-                    className="font-semibold text-black hover:text-black"
+                    className="font-semibold text-white hover:text-gray-300"
                   >
                     Forgot password?
                   </a>

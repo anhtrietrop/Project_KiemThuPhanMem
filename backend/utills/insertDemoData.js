@@ -10,8 +10,6 @@ const demoMerchant = [
     phone: "1234567890",
     address: "123 Demo St, Demo City, DM 12345",
     status: "active",
-    createdAt : new Date(),
-    updatedAt : new Date(),
   }
 ]
 
@@ -239,27 +237,33 @@ const demoCategories = [
 ];
 
 async function insertDemoData() {
-
   for (const merchant of demoMerchant) {
-    await prisma.merchant.create({
-      data: merchant,
+    await prisma.merchant.upsert({
+      where: { id: merchant.id },
+      update: merchant,
+      create: merchant,
     });
   }
-  console.log("Demo merchant inserted successfully!");
+  console.log("✅ Demo merchant data synced successfully!");
 
   for (const category of demoCategories) {
-    await prisma.category.create({
-      data: category,
+    await prisma.category.upsert({
+      where: { id: category.id },
+      update: category,
+      create: category,
     });
   }
-  console.log("Demo categories inserted successfully!");
+  console.log("✅ Demo categories data synced successfully!");
 
   for (const product of demoProducts) {
-    await prisma.product.create({
-      data: product,
+    await prisma.product.upsert({
+      where: { id: product.id },
+      update: product,
+      create: product,
     });
   }
-  console.log("Demo products inserted successfully!");
+  console.log("✅ Demo products data synced successfully!");
+  console.log("\n🎉 Database has been seeded with demo data.");
 }
 
 insertDemoData()
