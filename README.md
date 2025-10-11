@@ -80,7 +80,7 @@ Tạo file `frontend-user/.env.local`:
 NEXT_PUBLIC_API_BASE_URL=http://localhost:3002
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your-secret-key-change-this-in-production
-DATABASE_URL="mysql://root:Manhtran11@localhost:3306/singitronic_nextjs_db"
+DATABASE_URL="mysql://root:password@localhost:3306/singitronic_nextjs_db"
 NODE_ENV=development
 ```
 
@@ -89,7 +89,7 @@ Tạo file `frontend-admin/.env.local`:
 NEXT_PUBLIC_API_BASE_URL=http://localhost:3002
 NEXTAUTH_URL=http://localhost:3001
 NEXTAUTH_SECRET=your-secret-key-change-this-in-production
-DATABASE_URL="mysql://root:Manhtran11@localhost:3306/singitronic_nextjs_db"
+DATABASE_URL="mysql://root:password@localhost:3306/singitronic_nextjs_db"
 NODE_ENV=development
 ```
 

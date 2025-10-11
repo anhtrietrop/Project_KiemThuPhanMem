@@ -263,19 +263,24 @@ const DashboardProductDetails = ({
 
         {/* Main image file upload div - start */}
         <div>
-          <input
-            type="file"
-            className="file-input file-input-bordered file-input-lg w-full max-w-sm"
-            onChange={(e) => {
-              // @ts-ignore
-              const selectedFile = e.target.files[0];
+          <label className="form-control w-full max-w-sm">
+            <div className="label">
+              <span className="label-text">Main image:</span>
+            </div>
+            <input
+              type="file"
+              className="file-input file-input-bordered file-input-lg w-full max-w-sm"
+              onChange={(e) => {
+                // @ts-ignore
+                const selectedFile = e.target.files[0];
 
-              if (selectedFile) {
-                uploadFile(selectedFile);
-                setProduct({ ...product!, mainImage: selectedFile.name });
-              }
-            }}
-          />
+                if (selectedFile) {
+                  uploadFile(selectedFile);
+                  setProduct({ ...product!, mainImage: selectedFile.name });
+                }
+              }}
+            />
+          </label>
           {product?.mainImage && (
             <Image
               src={`/` + product?.mainImage}

@@ -14,20 +14,20 @@ import React, { useState } from "react";
 import { FaPlus } from "react-icons/fa6";
 import { FaMinus } from "react-icons/fa6";
 
-const QuantityInputCart = ({ product } : { product: ProductInCart }) => {
+const QuantityInputCart = ({ product }: { product: ProductInCart }) => {
   const [quantityCount, setQuantityCount] = useState<number>(product.amount);
   const { updateCartAmount, calculateTotals } = useProductStore();
 
   const handleQuantityChange = (actionName: string): void => {
     if (actionName === "plus") {
-      setQuantityCount(() => quantityCount + 1);
-      updateCartAmount(product.id, quantityCount + 1);
+      const newQuantity = quantityCount + 1;
+      setQuantityCount(() => newQuantity);
+      updateCartAmount(product.id, newQuantity);
       calculateTotals();
-
-      
     } else if (actionName === "minus" && quantityCount !== 1) {
-      setQuantityCount(() => quantityCount - 1);
-      updateCartAmount(product.id, quantityCount - 1);
+      const newQuantity = quantityCount - 1;
+      setQuantityCount(() => newQuantity);
+      updateCartAmount(product.id, newQuantity);
       calculateTotals();
     }
   };
@@ -42,6 +42,7 @@ const QuantityInputCart = ({ product } : { product: ProductInCart }) => {
       <div className="flex items-center justify-center rounded border border-gray-200 w-32">
         <button
           type="button"
+          aria-label="Decrease quantity"
           className="size-10 leading-10 text-gray-600 transition hover:opacity-75 flex items-center justify-center"
           onClick={() => handleQuantityChange("minus")}
         >
@@ -58,6 +59,7 @@ const QuantityInputCart = ({ product } : { product: ProductInCart }) => {
 
         <button
           type="button"
+          aria-label="Increase quantity"
           className="size-10 leading-10 text-gray-600 transition hover:opacity-75 flex items-center justify-center"
           onClick={() => handleQuantityChange("plus")}
         >

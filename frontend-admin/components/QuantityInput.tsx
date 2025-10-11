@@ -19,14 +19,14 @@ interface QuantityInputProps {
   setQuantityCount: React.Dispatch<React.SetStateAction<number>>;
 }
 
-const QuantityInput = ({quantityCount, setQuantityCount} : QuantityInputProps) => {
+const QuantityInput = ({ quantityCount, setQuantityCount }: QuantityInputProps) => {
 
 
   const handleQuantityChange = (actionName: string): void => {
     if (actionName === "plus") {
-      setQuantityCount(quantityCount + 1);
+      setQuantityCount((prev) => prev + 1);
     } else if (actionName === "minus" && quantityCount !== 1) {
-      setQuantityCount(quantityCount - 1);
+      setQuantityCount((prev) => prev - 1);
     }
   };
 
@@ -35,8 +35,10 @@ const QuantityInput = ({quantityCount, setQuantityCount} : QuantityInputProps) =
       <p className="text-xl">Quantity: </p>
 
       <div className="flex items-center gap-1">
+        <label htmlFor="Quantity" className="sr-only">Quantity</label>
         <button
           type="button"
+          aria-label="Decrease quantity"
           className="size-10 leading-10 text-gray-600 transition hover:opacity-75 flex justify-center items-center border"
           onClick={() => handleQuantityChange("minus")}
         >
@@ -53,6 +55,7 @@ const QuantityInput = ({quantityCount, setQuantityCount} : QuantityInputProps) =
 
         <button
           type="button"
+          aria-label="Increase quantity"
           className="size-10 leading-10 text-gray-600 transition hover:opacity-75 flex justify-center items-center border"
           onClick={() => handleQuantityChange("plus")}
         >
