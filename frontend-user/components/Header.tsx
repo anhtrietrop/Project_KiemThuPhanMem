@@ -43,7 +43,7 @@ const Header = () => {
         cache: "no-store",
       });
       const wishlist = await response.json();
-      
+
       // Check if wishlist is an array
       if (Array.isArray(wishlist)) {
         const productArray: {
@@ -54,16 +54,16 @@ const Header = () => {
           slug: string;
           stockAvailabillity: number;
         }[] = [];
-        
+
         wishlist.map((item: any) => productArray.push({
-          id: item?.product?.id, 
-          title: item?.product?.title, 
-          price: item?.product?.price, 
-          image: item?.product?.mainImage, 
-          slug: item?.product?.slug, 
+          id: item?.product?.id,
+          title: item?.product?.title,
+          price: item?.product?.price,
+          image: item?.product?.mainImage,
+          slug: item?.product?.slug,
           stockAvailabillity: item?.product?.inStock
         }));
-        
+
         setWishlist(productArray);
       } else {
         // If wishlist is not an array, set empty array
@@ -78,7 +78,7 @@ const Header = () => {
   // getting user by email so I can get his user id
   const getUserByEmail = async () => {
     if (session?.user?.email) {
-      
+
       apiClient.get(`/api/users/email/${session?.user?.email}`, {
         cache: "no-store",
       })
@@ -94,7 +94,7 @@ const Header = () => {
   }, [session?.user?.email, wishlist.length]);
 
   return (
-    <header className="bg-white">
+    <header className="bg-white sticky top-0 z-50 w-full shadow-md">
       <HeaderTop />
       {pathname.startsWith("/admin") === false && (
         <div className="h-32 bg-white flex items-center justify-between px-16 max-[1320px]:px-16 max-md:px-6 max-lg:flex-col max-lg:gap-y-7 max-lg:justify-center max-lg:h-60 max-w-screen-2xl mx-auto">
@@ -106,9 +106,7 @@ const Header = () => {
             {/* Cart, Notifications disabled for Phase 1 */}
             {/* <NotificationBell />
             <CartElement /> */}
-            <Link href="/dashboard" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-              Dashboard
-            </Link>
+
             <HeartElement wishQuantity={wishQuantity} />
           </div>
         </div>

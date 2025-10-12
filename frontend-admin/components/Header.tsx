@@ -20,7 +20,7 @@ import { FaBell } from "react-icons/fa6";
 // Cart, Notifications disabled for Phase 1
 // import CartElement from "./CartElement";
 // import NotificationBell from "./NotificationBell";
-import HeartElement from "./HeartElement";
+// import HeartElement from "./HeartElement";
 import { signOut, useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import { useWishlistStore } from "@/app/_zustand/wishlistStore";
@@ -47,19 +47,19 @@ const Header = () => {
       title: string;
       price: number;
       image: string;
-      slug:string
+      slug: string
       stockAvailabillity: number;
     }[] = [];
-    
-    wishlist.map((item: any) => productArray.push({id: item?.product?.id, title: item?.product?.title, price: item?.product?.price, image: item?.product?.mainImage, slug: item?.product?.slug, stockAvailabillity: item?.product?.inStock}));
-    
+
+    wishlist.map((item: any) => productArray.push({ id: item?.product?.id, title: item?.product?.title, price: item?.product?.price, image: item?.product?.mainImage, slug: item?.product?.slug, stockAvailabillity: item?.product?.inStock }));
+
     setWishlist(productArray);
   };
 
   // getting user by email so I can get his user id
   const getUserByEmail = async () => {
     if (session?.user?.email) {
-      
+
       apiClient.get(`/api/users/email/${session?.user?.email}`, {
         cache: "no-store",
       })
@@ -87,7 +87,7 @@ const Header = () => {
             {/* Cart, Notifications disabled for Phase 1 */}
             {/* <NotificationBell />
             <CartElement /> */}
-            <HeartElement wishQuantity={wishQuantity} />
+            {/* <HeartElement wishQuantity={wishQuantity} /> */}
           </div>
         </div>
       )}

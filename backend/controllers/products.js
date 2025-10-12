@@ -278,9 +278,10 @@ const createProduct = asyncHandler(async (request, response) => {
     throw new AppError("Missing required field: title", 400);
   }
 
-  // Basic validation
+  // Basic validation - merchantId is optional now (single merchant approach)
   if (!merchantId) {
-    throw new AppError("Missing required field: merchantId", 400);
+    // Use default merchant ID for single merchant approach
+    merchantId = "default-merchant";
   }
 
   if (!slug) {
@@ -348,13 +349,16 @@ const updateProduct = asyncHandler(async (request, response) => {
     throw new AppError("Product not found", 404);
   }
 
+  // Handle merchantId for single merchant approach
+  const finalMerchantId = merchantId || existingProduct.merchantId || "default-merchant";
+
   // Updating found product
   const updatedProduct = await prisma.product.update({
     where: {
       id,
     },
     data: {
-      merchantId: merchantId,
+      merchantId: finalMerchantId,
       title: title,
       mainImage: mainImage,
       slug: slug,

@@ -1,13 +1,21 @@
+// User-specific components (homepage and user features)
+export { default as Hero } from "./Hero";
+export { default as IntroducingSection } from "./IntroducingSection";
+export { default as Incentives } from "./Incentives";
+export { default as Newsletter } from "./Newsletter";
+export { default as AddToWishlistBtn } from "./AddToWishlistBtn";
+export { default as HeartElement } from "./HeartElement";
+export { default as WishItem } from "./WishItem";
+
+// Shared components (used in user interface)
 export { default as Header } from "./Header";
 export { default as HeaderTop } from "./HeaderTop";
 export { default as SearchInput } from "./SearchInput";
 export { default as SimpleSlider } from "./SimpleSlider";
 export { default as CategoryItem } from "./CategoryItem";
 export { default as CategoryMenu } from "./CategoryMenu";
-export { default as Incentives } from "./Incentives";
 export { default as ProductItem } from "./ProductItem";
 export { default as ProductsSection } from "./ProductsSection";
-export { default as Newsletter } from "./Newsletter";
 export { default as Footer } from "./Footer";
 export { default as Filters } from "./Filters";
 export { default as Checkbox } from "./Checkbox";
@@ -28,10 +36,6 @@ export { default as CustomButton } from "./CustomButton";
 export { default as SingleProductDynamicFields } from "./SingleProductDynamicFields";
 export { default as ProductItemRating } from "./ProductItemRating";
 export { default as SortBy } from "./SortBy";
-export { default as WishItem } from "./WishItem";
 export { default as SectionTitle } from "./SectionTitle";
-export { default as HeartElement } from "./HeartElement";
-export { default as AddToWishlistBtn } from "./AddToWishlistBtn";
-export { default as Hero } from "./Hero";
-export { default as IntroducingSection } from "./IntroducingSection";
 export { default as Heading } from "./Heading";
+export { default as Loader } from "./Loader";
