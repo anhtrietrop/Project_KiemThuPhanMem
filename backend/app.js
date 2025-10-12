@@ -7,12 +7,12 @@ const categoryRouter = require("./routes/category");
 const searchRouter = require("./routes/search");
 const mainImageRouter = require("./routes/mainImages");
 const userRouter = require("./routes/users");
-const orderRouter = require("./routes/customer_orders");
-const slugRouter = require("./routes/slugs");
-const orderProductRouter = require('./routes/customer_order_product');
-const wishlistRouter = require('./routes/wishlist');
-const notificationsRouter = require('./routes/notifications');
-const merchantRouter = require('./routes/merchant'); // Add this line
+// Routes disabled for Phase 1
+// const orderRouter = require("./routes/customer_orders");
+// const orderProductRouter = require('./routes/customer_order_product');
+// const wishlistRouter = require('./routes/wishlist');
+// const notificationsRouter = require('./routes/notifications');
+// const merchantRouter = require('./routes/merchant');
 var cors = require("cors");
 
 // Import logging middleware
@@ -104,13 +104,11 @@ app.use(fileUpload());
 // Apply specific rate limiters to different route groups
 app.use("/api/users", userManagementLimiter);
 app.use("/api/search", searchLimiter);
-app.use("/api/orders", orderLimiter);
-app.use("/api/order-product", orderLimiter);
-app.use("/api/images", uploadLimiter);
-app.use("/api/main-image", uploadLimiter);
-app.use("/api/wishlist", wishlistLimiter);
-app.use("/api/products", productLimiter);
-app.use("/api/merchants", productLimiter);
+// Rate limiters disabled for Phase 1
+// app.use("/api/orders", orderLimiter);
+// app.use("/api/order-product", orderLimiter);
+// app.use("/api/wishlist", wishlistLimiter);
+// app.use("/api/merchants", productLimiter);
 
 // Apply stricter rate limiting to authentication-related routes
 app.use("/api/users/email", authLimiter); // For login attempts via email lookup
@@ -124,12 +122,12 @@ app.use("/api/images", productImagesRouter);
 app.use("/api/main-image", mainImageRouter);
 app.use("/api/users", userRouter);
 app.use("/api/search", searchRouter);
-app.use("/api/orders", orderRouter);
-app.use('/api/order-product', orderProductRouter);
-app.use("/api/slugs", slugRouter);
-app.use("/api/wishlist", wishlistRouter);
-app.use("/api/notifications", notificationsRouter);
-app.use("/api/merchants", merchantRouter); 
+// Routes disabled for Phase 1
+// app.use("/api/orders", orderRouter);
+// app.use('/api/order-product', orderProductRouter);
+// app.use("/api/wishlist", wishlistRouter);
+// app.use("/api/notifications", notificationsRouter);
+// app.use("/api/merchants", merchantRouter); 
 
 // Health check endpoint (no rate limiting)
 app.get('/health', (req, res) => {
