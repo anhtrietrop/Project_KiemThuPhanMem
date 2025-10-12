@@ -17,8 +17,9 @@ import SearchInput from "./SearchInput";
 import Link from "next/link";
 import { FaBell } from "react-icons/fa6";
 
-import CartElement from "./CartElement";
-import NotificationBell from "./NotificationBell";
+// Cart, Notifications disabled for Phase 1
+// import CartElement from "./CartElement";
+// import NotificationBell from "./NotificationBell";
 import HeartElement from "./HeartElement";
 import { signOut, useSession } from "next-auth/react";
 import toast from "react-hot-toast";
@@ -83,9 +84,10 @@ const Header = () => {
           </Link>
           <SearchInput />
           <div className="flex gap-x-10 items-center">
-            <NotificationBell />
+            {/* Cart, Notifications disabled for Phase 1 */}
+            {/* <NotificationBell />
+            <CartElement /> */}
             <HeartElement wishQuantity={wishQuantity} />
-            <CartElement />
           </div>
         </div>
       )}
@@ -101,7 +103,8 @@ const Header = () => {
             />
           </Link>
           <div className="flex gap-x-5 items-center">
-            <NotificationBell />
+            {/* Notifications disabled for Phase 1 */}
+            {/* <NotificationBell /> */}
             <div className="dropdown dropdown-end">
               <div tabIndex={0} role="button" className="w-10">
                 <Image
