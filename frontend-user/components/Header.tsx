@@ -17,10 +17,10 @@ import SearchInput from "./SearchInput";
 import Link from "next/link";
 import { FaBell } from "react-icons/fa6";
 
-// Cart, Wishlist, Notifications disabled for Phase 1
+// Cart, Notifications disabled for Phase 1
 // import CartElement from "./CartElement";
 // import NotificationBell from "./NotificationBell";
-// import HeartElement from "./HeartElement";
+import HeartElement from "./HeartElement";
 import { signOut, useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import { useWishlistStore } from "@/app/_zustand/wishlistStore";
@@ -38,22 +38,41 @@ const Header = () => {
 
   // getting all wishlist items by user id
   const getWishlistByUserId = async (id: string) => {
-    const response = await apiClient.get(`/api/wishlist/${id}`, {
-      cache: "no-store",
-    });
-    const wishlist = await response.json();
-    const productArray: {
-      id: string;
-      title: string;
-      price: number;
-      image: string;
-      slug:string
-      stockAvailabillity: number;
-    }[] = [];
-    
-    wishlist.map((item: any) => productArray.push({id: item?.product?.id, title: item?.product?.title, price: item?.product?.price, image: item?.product?.mainImage, slug: item?.product?.slug, stockAvailabillity: item?.product?.inStock}));
-    
-    setWishlist(productArray);
+    try {
+      const response = await apiClient.get(`/api/wishlist/${id}`, {
+        cache: "no-store",
+      });
+      const wishlist = await response.json();
+      
+      // Check if wishlist is an array
+      if (Array.isArray(wishlist)) {
+        const productArray: {
+          id: string;
+          title: string;
+          price: number;
+          image: string;
+          slug: string;
+          stockAvailabillity: number;
+        }[] = [];
+        
+        wishlist.map((item: any) => productArray.push({
+          id: item?.product?.id, 
+          title: item?.product?.title, 
+          price: item?.product?.price, 
+          image: item?.product?.mainImage, 
+          slug: item?.product?.slug, 
+          stockAvailabillity: item?.product?.inStock
+        }));
+        
+        setWishlist(productArray);
+      } else {
+        // If wishlist is not an array, set empty array
+        setWishlist([]);
+      }
+    } catch (error) {
+      console.error('Error fetching wishlist:', error);
+      setWishlist([]);
+    }
   };
 
   // getting user by email so I can get his user id
@@ -84,10 +103,10 @@ const Header = () => {
           </Link>
           <SearchInput />
           <div className="flex gap-x-10 items-center">
-            {/* Cart, Wishlist, Notifications disabled for Phase 1 */}
+            {/* Cart, Notifications disabled for Phase 1 */}
             {/* <NotificationBell />
-            <HeartElement wishQuantity={wishQuantity} />
             <CartElement /> */}
+            <HeartElement wishQuantity={wishQuantity} />
           </div>
         </div>
       )}

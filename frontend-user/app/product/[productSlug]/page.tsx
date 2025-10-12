@@ -4,7 +4,7 @@ import {
   SingleProductRating,
   ProductTabs,
   SingleProductDynamicFields,
-  // AddToWishlistBtn, // Disabled for Phase 1
+  AddToWishlistBtn, // Restored for Phase 1
 } from "@/components";
 import apiClient from "@/lib/api";
 import Image from "next/image";
@@ -75,8 +75,7 @@ const SingleProductPage = async ({ params }: SingleProductPageProps) => {
             <StockAvailabillity stock={product?.quantity} inStock={product?.quantity > 0 ? 1 : 0} />
             <SingleProductDynamicFields product={product} />
             <div className="flex flex-col gap-y-2 max-[500px]:items-center">
-              {/* AddToWishlistBtn disabled for Phase 1 */}
-              {/* <AddToWishlistBtn product={product} slug={paramsAwaited.productSlug} /> */}
+              <AddToWishlistBtn product={product} slug={paramsAwaited.productSlug} />
               <p className="text-lg">
                 SKU: <span className="ml-1">abccd-18</span>
               </p>

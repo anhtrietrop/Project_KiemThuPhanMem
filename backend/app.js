@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const bcrypt = require('bcryptjs');
 const fileUpload = require("express-fileupload");
@@ -7,20 +8,15 @@ const categoryRouter = require("./routes/category");
 const searchRouter = require("./routes/search");
 const mainImageRouter = require("./routes/mainImages");
 const userRouter = require("./routes/users");
-// Routes disabled for Phase 1
-// const orderRouter = require("./routes/customer_orders");
-// const orderProductRouter = require('./routes/customer_order_product');
-// const wishlistRouter = require('./routes/wishlist');
-// const notificationsRouter = require('./routes/notifications');
-// const merchantRouter = require('./routes/merchant');
+const wishlistRouter = require('./routes/wishlist');
 var cors = require("cors");
 
 // Import logging middleware
-const { 
-  addRequestId, 
-  requestLogger, 
-  errorLogger, 
-  securityLogger 
+const {
+  addRequestId,
+  requestLogger,
+  errorLogger,
+  securityLogger
 } = require('./middleware/requestLogger');
 
 // Import rate limiting middleware
@@ -74,17 +70,17 @@ const corsOptions = {
   origin: function (origin, callback) {
 
     if (!origin) return callback(null, true);
-    
+
 
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    
+
 
     if (process.env.NODE_ENV === 'development' && origin.startsWith('http://localhost:')) {
       return callback(null, true);
     }
-    
+
     // Reject other origins
     const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
     return callback(new Error(msg), false);
@@ -104,11 +100,7 @@ app.use(fileUpload());
 // Apply specific rate limiters to different route groups
 app.use("/api/users", userManagementLimiter);
 app.use("/api/search", searchLimiter);
-// Rate limiters disabled for Phase 1
-// app.use("/api/orders", orderLimiter);
-// app.use("/api/order-product", orderLimiter);
-// app.use("/api/wishlist", wishlistLimiter);
-// app.use("/api/merchants", productLimiter);
+app.use("/api/wishlist", wishlistLimiter);
 
 // Apply stricter rate limiting to authentication-related routes
 app.use("/api/users/email", authLimiter); // For login attempts via email lookup
@@ -122,17 +114,17 @@ app.use("/api/images", productImagesRouter);
 app.use("/api/main-image", mainImageRouter);
 app.use("/api/users", userRouter);
 app.use("/api/search", searchRouter);
+app.use("/api/wishlist", wishlistRouter);
 // Routes disabled for Phase 1
 // app.use("/api/orders", orderRouter);
 // app.use('/api/order-product', orderProductRouter);
-// app.use("/api/wishlist", wishlistRouter);
 // app.use("/api/notifications", notificationsRouter);
 // app.use("/api/merchants", merchantRouter); 
 
 // Health check endpoint (no rate limiting)
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK', 
+  res.status(200).json({
+    status: 'OK',
     timestamp: new Date().toISOString(),
     rateLimiting: 'enabled',
     requestId: req.reqId
