@@ -27,6 +27,12 @@
   - Navigation menu
 - **Search Products** - Hoạt động bình thường
   - Trang search: `/search`
+- **Product Detail Page** - ✅ **ĐÃ KHÔI PHỤC**
+  - Trang chi tiết sản phẩm: `/product/[slug]`
+  - **Không có nút Add to Cart** (theo yêu cầu)
+- **Wishlist** - ✅ **ĐÃ KHÔI PHỤC**
+  - Thêm/xóa sản phẩm khỏi wishlist
+  - Trang wishlist: `/wishlist`
 
 ## ❌ Chức năng đã tắt cho giai đoạn 1
 
@@ -43,7 +49,7 @@
 - **Checkout Functionality** - Đã comment out
   - BuyNowSingleProductBtn component
   - Checkout page
-- **Wishlist Functionality** - Đã comment out
+- **Wishlist Functionality** - 
   - AddToWishlistBtn component
   - HeartElement component
   - Wishlist page
@@ -52,7 +58,7 @@
 
 ### Backend API:
 - **Orders API** - Đã comment out routes
-- **Wishlist API** - Đã comment out routes
+- **Wishlist API** - 
 - **Notifications API** - Đã comment out routes
 - **Merchant API** - Đã comment out routes
 - **Order Product API** - Đã comment out routes

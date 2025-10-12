@@ -9,6 +9,7 @@ const searchRouter = require("./routes/search");
 const mainImageRouter = require("./routes/mainImages");
 const userRouter = require("./routes/users");
 const wishlistRouter = require('./routes/wishlist');
+const slugRouter = require('./routes/slugs');
 var cors = require("cors");
 
 // Import logging middleware
@@ -115,6 +116,7 @@ app.use("/api/main-image", mainImageRouter);
 app.use("/api/users", userRouter);
 app.use("/api/search", searchRouter);
 app.use("/api/wishlist", wishlistRouter);
+app.use("/api/slugs", slugRouter);
 // Routes disabled for Phase 1
 // app.use("/api/orders", orderRouter);
 // app.use('/api/order-product', orderProductRouter);
