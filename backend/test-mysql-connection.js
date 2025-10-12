@@ -2,7 +2,7 @@ const mysql = require('mysql2/promise');
 
 async function testMySQLConnection() {
     console.log('🔍 Testing MySQL Connection...\n');
-    
+
     // Các cấu hình thường dùng để test
     const configs = [
         {
@@ -46,15 +46,15 @@ async function testMySQLConnection() {
             console.log(`User: ${config.user}`);
             console.log(`Password: ${config.password ? '***' : '(empty)'}`);
             console.log(`Database: ${config.database}`);
-            
+
             const connection = await mysql.createConnection(config);
             await connection.ping();
             console.log('✅ Connection successful!\n');
-            
+
             // Test database exists
             const [databases] = await connection.execute('SHOW DATABASES');
             const dbExists = databases.some(db => db.Database === config.database);
-            
+
             if (dbExists) {
                 console.log(`✅ Database '${config.database}' exists`);
             } else {
@@ -62,21 +62,21 @@ async function testMySQLConnection() {
                 console.log('Available databases:');
                 databases.forEach(db => console.log(`  - ${db.Database}`));
             }
-            
+
             await connection.end();
-            
+
             // Generate DATABASE_URL
             const databaseUrl = `mysql://${config.user}:${config.password}@${config.host}:${config.port}/${config.database}`;
             console.log(`\n📋 DATABASE_URL for .env file:`);
             console.log(`DATABASE_URL="${databaseUrl}"`);
-            
+
             return config;
-            
+
         } catch (error) {
             console.log(`❌ Connection failed: ${error.message}\n`);
         }
     }
-    
+
     console.log('❌ All connection attempts failed.');
     console.log('\n🔧 Troubleshooting steps:');
     console.log('1. Make sure MySQL Server is running');
@@ -84,7 +84,7 @@ async function testMySQLConnection() {
     console.log('3. Verify username and password');
     console.log('4. Ensure database exists');
     console.log('5. Check if MySQL is running on port 3306');
-    
+
     return null;
 }
 

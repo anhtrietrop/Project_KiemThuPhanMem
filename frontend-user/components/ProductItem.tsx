@@ -17,10 +17,58 @@ import { sanitize } from "@/lib/sanitize";
 const ProductItem = ({
   product,
   color,
+  viewMode = 'grid',
 }: {
   product: Product;
   color: string;
+  viewMode?: 'grid' | 'list';
 }) => {
+  if (viewMode === 'list') {
+    return (
+      <div className="bg-white rounded-lg shadow-lg p-6 flex gap-6 items-center">
+        <Link href={`/product/${product.slug}`} className="flex-shrink-0">
+          <Image
+            src={
+              product.mainImage
+                ? `/${product.mainImage}`
+                : "/product_placeholder.jpg"
+            }
+            width={150}
+            height={150}
+            className="w-[150px] h-[150px] object-cover rounded-lg"
+            alt={sanitize(product?.title) || "Product image"}
+          />
+        </Link>
+        
+        <div className="flex-1">
+          <Link
+            href={`/product/${product.slug}`}
+            className="text-xl text-black font-semibold hover:text-blue-600 transition-colors"
+          >
+            {sanitize(product.title)}
+          </Link>
+          
+          <div className="mt-2 flex items-center gap-4">
+            <p className="text-lg text-blue-600 font-bold">${product.price}</p>
+            <ProductItemRating productRating={product?.rating} />
+          </div>
+          
+          <p className="text-sm text-gray-600 mt-2">
+            Quantity: {product.quantity > 0 ? `${product.quantity} in stock` : 'Out of stock'}
+          </p>
+          
+          <Link
+            href={`/product/${product?.slug}`}
+            className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            View Product
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Grid view (default)
   return (
     <div className="flex flex-col items-center gap-y-2">
       <Link href={`/product/${product.slug}`}>
