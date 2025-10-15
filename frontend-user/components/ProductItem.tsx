@@ -1,5 +1,5 @@
 // *********************
-// Role of the component: Product item component 
+// Role of the component: Product item component
 // Name of the component: ProductItem.tsx
 // Developer: Aleksandar Kuzmanovic
 // Version: 1.0
@@ -13,6 +13,7 @@ import React from "react";
 import Link from "next/link";
 import ProductItemRating from "./ProductItemRating";
 import { sanitize } from "@/lib/sanitize";
+import { useTranslation } from '@/hooks/useTranslation'
 
 const ProductItem = ({
   product,
@@ -39,7 +40,7 @@ const ProductItem = ({
             alt={sanitize(product?.title) || "Product image"}
           />
         </Link>
-        
+
         <div className="flex-1">
           <Link
             href={`/product/${product.slug}`}
@@ -47,21 +48,21 @@ const ProductItem = ({
           >
             {sanitize(product.title)}
           </Link>
-          
+
           <div className="mt-2 flex items-center gap-4">
             <p className="text-lg text-blue-600 font-bold">${product.price}</p>
             <ProductItemRating productRating={product?.rating} />
           </div>
-          
+
           <p className="text-sm text-gray-600 mt-2">
-            Quantity: {product.quantity > 0 ? `${product.quantity} in stock` : 'Out of stock'}
+            Số lượng: {product.quantity > 0 ? `${product.quantity} còn hàng` : 'Hết hàng'}
           </p>
-          
+
           <Link
             href={`/product/${product?.slug}`}
             className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            View Product
+            Xem sản phẩm
           </Link>
         </div>
       </div>
@@ -113,13 +114,13 @@ const ProductItem = ({
             : "text-sm text-white font-normal"
         }
       >
-        Quantity: {product.quantity > 0 ? `${product.quantity} in stock` : 'Out of stock'}
+        Số lượng: {product.quantity > 0 ? `${product.quantity} còn hàng` : 'Hết hàng'}
       </p>
       <Link
         href={`/product/${product?.slug}`}
         className="block flex justify-center items-center w-full uppercase bg-white px-0 py-2 text-base border border-black border-gray-300 font-bold text-blue-600 shadow-sm hover:bg-black hover:bg-gray-100 focus:outline-none focus:ring-2"
       >
-        <p>View product</p>
+        <p>Xem sản phẩm</p>
       </Link>
     </div>
   );

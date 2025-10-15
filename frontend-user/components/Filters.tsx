@@ -14,6 +14,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useSortStore } from "@/app/_zustand/sortStore";
 import { usePaginationStore } from "@/app/_zustand/paginationStore";
+import { useTranslation } from '@/hooks/useTranslation'
 
 interface InputCategory {
   inStock: { text: string, isChecked: boolean },
@@ -49,12 +50,14 @@ const Filters = () => {
     replace(`${pathname}?${params}`);
   }, [inputCategory, sortBy, page]);
 
+  const { t } = useTranslation();
+
   return (
     <div>
-      <h3 className="text-2xl mb-2">Filters</h3>
+      <h3 className="text-2xl mb-2">{t('filters')}</h3>
       <div className="divider"></div>
       <div className="flex flex-col gap-y-1">
-        <h3 className="text-xl mb-2">Availability</h3>
+        <h3 className="text-xl mb-2">{t('availability')}</h3>
         <div className="form-control">
           <label className="cursor-pointer flex items-center">
             <input
@@ -71,7 +74,7 @@ const Filters = () => {
               }
               className="checkbox"
             />
-            <span className="label-text text-lg ml-2 text-black">In stock</span>
+            <span className="label-text text-lg ml-2 text-black">{t('inStock')}</span>
           </label>
         </div>
 
@@ -92,7 +95,7 @@ const Filters = () => {
               className="checkbox"
             />
             <span className="label-text text-lg ml-2 text-black">
-              Out of stock
+              {t('outOfStock')}
             </span>
           </label>
         </div>
@@ -100,7 +103,7 @@ const Filters = () => {
 
       <div className="divider"></div>
       <div className="flex flex-col gap-y-1">
-        <h3 className="text-xl mb-2">Price</h3>
+        <h3 className="text-xl mb-2">{t('price')}</h3>
         <div>
           <input
             type="range"
@@ -119,14 +122,14 @@ const Filters = () => {
               })
             }
           />
-          <span>{`Max price: $${inputCategory.priceFilter.value}`}</span>
+          <span>{`${t('maxPrice')}: $${inputCategory.priceFilter.value}`}</span>
         </div>
       </div>
 
       <div className="divider"></div>
 
       <div>
-        <h3 className="text-xl mb-2">Minimum Rating:</h3>
+        <h3 className="text-xl mb-2">{t('minimumRating')}</h3>
         <input
           type="range"
           min={0}

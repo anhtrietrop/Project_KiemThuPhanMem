@@ -26,7 +26,7 @@ const DashboardSidebar = () => {
       <Link href="/admin">
         <div className="flex gap-x-2 w-full hover:bg-blue-600 cursor-pointer items-center py-6 pl-5 text-xl text-white">
           <MdDashboard className="text-2xl" />{" "}
-          <span className="font-normal">Dashboard</span>
+          <span className="font-normal">Bảng điều khiển</span>
         </div>
       </Link>
       {/* Orders - Disabled for Phase 1 */}
@@ -39,13 +39,13 @@ const DashboardSidebar = () => {
       <Link href="/admin/products">
         <div className="flex gap-x-2 w-full hover:bg-blue-600 cursor-pointer items-center py-6 pl-5 text-xl text-white">
           <FaTable className="text-2xl" />{" "}
-          <span className="font-normal">Products</span>
+          <span className="font-normal">Sản phẩm</span>
         </div>
       </Link>
       <Link href="/admin/categories">
         <div className="flex gap-x-2 w-full hover:bg-blue-600 cursor-pointer items-center py-6 pl-5 text-xl text-white">
           <MdCategory className="text-2xl" />{" "}
-          <span className="font-normal">Categories</span>
+          <span className="font-normal">Danh mục</span>
         </div>
       </Link>
       {/* Users - Disabled for Phase 1 */}
