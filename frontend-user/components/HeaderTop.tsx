@@ -39,29 +39,35 @@ const HeaderTop = () => {
           </li>
         </ul>
         <ul className="flex items-center gap-x-5 h-full max-[370px]:text-sm max-[370px]:gap-x-2 font-semibold">
-          {!session ? ( 
-          <>
-          <li className="flex items-center">
-            <Link href="/login" className="flex items-center gap-x-2 font-semibold">
-              <FaRegUser className="text-white" />
-              <span>Login</span>
-            </Link>
-          </li>
-          <li className="flex items-center">
-            <Link href="/register" className="flex items-center gap-x-2 font-semibold">
-              <FaRegUser className="text-white" />
-              <span>Register</span>
-            </Link>
-          </li>
-          </>
-          ) :  (<>
-          <span className="ml-10 text-base">{session.user?.email}</span>
-          <li className="flex items-center">
-            <button onClick={() => handleLogout()} className="flex items-center gap-x-2 font-semibold">
-              <FaRegUser className="text-white" />
-              <span>Log out</span>
-            </button>
-          </li>
+          {!session ? (
+            <>
+              <li className="flex items-center">
+                <Link href="/login" className="flex items-center gap-x-2 font-semibold">
+                  <FaRegUser className="text-white" />
+                  <span>Login</span>
+                </Link>
+              </li>
+              <li className="flex items-center">
+                <Link href="/register" className="flex items-center gap-x-2 font-semibold">
+                  <FaRegUser className="text-white" />
+                  <span>Register</span>
+                </Link>
+              </li>
+            </>
+          ) : (<>
+            <li className="flex items-center">
+              <Link href="/my-orders" className="flex items-center gap-x-2 font-semibold">
+                <FaRegUser className="text-white" />
+                <span>Đơn hàng của tôi</span>
+              </Link>
+            </li>
+            <span className="ml-10 text-base">{session.user?.email}</span>
+            <li className="flex items-center">
+              <button onClick={() => handleLogout()} className="flex items-center gap-x-2 font-semibold">
+                <FaRegUser className="text-white" />
+                <span>Log out</span>
+              </button>
+            </li>
           </>)}
         </ul>
       </div>

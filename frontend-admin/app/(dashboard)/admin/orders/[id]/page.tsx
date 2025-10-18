@@ -125,6 +125,29 @@ const AdminSingleOrder = () => {
     }
   };
 
+  const updateOrderStatus = async () => {
+    // Only update status without validating customer info
+    const statusUpdate = {
+      status: order?.status
+    };
+
+    try {
+      const response = await apiClient.put(`/api/orders/${order?.id}/status`, statusUpdate);
+
+      if (response.ok) {
+        const data = await response.json();
+        toast.success(data.message || "Order status updated successfully");
+      } else {
+        const errorData = await response.json();
+        console.error('Status update error:', errorData);
+        toast.error(errorData.error || "There was an error while updating order status");
+      }
+    } catch (error) {
+      console.error('Status update failed:', error);
+      toast.error("There was an error while updating order status");
+    }
+  };
+
   const deleteOrder = async () => {
     const requestOptions = {
       method: "DELETE",
@@ -277,14 +300,16 @@ const AdminSingleOrder = () => {
                     | "processing"
                     | "shipped"
                     | "delivered"
+                    | "success"
                     | "cancelled",
                 })
               }
             >
-              <option value="processing">Processing</option>
-              <option value="shipped">Shipped</option>
-              <option value="delivered">Delivered</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="processing">Đang xử lý</option>
+              <option value="shipped">Đang giao hàng</option>
+              <option value="delivered">Đã giao hàng</option>
+              <option value="success">Hoàn thành</option>
+              <option value="cancelled">Đã hủy</option>
             </select>
           </label>
         </div>
@@ -336,7 +361,14 @@ const AdminSingleOrder = () => {
               className="uppercase bg-blue-500 px-10 py-5 text-lg border border-black border-gray-300 font-bold text-white shadow-sm hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2"
               onClick={updateOrder}
             >
-              Update order
+              Update customer info
+            </button>
+            <button
+              type="button"
+              className="uppercase bg-green-500 px-10 py-5 text-lg border border-black border-gray-300 font-bold text-white shadow-sm hover:bg-green-600 hover:text-white focus:outline-none focus:ring-2"
+              onClick={updateOrderStatus}
+            >
+              Update status only
             </button>
             <button
               type="button"

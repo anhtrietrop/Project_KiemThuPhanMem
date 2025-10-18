@@ -7,11 +7,11 @@ async function createCustomerOrder(request, response) {
   try {
     console.log("=== ORDER CREATION REQUEST ===");
     console.log("Request body:", JSON.stringify(request.body, null, 2));
-    
+
     // Validate request body
     if (!request.body || typeof request.body !== 'object') {
       console.log("❌ Invalid request body");
-      return response.status(400).json({ 
+      return response.status(400).json({
         error: "Invalid request body",
         details: "Request body must be a valid JSON object"
       });
@@ -20,7 +20,7 @@ async function createCustomerOrder(request, response) {
     // Server-side validation
     const validation = validateOrderData(request.body);
     console.log("Validation result:", validation);
-    
+
     if (!validation.isValid) {
       console.log("❌ Validation failed:", validation.errors);
       return response.status(400).json({
@@ -85,7 +85,7 @@ async function createCustomerOrder(request, response) {
     // Create notification for the user if they have an account
     try {
       let user = null;
-      
+
       // First, try to use userId if provided (from logged-in user)
       if (request.body.userId) {
         console.log(`🔍 Using provided userId: ${request.body.userId}`);
@@ -98,7 +98,7 @@ async function createCustomerOrder(request, response) {
           console.log(`❌ User not found with ID: ${request.body.userId}`);
         }
       }
-      
+
       // Fallback: search by email if no userId or user not found
       if (!user) {
         console.log(`🔍 Searching user by email: ${validatedData.email}`);
@@ -109,7 +109,7 @@ async function createCustomerOrder(request, response) {
           console.log(`✅ Found user by email: ${user.email}`);
         }
       }
-      
+
       if (user) {
         await createOrderUpdateNotification(
           user.id,
@@ -134,16 +134,16 @@ async function createCustomerOrder(request, response) {
       message: "Order created successfully",
       orderNumber: corder.id
     };
-    
+
     console.log("Sending response:", responseData);
     return response.status(201).json(responseData);
 
   } catch (error) {
     console.error("❌ Error creating order:", error);
-    
+
     // Handle specific Prisma errors
     if (error.code === 'P2002') {
-      return response.status(409).json({ 
+      return response.status(409).json({
         error: "Order conflict",
         details: "An order with this information already exists"
       });
@@ -158,7 +158,7 @@ async function createCustomerOrder(request, response) {
     }
 
     // Generic error response
-    return response.status(500).json({ 
+    return response.status(500).json({
       error: "Internal server error",
       details: "Failed to create order. Please try again later."
     });
@@ -168,7 +168,7 @@ async function createCustomerOrder(request, response) {
 async function updateCustomerOrder(request, response) {
   try {
     const { id } = request.params;
-    
+
     // Validate ID format
     if (!id || typeof id !== 'string') {
       return response.status(400).json({
@@ -179,7 +179,7 @@ async function updateCustomerOrder(request, response) {
 
     // Validate request body
     if (!request.body || typeof request.body !== 'object') {
-      return response.status(400).json({ 
+      return response.status(400).json({
         error: "Invalid request body",
         details: "Request body must be a valid JSON object"
       });
@@ -187,7 +187,7 @@ async function updateCustomerOrder(request, response) {
 
     // Server-side validation for update data
     const validation = validateOrderData(request.body);
-    
+
     if (!validation.isValid) {
       return response.status(400).json({
         error: "Validation failed",
@@ -204,7 +204,7 @@ async function updateCustomerOrder(request, response) {
     });
 
     if (!existingOrder) {
-      return response.status(404).json({ 
+      return response.status(404).json({
         error: "Order not found",
         details: "The specified order does not exist"
       });
@@ -234,7 +234,7 @@ async function updateCustomerOrder(request, response) {
         const user = await prisma.user.findUnique({
           where: { email: validatedData.email }
         });
-        
+
         if (user) {
           await createOrderUpdateNotification(
             user.id,
@@ -254,9 +254,9 @@ async function updateCustomerOrder(request, response) {
     return response.status(200).json(updatedOrder);
   } catch (error) {
     console.error("Error updating order:", error);
-    
+
     if (error.code === 'P2025') {
-      return response.status(404).json({ 
+      return response.status(404).json({
         error: "Order not found",
         details: "The specified order does not exist"
       });
@@ -269,9 +269,147 @@ async function updateCustomerOrder(request, response) {
       });
     }
 
-    return response.status(500).json({ 
+    return response.status(500).json({
       error: "Internal server error",
       details: "Failed to update order. Please try again later."
+    });
+  }
+}
+
+async function updateOrderStatus(request, response) {
+  try {
+    const { id } = request.params;
+
+    // Validate ID format
+    if (!id || typeof id !== 'string') {
+      return response.status(400).json({
+        error: "Invalid order ID",
+        details: "Order ID must be provided"
+      });
+    }
+
+    // Validate request body
+    if (!request.body || typeof request.body !== 'object') {
+      return response.status(400).json({
+        error: "Invalid request body",
+        details: "Request body must be a valid JSON object"
+      });
+    }
+
+    const { status, cancelReason } = request.body;
+
+    // Validate status
+    if (!status || typeof status !== 'string') {
+      return response.status(400).json({
+        error: "Invalid status",
+        details: "Status must be provided and must be a string"
+      });
+    }
+
+    // Validate status values
+    const validStatuses = ['processing', 'shipped', 'delivered', 'success', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      return response.status(400).json({
+        error: "Invalid status value",
+        details: `Status must be one of: ${validStatuses.join(', ')}`
+      });
+    }
+
+    const existingOrder = await prisma.customer_order.findUnique({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!existingOrder) {
+      return response.status(404).json({
+        error: "Order not found",
+        details: "The specified order does not exist"
+      });
+    }
+
+    // Validate status transition rules
+    const currentStatus = existingOrder.status;
+    const validTransitions = {
+      'processing': ['shipped', 'cancelled'],
+      'shipped': ['delivered', 'cancelled'],
+      'delivered': ['success'],
+      'success': [], // Cannot change from success
+      'cancelled': [] // Cannot change from cancelled
+    };
+
+    if (!validTransitions[currentStatus]?.includes(status)) {
+      return response.status(400).json({
+        error: "Invalid status transition",
+        details: `Cannot change status from ${currentStatus} to ${status}`
+      });
+    }
+
+    // Validate cancellation reason
+    if (status === 'cancelled' && (!cancelReason || cancelReason.trim() === '')) {
+      return response.status(400).json({
+        error: "Cancellation reason required",
+        details: "Cancellation reason must be provided when cancelling an order"
+      });
+    }
+
+    const updateData = {
+      status: status,
+    };
+
+    // Add cancel reason if cancelling
+    if (status === 'cancelled' && cancelReason) {
+      updateData.cancelReason = cancelReason;
+    }
+
+    const updatedOrder = await prisma.customer_order.update({
+      where: {
+        id: existingOrder.id,
+      },
+      data: updateData,
+    });
+
+    // Create notification for status update if status changed
+    if (existingOrder.status !== status) {
+      try {
+        const user = await prisma.user.findUnique({
+          where: { email: existingOrder.email }
+        });
+
+        if (user) {
+          await createOrderUpdateNotification(
+            user.id,
+            status,
+            updatedOrder.id,
+            existingOrder.total
+          );
+          console.log(`📧 Status update notification sent to user: ${user.email} - Status: ${status}`);
+        }
+      } catch (notificationError) {
+        console.error('❌ Failed to create status update notification:', notificationError);
+      }
+    }
+
+    console.log(`Order status updated successfully: ID ${updatedOrder.id} - Status: ${status}`);
+
+    return response.status(200).json({
+      id: updatedOrder.id,
+      status: updatedOrder.status,
+      message: "Order status updated successfully"
+    });
+  } catch (error) {
+    console.error("Error updating order status:", error);
+
+    if (error.code === 'P2025') {
+      return response.status(404).json({
+        error: "Order not found",
+        details: "The specified order does not exist"
+      });
+    }
+
+    return response.status(500).json({
+      error: "Internal server error",
+      details: "Failed to update order status. Please try again later."
     });
   }
 }
@@ -279,7 +417,7 @@ async function updateCustomerOrder(request, response) {
 async function deleteCustomerOrder(request, response) {
   try {
     const { id } = request.params;
-    
+
     if (!id || typeof id !== 'string') {
       return response.status(400).json({
         error: "Invalid order ID",
@@ -292,7 +430,7 @@ async function deleteCustomerOrder(request, response) {
     });
 
     if (!existingOrder) {
-      return response.status(404).json({ 
+      return response.status(404).json({
         error: "Order not found",
         details: "The specified order does not exist"
       });
@@ -308,15 +446,15 @@ async function deleteCustomerOrder(request, response) {
     return response.status(204).send();
   } catch (error) {
     console.error("Error deleting order:", error);
-    
+
     if (error.code === 'P2025') {
-      return response.status(404).json({ 
+      return response.status(404).json({
         error: "Order not found",
         details: "The specified order does not exist"
       });
     }
 
-    return response.status(500).json({ 
+    return response.status(500).json({
       error: "Internal server error",
       details: "Failed to delete order. Please try again later."
     });
@@ -326,7 +464,7 @@ async function deleteCustomerOrder(request, response) {
 async function getCustomerOrder(request, response) {
   try {
     const { id } = request.params;
-    
+
     if (!id || typeof id !== 'string') {
       return response.status(400).json({
         error: "Invalid order ID",
@@ -339,18 +477,18 @@ async function getCustomerOrder(request, response) {
         id: id,
       },
     });
-    
+
     if (!order) {
-      return response.status(404).json({ 
+      return response.status(404).json({
         error: "Order not found",
         details: "The specified order does not exist"
       });
     }
-    
+
     return response.status(200).json(order);
   } catch (error) {
     console.error("Error fetching order:", error);
-    return response.status(500).json({ 
+    return response.status(500).json({
       error: "Internal server error",
       details: "Failed to fetch order. Please try again later."
     });
@@ -363,7 +501,7 @@ async function getAllOrders(request, response) {
     const page = parseInt(request.query.page) || 1;
     const limit = parseInt(request.query.limit) || 50;
     const offset = (page - 1) * limit;
-    
+
     // Validate pagination parameters
     if (page < 1 || limit < 1 || limit > 100) {
       return response.status(400).json({
@@ -394,7 +532,7 @@ async function getAllOrders(request, response) {
     });
   } catch (error) {
     console.error("Error fetching orders:", error);
-    return response.status(500).json({ 
+    return response.status(500).json({
       error: "Internal server error",
       details: "Failed to fetch orders. Please try again later."
     });
@@ -404,6 +542,7 @@ async function getAllOrders(request, response) {
 module.exports = {
   createCustomerOrder,
   updateCustomerOrder,
+  updateOrderStatus,
   deleteCustomerOrder,
   getCustomerOrder,
   getAllOrders,

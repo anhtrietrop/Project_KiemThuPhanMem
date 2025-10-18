@@ -3,21 +3,25 @@ const express = require('express');
 const router = express.Router();
 
 const {
-    getCustomerOrder,
-    createCustomerOrder,
-    updateCustomerOrder,
-    deleteCustomerOrder,
-    getAllOrders 
-  } = require('../controllers/customer_orders');
+  getCustomerOrder,
+  createCustomerOrder,
+  updateCustomerOrder,
+  updateOrderStatus,
+  deleteCustomerOrder,
+  getAllOrders
+} = require('../controllers/customer_orders');
 
-  router.route('/')
+router.route('/')
   .get(getAllOrders)
   .post(createCustomerOrder);
 
-  router.route('/:id')
+router.route('/:id')
   .get(getCustomerOrder)
-  .put(updateCustomerOrder) 
-  .delete(deleteCustomerOrder); 
+  .put(updateCustomerOrder)
+  .delete(deleteCustomerOrder);
+
+router.route('/:id/status')
+  .put(updateOrderStatus);
 
 
-  module.exports = router;
+module.exports = router;
