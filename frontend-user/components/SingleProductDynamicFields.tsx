@@ -12,8 +12,8 @@
 import React, { useState } from "react";
 import QuantityInput from "./QuantityInput";
 // AddToCartSingleProductBtn and BuyNowSingleProductBtn disabled for Phase 1
-// import AddToCartSingleProductBtn from "./AddToCartSingleProductBtn";
-// import BuyNowSingleProductBtn from "./BuyNowSingleProductBtn";
+import AddToCartSingleProductBtn from "./AddToCartSingleProductBtn";
+import BuyNowSingleProductBtn from "./BuyNowSingleProductBtn";
 
 const SingleProductDynamicFields = ({ product }: { product: Product }) => {
   const [quantityCount, setQuantityCount] = useState<number>(1);
@@ -25,7 +25,7 @@ const SingleProductDynamicFields = ({ product }: { product: Product }) => {
         max={product.quantity}
       />
       {/* Add to Cart and Buy Now buttons disabled for Phase 1 */}
-      {/* {Boolean(product.inStock) && (
+      {Boolean(product.inStock) && (
         <div className="flex gap-x-5 max-[500px]:flex-col max-[500px]:items-center max-[500px]:gap-y-1">
           <AddToCartSingleProductBtn
             quantityCount={quantityCount}
@@ -36,7 +36,7 @@ const SingleProductDynamicFields = ({ product }: { product: Product }) => {
             product={product}
           />
         </div>
-      )} */}
+      )}
     </>
   );
 };

@@ -18,7 +18,7 @@ import Link from "next/link";
 import { FaBell } from "react-icons/fa6";
 
 // Cart, Notifications disabled for Phase 1
-// import CartElement from "./CartElement";
+import CartElement from "./CartElement";
 // import NotificationBell from "./NotificationBell";
 import HeartElement from "./HeartElement";
 import { signOut, useSession } from "next-auth/react";
@@ -104,8 +104,8 @@ const Header = () => {
           <SearchInput />
           <div className="flex gap-x-10 items-center">
             {/* Cart, Notifications disabled for Phase 1 */}
-            {/* <NotificationBell />
-            <CartElement /> */}
+            {/* <NotificationBell /> */}
+            <CartElement />
 
             <HeartElement wishQuantity={wishQuantity} />
           </div>
