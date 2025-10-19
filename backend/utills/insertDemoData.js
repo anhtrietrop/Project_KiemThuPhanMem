@@ -20,6 +20,7 @@ const demoProducts = [
     price: 22,
     rating: 5,
     description: "This is smart phone description",
+    quantity: 1,
     mainImage: "product1.webp",
     slug: "smart-phone-demo",
     manufacturer: "Samsung",
@@ -33,6 +34,7 @@ const demoProducts = [
     price: 24,
     rating: 0,
     description: "This is slr description",
+    quantity: 1,
     mainImage: "product2.webp",
     slug: "slr-camera-demo",
     manufacturer: "Canon",
@@ -52,6 +54,7 @@ const demoProducts = [
     categoryId: "6c3b8591-b01e-4842-bce1-2f5585bf3a28",
     inStock: 1,
     merchantId: "1",
+    quantity: 1,
   },
   {
     id: "4",
@@ -65,6 +68,7 @@ const demoProducts = [
     categoryId: "d30b85e2-e544-4f48-8434-33fe0b591579",
     inStock: 1,
     merchantId: "1",
+    quantity: 1,
   },
   {
     id: "5",
@@ -78,6 +82,7 @@ const demoProducts = [
     categoryId: "ada699e5-e764-4da0-8d3e-18a8c8c5ed24",
     inStock: 1,
     merchantId: "1",
+    quantity: 1,
   },
   {
     id: "6",
@@ -91,6 +96,7 @@ const demoProducts = [
     categoryId: "1cb9439a-ea47-4a33-913b-e9bf935bcc0b",
     inStock: 1,
     merchantId: "1",
+    quantity: 1,
   },
   {
     id: "7",
@@ -104,6 +110,7 @@ const demoProducts = [
     categoryId: "7a241318-624f-48f7-9921-1818f6c20d85",
     inStock: 1,
     merchantId: "1",
+    quantity: 1,
   },
   {
     id: "8",

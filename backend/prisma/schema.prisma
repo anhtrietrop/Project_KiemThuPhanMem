@@ -63,6 +63,10 @@ model Customer_order {
   orderNotice  String?
   cancelReason String?
   total        Int
+  payment_status String?               @default("PENDING")
+  payment_method String?
+  payment_transaction_id String?
+  updated_at   DateTime?               @updatedAt
   products     customer_order_product[]
 }
 
@@ -134,4 +138,49 @@ model Merchant {
 
   // relasi
   products Product[]
+}
+
+model MomoPayment {
+  id          String    @id @default(uuid())
+  orderId     String
+  requestId   String    @unique
+  amount      Int
+  orderInfo   String
+  extraData   String?
+  status      String    @default("PENDING")
+  payUrl      String?
+  deeplink    String?
+  qrCodeUrl   String?
+  transId     String?
+  resultCode  Int?
+  message     String?
+  payType     String?
+  responseTime DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([orderId])
+  @@index([status])
+}
+
+model RateLimitLog {
+  id        String   @id @default(uuid())
+  key       String
+  timestamp DateTime @default(now())
+
+  @@index([key, timestamp])
+}
+
+model SecurityLog {
+  id        String   @id @default(uuid())
+  event     String
+  details   String   @db.Text
+  severity  String
+  ip        String
+  userAgent String   @db.Text
+  timestamp DateTime @default(now())
+
+  @@index([event])
+  @@index([severity])
+  @@index([timestamp])
 }
