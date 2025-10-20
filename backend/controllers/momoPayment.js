@@ -25,6 +25,51 @@ function generateSignature(rawSignature, secretKey) {
   return crypto.createHmac('sha256', secretKey).update(rawSignature).digest('hex');
 }
 
+/**
+ * Map MoMo resultCode to payment status
+ * Reference: https://developers.momo.vn/v3/vi/docs/payment/api/result-handling/resultcode
+ * @param {number} resultCode - MoMo result code
+ * @returns {object} { status: string, orderPaymentStatus: string }
+ */
+function getStatusFromResultCode(resultCode) {
+  if (resultCode === null || resultCode === undefined || resultCode === -1) {
+    // Not yet processed
+    return {
+      status: 'PENDING',
+      orderPaymentStatus: 'PENDING',
+      description: 'Chờ xử lý'
+    };
+  }
+
+  if (resultCode === 0) {
+    // Success
+    return {
+      status: 'SUCCESS',
+      orderPaymentStatus: 'PAID',
+      description: 'Thành công'
+    };
+  }
+
+  if ([1000, 7000, 7002, 9000].includes(resultCode)) {
+    // Pending statuses
+    return {
+      status: 'PENDING',
+      orderPaymentStatus: 'PENDING',
+      description: resultCode === 1000 ? 'Chờ xác nhận thanh toán' :
+        resultCode === 7000 ? 'Đang xử lý' :
+          resultCode === 7002 ? 'Đang xử lý bởi nhà cung cấp' :
+            'Đã xác nhận, chờ capture'
+    };
+  }
+
+  // All other codes are failures
+  return {
+    status: 'FAILED',
+    orderPaymentStatus: 'FAILED',
+    description: 'Thanh toán thất bại'
+  };
+}
+
 // ================= CREATE PAYMENT REQUEST =================
 async function createPaymentRequest(req, res) {
   try {
@@ -110,15 +155,15 @@ async function createPaymentRequest(req, res) {
     console.log('\n--- Request Body ---');
     console.log(JSON.stringify(requestBody, null, 2));
 
-    // Create payment record in database
+    // Create payment record in database (resultCode defaults to -1 = not yet processed)
     const momoPayment = await prisma.momoPayment.create({
       data: {
         orderId: orderId,
         requestId: requestId,
         amount: amountInVND,
         orderInfo: orderInfo,
-        extraData: extraDataString || '',
-        status: 'PENDING'
+        extraData: extraDataString || ''
+        // resultCode will default to -1 (PENDING)
       }
     });
 
@@ -143,6 +188,7 @@ async function createPaymentRequest(req, res) {
       const { resultCode, payUrl, deeplink, qrCodeUrl, message } = response.data;
 
       // Update payment record with MoMo response
+      // No need to set 'status' - we use resultCode directly
       await prisma.momoPayment.update({
         where: { id: momoPayment.id },
         data: {
@@ -151,7 +197,6 @@ async function createPaymentRequest(req, res) {
           qrCodeUrl: qrCodeUrl || null,
           resultCode: resultCode,
           message: message || null,
-          status: resultCode === 0 ? 'PENDING' : 'FAILED',
           updatedAt: new Date()
         }
       });
@@ -184,13 +229,12 @@ async function createPaymentRequest(req, res) {
       console.error('\n--- Axios Error ---');
       console.error(axiosError.response?.data || axiosError.message);
 
-      // Update payment record as FAILED
+      // Update payment record with error info
       await prisma.momoPayment.update({
         where: { id: momoPayment.id },
         data: {
-          status: 'FAILED',
           message: axiosError.response?.data?.message || axiosError.message,
-          resultCode: axiosError.response?.data?.resultCode || null,
+          resultCode: axiosError.response?.data?.resultCode || -2, // -2 = API error
           updatedAt: new Date()
         }
       });
@@ -234,12 +278,17 @@ async function handlePaymentCallback(req, res) {
       signature
     } = req.body;
 
-    console.log('\n=== MoMo Callback Received ===');
+    console.log('\n========================================');
+    console.log('🔔 MOMO CALLBACK RECEIVED');
+    console.log('========================================');
+    console.log('📋 Full Request Body:', JSON.stringify(req.body, null, 2));
     console.log('Order ID:', orderId);
     console.log('Request ID:', requestId);
     console.log('Result Code:', resultCode);
     console.log('Message:', message);
     console.log('Trans ID:', transId);
+    console.log('Pay Type:', payType);
+    console.log('========================================');
 
     // Verify signature (for production)
     const rawSignature =
@@ -284,33 +333,13 @@ async function handlePaymentCallback(req, res) {
       });
     }
 
-    // Determine payment status based on MoMo resultCode
-    // Reference: https://developers.momo.vn/v3/vi/docs/payment/api/result-handling/resultcode
-    let newStatus, orderPaymentStatus;
+    // Get status from resultCode
+    const { status, orderPaymentStatus } = getStatusFromResultCode(resultCode);
 
-    if (resultCode === 0) {
-      // Success
-      newStatus = 'SUCCESS';
-      orderPaymentStatus = 'PAID';
-    } else if ([1000, 7000, 7002, 9000].includes(resultCode)) {
-      // Pending statuses:
-      // 1000: Giao dịch đã được khởi tạo, chờ người dùng xác nhận thanh toán
-      // 7000: Giao dịch đang được xử lý
-      // 7002: Giao dịch đang được xử lý bởi nhà cung cấp
-      // 9000: Giao dịch đã được xác nhận thành công (chờ capture)
-      newStatus = 'PENDING';
-      orderPaymentStatus = 'PENDING';
-    } else {
-      // All other codes are failures (1001-1088, 4001-4100, etc.)
-      newStatus = 'FAILED';
-      orderPaymentStatus = 'FAILED';
-    }
-
-    // Update payment record
+    // Update payment record (only resultCode matters, status is derived from it)
     await prisma.momoPayment.update({
       where: { id: payment.id },
       data: {
-        status: newStatus,
         transId: transId || null,
         resultCode: resultCode,
         message: message || null,
@@ -338,7 +367,7 @@ async function handlePaymentCallback(req, res) {
       });
 
       // Create notification only for final statuses (success or failure)
-      if (order.email && (resultCode === 0 || newStatus === 'FAILED')) {
+      if (order.email && (resultCode === 0 || status === 'FAILED')) {
         await createPaymentNotification({
           userId: order.email,
           orderId: order.id,
@@ -493,9 +522,92 @@ async function refundPayment(req, res) {
   }
 }
 
+// ================= TEST CALLBACK (FOR DEVELOPMENT) =================
+async function testCallback(req, res) {
+  try {
+    const { requestId, resultCode = 0 } = req.body;
+
+    console.log('\n========================================');
+    console.log('🧪 MANUAL TEST CALLBACK');
+    console.log('========================================');
+    console.log('Request ID:', requestId);
+    console.log('Result Code:', resultCode);
+
+    // Find payment record
+    const payment = await prisma.momoPayment.findFirst({
+      where: { requestId: requestId }
+    });
+
+    if (!payment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Payment not found'
+      });
+    }
+
+    // Get status from resultCode using helper
+    const { status, orderPaymentStatus, description } = getStatusFromResultCode(resultCode);
+
+    // Update payment record
+    await prisma.momoPayment.update({
+      where: { id: payment.id },
+      data: {
+        transId: `TEST_${Date.now()}`,
+        resultCode: resultCode,
+        message: description,
+        updatedAt: new Date()
+      }
+    });
+
+    // Update order status
+    const order = await prisma.customer_order.findUnique({
+      where: { id: payment.orderId }
+    });
+
+    if (order) {
+      await prisma.customer_order.update({
+        where: { id: payment.orderId },
+        data: {
+          payment_status: orderPaymentStatus,
+          payment_method: 'MOMO',
+          payment_transaction_id: `TEST_${Date.now()}`,
+          status: resultCode === 0 ? 'processing' : order.status,
+          updated_at: new Date()
+        }
+      });
+
+      console.log(`✅ Order ${order.id} updated to payment_status: ${orderPaymentStatus}`);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Payment updated: ${description}`,
+      data: {
+        paymentId: payment.id,
+        orderId: payment.orderId,
+        resultCode: resultCode,
+        status: status,
+        orderPaymentStatus: orderPaymentStatus,
+        description: description
+      }
+    });
+
+  } catch (error) {
+    console.error('\n=== Test Callback Error ===');
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+}
+
 module.exports = {
   createPaymentRequest,
   handlePaymentCallback,
   queryPaymentStatus,
-  refundPayment
+  refundPayment,
+  testCallback
 };

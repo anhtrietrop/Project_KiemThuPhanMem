@@ -4,7 +4,8 @@ const {
   createPaymentRequest,
   handlePaymentCallback,
   queryPaymentStatus,
-  refundPayment
+  refundPayment,
+  testCallback
 } = require('../controllers/momoPayment');
 const { PrismaClient } = require('@prisma/client');
 const MomoErrorHandler = require('../middleware/momoErrorHandler');
@@ -65,10 +66,14 @@ router.post('/create',
       }
 
       // Check if payment already exists for this order
+      // resultCode: -1 = not processed, 0 = success, 1000/7000/7002/9000 = pending
       const existingPayment = await prisma.momoPayment.findFirst({
         where: {
           orderId: orderId,
-          status: { in: ['PENDING', 'SUCCESS'] }
+          OR: [
+            { resultCode: { in: [-1, 0, 1000, 7000, 7002, 9000] } },
+            { resultCode: null }
+          ]
         }
       });
 
@@ -211,12 +216,19 @@ router.get('/status/:orderId', async (req, res) => {
       });
 
     } catch (queryError) {
-      // If MoMo query fails, return local status
+      // If MoMo query fails, return local status (derived from resultCode)
+      const getStatusFromCode = (code) => {
+        if (code === 0) return 'SUCCESS';
+        if ([1000, 7000, 7002, 9000].includes(code)) return 'PENDING';
+        if (code === -1 || code === null) return 'PENDING';
+        return 'FAILED';
+      };
+
       res.status(200).json({
         success: true,
         data: {
           orderId: orderId,
-          status: localPayment.status,
+          status: getStatusFromCode(localPayment.resultCode),
           resultCode: localPayment.resultCode,
           message: localPayment.message,
           amount: localPayment.amount,
@@ -254,11 +266,11 @@ router.post('/refund', async (req, res) => {
       });
     }
 
-    // Check if payment exists and is successful
+    // Check if payment exists and is successful (resultCode = 0)
     const payment = await prisma.momoPayment.findFirst({
       where: {
         orderId: orderId,
-        status: 'SUCCESS'
+        resultCode: 0
       }
     });
 
@@ -331,6 +343,14 @@ router.get('/history/:orderId', async (req, res) => {
       requestId: req.reqId
     });
   }
+});
+
+/**
+ * Test callback (for development only)
+ * POST /api/payments/momo/test-callback
+ */
+router.post('/test-callback', async (req, res) => {
+  return await testCallback(req, res);
 });
 
 module.exports = router;

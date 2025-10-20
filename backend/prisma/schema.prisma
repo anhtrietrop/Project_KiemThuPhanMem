@@ -147,12 +147,11 @@ model MomoPayment {
   amount      Int
   orderInfo   String
   extraData   String?
-  status      String    @default("PENDING")
   payUrl      String?
   deeplink    String?
   qrCodeUrl   String?
   transId     String?
-  resultCode  Int?
+  resultCode  Int?      @default(-1)
   message     String?
   payType     String?
   responseTime DateTime?
@@ -160,7 +159,7 @@ model MomoPayment {
   updatedAt   DateTime  @updatedAt
 
   @@index([orderId])
-  @@index([status])
+  @@index([resultCode])
 }
 
 model RateLimitLog {
