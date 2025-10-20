@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Alert, AlertDescription } from './ui/alert';
 import { Loader2, CreditCard, Smartphone, QrCode, ExternalLink } from 'lucide-react';
+import config from '@/lib/config';
 
 interface MomoPaymentProps {
   orderId: string;
@@ -53,7 +54,7 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
     setError(null);
 
     try {
-      const response = await fetch('/api/payments/momo/create', {
+      const response = await fetch(`${config.apiBaseUrl}/api/payments/momo/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -92,7 +93,7 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
   // Check payment status
   const checkPaymentStatus = async () => {
     try {
-      const response = await fetch(`/api/payments/momo/status/${orderId}`);
+      const response = await fetch(`${config.apiBaseUrl}/api/payments/momo/status/${orderId}`);
       const result = await response.json();
 
       if (result.success) {
@@ -220,8 +221,8 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
               <p><strong>Amount:</strong> {formatAmount(amount)}</p>
             </div>
 
-            <Button 
-              onClick={createPayment} 
+            <Button
+              onClick={createPayment}
               disabled={isLoading}
               className="w-full bg-pink-600 hover:bg-pink-700"
             >
@@ -277,6 +278,7 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
                       <div className="font-medium">MoMo App</div>
                       <div className="text-sm text-gray-500">Open MoMo app directly</div>
                     </div>
+
                   </div>
                 </Button>
               )}
@@ -308,9 +310,9 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
             )}
 
             <div className="text-center">
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={onCancel}
               >
                 Cancel Payment
@@ -324,3 +326,4 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
 };
 
 export default MomoPayment;
+

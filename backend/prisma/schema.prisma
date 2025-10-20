@@ -24,7 +24,7 @@ model Product {
   rating         Int                      @default(0)
   description    String
   manufacturer   String
-  inStock        Int                      @default(1)
+
   categoryId     String
   category       Category                 @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   customerOrders customer_order_product[]

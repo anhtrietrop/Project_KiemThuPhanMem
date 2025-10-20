@@ -129,6 +129,24 @@ const CustomerOrderDetail = () => {
         }
     };
 
+    const getPaymentStatusColor = (paymentStatus?: string) => {
+        switch (paymentStatus) {
+            case 'PAID': return 'bg-green-100 text-green-800 border-green-300';
+            case 'PENDING': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+            case 'FAILED': return 'bg-red-100 text-red-800 border-red-300';
+            default: return 'bg-gray-100 text-gray-800 border-gray-300';
+        }
+    };
+
+    const getPaymentStatusText = (paymentStatus?: string) => {
+        switch (paymentStatus) {
+            case 'PAID': return '✓ Đã thanh toán';
+            case 'PENDING': return '⏳ Chờ thanh toán';
+            case 'FAILED': return '✗ Thanh toán thất bại';
+            default: return '⏳ Chờ thanh toán';
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-screen">
@@ -160,8 +178,28 @@ const CustomerOrderDetail = () => {
                                     {getStatusText(order?.status)}
                                 </span>
                             </p>
+                            <p className="mt-2">
+                                <strong>Thanh toán:</strong>
+                                <span className={`ml-2 px-3 py-1 rounded-md text-xs font-semibold border ${getPaymentStatusColor(order?.payment_status)}`}>
+                                    {getPaymentStatusText(order?.payment_status)}
+                                </span>
+                            </p>
+                            {order?.payment_status === 'PAID' && (
+                                <>
+                                    {order?.payment_method && (
+                                        <p className="text-sm text-gray-600 mt-1">
+                                            <strong>Phương thức:</strong> {order.payment_method}
+                                        </p>
+                                    )}
+                                    {order?.payment_transaction_id && (
+                                        <p className="text-sm text-gray-600">
+                                            <strong>Mã giao dịch:</strong> {order.payment_transaction_id}
+                                        </p>
+                                    )}
+                                </>
+                            )}
                             {order?.cancelReason && (
-                                <p><strong>Lý do hủy:</strong> {order.cancelReason}</p>
+                                <p className="mt-2"><strong>Lý do hủy:</strong> {order.cancelReason}</p>
                             )}
                         </div>
                         <div>

@@ -51,8 +51,8 @@ router.post('/create',
         });
       }
 
-      // Check if order exists
-      const order = await prisma.customer_orders.findUnique({
+      // Check if order exists (Prisma model is Customer_order)
+      const order = await prisma.customer_order.findUnique({
         where: { id: orderId }
       });
 
@@ -73,39 +73,48 @@ router.post('/create',
       });
 
       if (existingPayment) {
-        return res.status(409).json({
-          success: false,
-          message: 'Payment already exists for this order',
-          requestId: req.reqId
+        // If we already have a usable payment session, return it to the client
+        if (existingPayment.payUrl || existingPayment.deeplink || existingPayment.qrCodeUrl) {
+          return res.status(200).json({
+            success: true,
+            data: {
+              orderId,
+              payUrl: existingPayment.payUrl || null,
+              deeplink: existingPayment.deeplink || null,
+              qrCodeUrl: existingPayment.qrCodeUrl || null,
+              resultCode: existingPayment.resultCode ?? 0,
+              message: existingPayment.message || 'Reused existing MoMo payment session'
+            },
+            requestId: req.reqId
+          });
+        }
+
+        // If it's a stale pending/failed record without URLs, allow creating a new session
+        await prisma.momoPayment.update({
+          where: { id: existingPayment.id },
+          data: {
+            status: 'FAILED',
+            message: 'Stale payment replaced by a new request',
+            updatedAt: new Date()
+          }
         });
       }
 
-      // Create payment request
-      const paymentResult = await createPaymentRequest({
-        orderId,
-        amount,
-        orderInfo,
-        extraData,
-        items,
-        userInfo,
-        deliveryInfo
-      });
-
-      res.status(200).json({
-        success: paymentResult.success,
-        data: paymentResult.data,
-        requestId: req.reqId
-      });
+      // Create payment request - controller will handle response
+      return await createPaymentRequest(req, res);
 
     } catch (error) {
-      MomoErrorHandler.handleMomoError(error, req, res, () => {
-        res.status(500).json({
-          success: false,
-          message: 'Internal server error',
-          error: process.env.NODE_ENV === 'development' ? error.message : undefined,
-          requestId: req.reqId
+      // Only send error response if controller hasn't already sent one
+      if (!res.headersSent) {
+        MomoErrorHandler.handleMomoError(error, req, res, () => {
+          res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+            requestId: req.reqId
+          });
         });
-      });
+      }
     }
   });
 

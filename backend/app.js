@@ -51,18 +51,6 @@ const app = express();
 // Trust proxy for accurate IP addresses
 app.set('trust proxy', 1);
 
-// Add request ID to all requests
-app.use(addRequestId);
-
-// Security logging (check for suspicious patterns)
-app.use(securityLogger);
-
-// Standard request logging
-app.use(requestLogger);
-
-// Error logging (only logs 4xx and 5xx responses)
-app.use(errorLogger);
-
 const allowedOrigins = [
   'http://localhost:3000', // Frontend User
   'http://localhost:3001', // Frontend Admin
@@ -95,12 +83,25 @@ const corsOptions = {
   credentials: true, // Allow cookies and authorization headers
 };
 
-// Apply general rate limiting to all routes
-app.use(generalLimiter);
-
+// IMPORTANT: Parse body BEFORE other middleware
 app.use(express.json());
 app.use(cors(corsOptions));
 app.use(fileUpload());
+
+// Add request ID to all requests
+app.use(addRequestId);
+
+// Security logging (check for suspicious patterns)
+app.use(securityLogger);
+
+// Standard request logging
+app.use(requestLogger);
+
+// Error logging (only logs 4xx and 5xx responses)
+app.use(errorLogger);
+
+// Apply general rate limiting to all routes
+app.use(generalLimiter);
 
 // Apply specific rate limiters to different route groups
 app.use("/api/users", userManagementLimiter);

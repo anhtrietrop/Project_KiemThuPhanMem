@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useSession } from "next-auth/react";
+import MomoPayment from "@/components/MomoPayment";
 
 interface OrderProduct {
     id: string;
@@ -31,6 +32,7 @@ const MyOrdersPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [confirmingOrder, setConfirmingOrder] = useState<string | null>(null);
+    const [showPaymentModal, setShowPaymentModal] = useState<string | null>(null);
     const { data: session, status } = useSession();
     const router = useRouter();
 
@@ -109,6 +111,16 @@ const MyOrdersPage = () => {
         }
     };
 
+    const handlePaymentSuccess = (orderId: string) => {
+        toast.success('Thanh toán thành công! Đơn hàng của bạn đã được cập nhật.');
+        setShowPaymentModal(null);
+        fetchOrders(); // Refresh orders to show updated status
+    };
+
+    const handlePaymentError = (error: any) => {
+        toast.error(`Thanh toán thất bại: ${error.message || 'Có lỗi xảy ra'}`);
+    };
+
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'processing': return 'bg-yellow-500';
@@ -128,6 +140,24 @@ const MyOrdersPage = () => {
             case 'success': return 'Hoàn thành';
             case 'cancelled': return 'Đã hủy';
             default: return status;
+        }
+    };
+
+    const getPaymentStatusColor = (paymentStatus?: string) => {
+        switch (paymentStatus) {
+            case 'PAID': return 'bg-green-100 text-green-800 border-green-300';
+            case 'PENDING': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+            case 'FAILED': return 'bg-red-100 text-red-800 border-red-300';
+            default: return 'bg-gray-100 text-gray-800 border-gray-300';
+        }
+    };
+
+    const getPaymentStatusText = (paymentStatus?: string) => {
+        switch (paymentStatus) {
+            case 'PAID': return '✓ Đã thanh toán';
+            case 'PENDING': return '⏳ Chờ thanh toán';
+            case 'FAILED': return '✗ Thanh toán thất bại';
+            default: return '⏳ Chờ thanh toán';
         }
     };
 
@@ -184,6 +214,17 @@ const MyOrdersPage = () => {
                                         <p className="text-gray-600">
                                             Ngày đặt: {order.dateTime ? new Date(order.dateTime).toLocaleDateString('vi-VN') : 'N/A'}
                                         </p>
+                                        {/* Payment Status Badge */}
+                                        <div className="mt-2">
+                                            <span className={`px-3 py-1 rounded-md text-xs font-semibold border ${getPaymentStatusColor(order.payment_status)}`}>
+                                                {getPaymentStatusText(order.payment_status)}
+                                            </span>
+                                            {order.payment_method && order.payment_status === 'PAID' && (
+                                                <span className="ml-2 text-xs text-gray-500">
+                                                    • {order.payment_method}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="text-right">
                                         <span className={`px-3 py-1 rounded-full text-white text-sm ${getStatusColor(order.status)}`}>
@@ -220,6 +261,11 @@ const MyOrdersPage = () => {
                                         <p className="text-sm text-gray-600">
                                             <strong>Phí ship:</strong> $5
                                         </p>
+                                        {order.payment_status === 'PAID' && order.payment_transaction_id && (
+                                            <p className="text-sm text-green-600 mt-2">
+                                                <strong>Mã GD:</strong> {order.payment_transaction_id}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
 
@@ -240,6 +286,15 @@ const MyOrdersPage = () => {
                                     >
                                         Xem chi tiết
                                     </Link>
+
+                                    {order.status === 'processing' && (!order.payment_status || order.payment_status === 'PENDING') && (
+                                        <button
+                                            onClick={() => setShowPaymentModal(order.id)}
+                                            className="btn btn-primary btn-sm bg-pink-600 hover:bg-pink-700 border-pink-600"
+                                        >
+                                            💳 Thanh toán MoMo
+                                        </button>
+                                    )}
 
                                     {order.status === 'delivered' && (
                                         <button
@@ -269,6 +324,40 @@ const MyOrdersPage = () => {
                     </div>
                 )}
             </div>
+
+            {/* MoMo Payment Modal */}
+            {showPaymentModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold">Thanh toán MoMo</h3>
+                                <button
+                                    onClick={() => setShowPaymentModal(null)}
+                                    className="text-gray-500 hover:text-gray-700"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                            {(() => {
+                                const order = orders.find(o => o.id === showPaymentModal);
+                                if (!order) return null;
+
+                                return (
+                                    <MomoPayment
+                                        orderId={order.id}
+                                        amount={order.total + order.total / 5 + 5} // Include tax and shipping
+                                        orderInfo={`Thanh toán đơn hàng #${order.id.slice(0, 8)}`}
+                                        onSuccess={() => handlePaymentSuccess(order.id)}
+                                        onError={handlePaymentError}
+                                        onCancel={() => setShowPaymentModal(null)}
+                                    />
+                                );
+                            })()}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

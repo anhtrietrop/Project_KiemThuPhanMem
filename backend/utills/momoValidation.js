@@ -73,15 +73,18 @@ function validatePaymentRequest(paymentData) {
     errors.push('orderId is required and must be a string');
   }
 
-  if (!amount || typeof amount !== 'number') {
-    errors.push('amount is required and must be a number');
+  if (!amount || (typeof amount !== 'number' && typeof amount !== 'string')) {
+    errors.push('amount is required and must be a number or string');
   } else {
-    // Validate amount range
-    if (amount < 1000) {
-      errors.push('amount must be at least 1,000 VND');
+    // Convert to number if string
+    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+
+    // Validate amount range (allow small amounts for testing)
+    if (numAmount <= 0) {
+      errors.push('amount must be greater than 0');
     }
-    if (amount > 50000000) {
-      errors.push('amount must not exceed 50,000,000 VND');
+    if (numAmount > 50000000) {
+      errors.push('amount must not exceed 50,000,000');
     }
   }
 
@@ -221,15 +224,15 @@ function validateSignature(data, signature, secretKey, type = 'request') {
       case 'request':
         rawSignature = `accessKey=${data.accessKey}&amount=${data.amount}&extraData=${data.extraData}&ipnUrl=${data.ipnUrl}&orderId=${data.orderId}&orderInfo=${data.orderInfo}&partnerCode=${data.partnerCode}&redirectUrl=${data.redirectUrl}&requestId=${data.requestId}&requestType=${data.requestType}`;
         break;
-      
+
       case 'response':
         rawSignature = `accessKey=${data.accessKey}&amount=${data.amount}&orderId=${data.orderId}&partnerCode=${data.partnerCode}&payUrl=${data.payUrl || ''}&requestId=${data.requestId}&responseTime=${data.responseTime}&resultCode=${data.resultCode}`;
         break;
-      
+
       case 'callback':
         rawSignature = `accessKey=${data.accessKey}&amount=${data.amount}&extraData=${data.extraData}&message=${data.message}&orderId=${data.orderId}&orderInfo=${data.orderInfo}&orderType=${data.orderType}&partnerCode=${data.partnerCode}&payType=${data.payType}&requestId=${data.requestId}&responseTime=${data.responseTime}&resultCode=${data.resultCode}&transId=${data.transId}`;
         break;
-      
+
       default:
         throw new Error(`Unknown signature type: ${type}`);
     }
@@ -253,17 +256,17 @@ function validateSignature(data, signature, secretKey, type = 'request') {
  */
 function sanitizePaymentData(data) {
   const sanitized = { ...data };
-  
+
   // Remove sensitive information
   delete sanitized.signature;
   delete sanitized.accessKey;
   delete sanitized.secretKey;
-  
+
   // Mask partial information
   if (sanitized.partnerCode) {
     sanitized.partnerCode = sanitized.partnerCode.substring(0, 4) + '***';
   }
-  
+
   return sanitized;
 }
 

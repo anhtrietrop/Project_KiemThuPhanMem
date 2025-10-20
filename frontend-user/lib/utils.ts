@@ -1,3 +1,10 @@
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
 export const categoryMenuList = [
   {
     id: 1,
@@ -122,12 +129,12 @@ export const isValidEmailAddressFormat = (input: string) => {
 export const isValidCardNumber = (input: string) => {
   // Remove all non-digit characters
   const cleanedInput = input.replace(/[^0-9]/g, "");
-  
+
   // Check if the cleaned input has valid length (13-19 digits)
   if (!/^\d{13,19}$/.test(cleanedInput)) {
     return false;
   }
-  
+
   // Implement Luhn algorithm for credit card validation
   return luhnCheck(cleanedInput);
 };
@@ -140,22 +147,22 @@ export const isValidCardNumber = (input: string) => {
 const luhnCheck = (cardNumber: string): boolean => {
   let sum = 0;
   let isEven = false;
-  
+
   // Process digits from right to left
   for (let i = cardNumber.length - 1; i >= 0; i--) {
     let digit = parseInt(cardNumber[i], 10);
-    
+
     if (isEven) {
       digit *= 2;
       if (digit > 9) {
         digit -= 9;
       }
     }
-    
+
     sum += digit;
     isEven = !isEven;
   }
-  
+
   return sum % 10 === 0;
 };
 
@@ -166,7 +173,7 @@ const luhnCheck = (cardNumber: string): boolean => {
  */
 export const validateCreditCard = (input: string) => {
   const cleanedInput = input.replace(/[^0-9]/g, "");
-  
+
   // Basic length and format check
   if (!/^\d{13,19}$/.test(cleanedInput)) {
     return {
@@ -175,7 +182,7 @@ export const validateCreditCard = (input: string) => {
       error: 'Invalid card number format'
     };
   }
-  
+
   // Luhn algorithm check
   if (!luhnCheck(cleanedInput)) {
     return {
@@ -184,10 +191,10 @@ export const validateCreditCard = (input: string) => {
       error: 'Invalid card number (Luhn check failed)'
     };
   }
-  
+
   // Detect card type based on BIN (Bank Identification Number)
   const cardType = detectCardType(cleanedInput);
-  
+
   return {
     isValid: true,
     cardType,
@@ -205,39 +212,39 @@ const detectCardType = (cardNumber: string): string => {
   const firstTwoDigits = cardNumber.substring(0, 2);
   const firstFourDigits = cardNumber.substring(0, 4);
   const firstThreeDigits = cardNumber.substring(0, 3);
-  
+
   // Visa: starts with 4
   if (firstDigit === '4') {
     return 'visa';
   }
-  
+
   // Mastercard: starts with 5 or 2
   if (firstDigit === '5' || (firstTwoDigits >= '22' && firstTwoDigits <= '27')) {
     return 'mastercard';
   }
-  
+
   // American Express: starts with 34 or 37
   if (firstTwoDigits === '34' || firstTwoDigits === '37') {
     return 'amex';
   }
-  
+
   // Discover: starts with 6011, 65, or 644-649
-  if (firstFourDigits === '6011' || firstTwoDigits === '65' || 
-      (firstThreeDigits >= '644' && firstThreeDigits <= '649')) {
+  if (firstFourDigits === '6011' || firstTwoDigits === '65' ||
+    (firstThreeDigits >= '644' && firstThreeDigits <= '649')) {
     return 'discover';
   }
-  
+
   // Diners Club: starts with 300-305, 36, or 38
-  if ((firstThreeDigits >= '300' && firstThreeDigits <= '305') || 
-      firstTwoDigits === '36' || firstTwoDigits === '38') {
+  if ((firstThreeDigits >= '300' && firstThreeDigits <= '305') ||
+    firstTwoDigits === '36' || firstTwoDigits === '38') {
     return 'diners';
   }
-  
+
   // JCB: starts with 35
   if (firstTwoDigits === '35') {
     return 'jcb';
   }
-  
+
   return 'unknown';
 };
 

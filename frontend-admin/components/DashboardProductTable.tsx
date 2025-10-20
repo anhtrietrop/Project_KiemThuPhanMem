@@ -52,9 +52,7 @@ const DashboardProductTable = () => {
           <thead>
             <tr>
               <th>
-                <label>
-                  <input type="checkbox" className="checkbox" />
-                </label>
+                <input type="checkbox" className="checkbox" aria-label="." />
               </th>
               <th>Product</th>
               <th>Stock Availability</th>
@@ -70,9 +68,9 @@ const DashboardProductTable = () => {
               products.map((product) => (
                 <tr key={nanoid()}>
                   <th>
-                    <label>
-                      <input type="checkbox" className="checkbox" />
-                    </label>
+
+                    <input type="checkbox" className="checkbox" aria-label="." />
+
                   </th>
 
                   <td>

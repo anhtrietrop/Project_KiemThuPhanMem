@@ -1,162 +1,222 @@
 const crypto = require('crypto');
 const axios = require('axios');
 const { PrismaClient } = require('@prisma/client');
+const { validatePaymentRequest } = require('../utills/momoValidation');
+const { createPaymentNotification } = require('../utills/notificationHelpers');
 
 const prisma = new PrismaClient();
 
-// MoMo Configuration
+// ================= CONFIG =================
 const MOMO_CONFIG = {
-  partnerCode: process.env.MOMO_PARTNER_CODE || 'MOMOT5BZ20231213_TEST',
-  accessKey: process.env.MOMO_ACCESS_KEY || 'klm05TvNBzhg7h7j',
-  secretKey: process.env.MOMO_SECRET_KEY || 'at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa',
-  endpoint: process.env.MOMO_ENDPOINT || 'https://test-payment.momo.vn',
-  redirectUrl: process.env.MOMO_REDIRECT_URL || 'http://localhost:3000/payment/result',
-  ipnUrl: process.env.MOMO_IPN_URL || 'http://localhost:3002/api/payments/momo/callback'
+  PARTNER_CODE: process.env.MOMO_PARTNER_CODE || 'MOMO',
+  ACCESS_KEY: process.env.MOMO_ACCESS_KEY,
+  SECRET_KEY: process.env.MOMO_SECRET_KEY,
+  ENDPOINT: process.env.MOMO_ENDPOINT || 'https://test-payment.momo.vn',
+  REDIRECT_URL: process.env.MOMO_REDIRECT_URL || 'http://localhost:3000/payment/result',
+  RETURN_URL: process.env.MOMO_RETURN_URL || 'http://localhost:3000/payment/result',
+  IPN_URL: process.env.MOMO_IPN_URL || 'http://localhost:3002/api/payments/momo/callback',
+  NOTIFY_URL: process.env.MOMO_NOTIFY_URL || 'http://localhost:3002/api/payments/momo/callback',
+  REQUEST_TYPE: process.env.MOMO_REQUEST_TYPE || 'payWithMethod',
+  ENVIRONMENT: process.env.MOMO_ENVIRONMENT || 'sandbox'
 };
 
-/**
- * Generate HMAC SHA256 signature for MoMo API
- * @param {string} rawSignature - Raw signature string
- * @param {string} secretKey - Secret key for signing
- * @returns {string} - Generated signature
- */
+// ================= HELPERS =================
 function generateSignature(rawSignature, secretKey) {
-  return crypto
-    .createHmac('sha256', secretKey)
-    .update(rawSignature)
-    .digest('hex');
+  return crypto.createHmac('sha256', secretKey).update(rawSignature).digest('hex');
 }
 
-/**
- * Create MoMo payment request
- * @param {Object} paymentData - Payment information
- * @returns {Object} - MoMo payment response
- */
-async function createPaymentRequest(paymentData) {
+// ================= CREATE PAYMENT REQUEST =================
+async function createPaymentRequest(req, res) {
   try {
-    const {
-      orderId,
-      amount,
-      orderInfo,
-      extraData = '',
-      items = [],
-      userInfo = {},
-      deliveryInfo = {}
-    } = paymentData;
+    const { orderId, amount, orderInfo, extraData = '', items, userInfo, deliveryInfo } = req.body;
 
-    // Generate unique request ID
-    const requestId = `${orderId}_${Date.now()}`;
-    
-    // Prepare request data
-    const requestData = {
-      partnerCode: MOMO_CONFIG.partnerCode,
-      requestType: 'captureWallet',
-      ipnUrl: MOMO_CONFIG.ipnUrl,
-      redirectUrl: MOMO_CONFIG.redirectUrl,
-      orderId: orderId,
-      amount: amount.toString(),
-      orderInfo: orderInfo,
+    console.log('\n=== MoMo Payment Request ===');
+    console.log('Order ID:', orderId);
+    console.log('Amount:', amount);
+    console.log('Order Info:', orderInfo);
+
+    // Validate payment request
+    const validation = validatePaymentRequest({ orderId, amount, orderInfo });
+    if (!validation.isValid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Payment validation failed',
+        errors: validation.errors
+      });
+    }
+
+    // Convert amount to VND (integer)
+    const amountInVND = Math.round(amount < 1000 ? amount * 24000 : amount);
+
+    // Generate unique requestId and orderId for MoMo
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+    const momoOrderId = `${MOMO_CONFIG.PARTNER_CODE}_${timestamp}_${randomSuffix}`;
+    const requestId = momoOrderId; // Use same value for requestId
+
+    console.log('MoMo Order ID:', momoOrderId);
+    console.log('Request ID:', requestId);
+    console.log('Amount in VND:', amountInVND);
+
+    // Build raw signature according to MoMo template (payWithMethod)
+    const partnerName = "Test";
+    const storeId = "MomoTestStore";
+    const autoCapture = true;
+    const orderGroupId = "";
+    const lang = "vi";
+
+    // Convert extraData to string for MoMo API
+    const extraDataString = extraData ? (typeof extraData === 'string' ? extraData : JSON.stringify(extraData)) : '';
+
+    const rawSignature =
+      `accessKey=${MOMO_CONFIG.ACCESS_KEY}` +
+      `&amount=${amountInVND}` +
+      `&extraData=${extraDataString}` +
+      `&ipnUrl=${MOMO_CONFIG.IPN_URL}` +
+      `&orderId=${momoOrderId}` +
+      `&orderInfo=${orderInfo}` +
+      `&partnerCode=${MOMO_CONFIG.PARTNER_CODE}` +
+      `&redirectUrl=${MOMO_CONFIG.REDIRECT_URL}` +
+      `&requestId=${requestId}` +
+      `&requestType=${MOMO_CONFIG.REQUEST_TYPE}`;
+
+    console.log('\n--- Raw Signature ---');
+    console.log(rawSignature);
+
+    const signature = generateSignature(rawSignature, MOMO_CONFIG.SECRET_KEY);
+
+    console.log('\n--- Signature ---');
+    console.log(signature);
+
+    // Build request body
+    const requestBody = {
+      partnerCode: MOMO_CONFIG.PARTNER_CODE,
+      partnerName: partnerName,
+      storeId: storeId,
       requestId: requestId,
-      extraData: extraData ? Buffer.from(JSON.stringify(extraData)).toString('base64') : '',
-      lang: 'vi'
+      amount: amountInVND,
+      orderId: momoOrderId,
+      orderInfo: orderInfo,
+      redirectUrl: MOMO_CONFIG.REDIRECT_URL,
+      ipnUrl: MOMO_CONFIG.IPN_URL,
+      lang: lang,
+      requestType: MOMO_CONFIG.REQUEST_TYPE,
+      autoCapture: autoCapture,
+      extraData: extraDataString,
+      orderGroupId: orderGroupId,
+      signature: signature
     };
 
-    // Add optional fields if provided
-    if (items && items.length > 0) {
-      requestData.items = items;
-    }
-    if (Object.keys(userInfo).length > 0) {
-      requestData.userInfo = userInfo;
-    }
-    if (Object.keys(deliveryInfo).length > 0) {
-      requestData.deliveryInfo = deliveryInfo;
-    }
+    console.log('\n--- Request Body ---');
+    console.log(JSON.stringify(requestBody, null, 2));
 
-    // Generate signature
-    const rawSignature = `accessKey=${MOMO_CONFIG.accessKey}&amount=${requestData.amount}&extraData=${requestData.extraData}&ipnUrl=${requestData.ipnUrl}&orderId=${requestData.orderId}&orderInfo=${requestData.orderInfo}&partnerCode=${requestData.partnerCode}&redirectUrl=${requestData.redirectUrl}&requestId=${requestData.requestId}&requestType=${requestData.requestType}`;
-    
-    requestData.signature = generateSignature(rawSignature, MOMO_CONFIG.secretKey);
-
-    // Store payment request in database
-    await prisma.momoPayment.create({
+    // Create payment record in database
+    const momoPayment = await prisma.momoPayment.create({
       data: {
-        orderId: requestData.orderId,
-        requestId: requestData.requestId,
-        amount: parseInt(amount),
-        orderInfo: requestData.orderInfo,
-        extraData: requestData.extraData,
-        status: 'PENDING',
-        createdAt: new Date()
+        orderId: orderId,
+        requestId: requestId,
+        amount: amountInVND,
+        orderInfo: orderInfo,
+        extraData: extraDataString || '',
+        status: 'PENDING'
       }
     });
 
-    // Make request to MoMo API
-    const response = await axios.post(
-      `${MOMO_CONFIG.endpoint}/v2/gateway/api/create`,
-      requestData,
-      {
+    console.log('\n--- Created MomoPayment Record ---');
+    console.log('ID:', momoPayment.id);
+
+    // Send request to MoMo
+    const momoEndpoint = `${MOMO_CONFIG.ENDPOINT}/v2/gateway/api/create`;
+    console.log('\n--- Sending to MoMo ---');
+    console.log('Endpoint:', momoEndpoint);
+
+    try {
+      const response = await axios.post(momoEndpoint, requestBody, {
         headers: {
           'Content-Type': 'application/json'
-        },
-        timeout: 30000 // 30 seconds timeout
-      }
-    );
+        }
+      });
 
-    // Verify response signature
-    const responseSignature = `accessKey=${MOMO_CONFIG.accessKey}&amount=${response.data.amount}&orderId=${response.data.orderId}&partnerCode=${response.data.partnerCode}&payUrl=${response.data.payUrl || ''}&requestId=${response.data.requestId}&responseTime=${response.data.responseTime}&resultCode=${response.data.resultCode}`;
-    
-    const expectedSignature = generateSignature(responseSignature, MOMO_CONFIG.secretKey);
-    
-    if (response.data.signature !== expectedSignature) {
-      throw new Error('Invalid response signature from MoMo');
-    }
+      console.log('\n--- MoMo Response ---');
+      console.log(JSON.stringify(response.data, null, 2));
 
-    // Update payment record with response
-    await prisma.momoPayment.update({
-      where: { requestId: requestData.requestId },
-      data: {
-        payUrl: response.data.payUrl,
-        deeplink: response.data.deeplink,
-        qrCodeUrl: response.data.qrCodeUrl,
-        resultCode: response.data.resultCode,
-        message: response.data.message,
-        responseTime: new Date(response.data.responseTime)
-      }
-    });
+      const { resultCode, payUrl, deeplink, qrCodeUrl, message } = response.data;
 
-    return {
-      success: response.data.resultCode === 0,
-      data: response.data,
-      requestId: requestData.requestId
-    };
-
-  } catch (error) {
-    console.error('MoMo payment request error:', error);
-    
-    // Log error to database if possible
-    try {
+      // Update payment record with MoMo response
       await prisma.momoPayment.update({
-        where: { requestId: paymentData.requestId || `${paymentData.orderId}_${Date.now()}` },
+        where: { id: momoPayment.id },
         data: {
-          status: 'ERROR',
-          message: error.message,
+          payUrl: payUrl || null,
+          deeplink: deeplink || null,
+          qrCodeUrl: qrCodeUrl || null,
+          resultCode: resultCode,
+          message: message || null,
+          status: resultCode === 0 ? 'PENDING' : 'FAILED',
           updatedAt: new Date()
         }
       });
-    } catch (dbError) {
-      console.error('Failed to log error to database:', dbError);
+
+      if (resultCode === 0) {
+        return res.status(200).json({
+          success: true,
+          data: {
+            orderId,
+            payUrl,
+            deeplink,
+            qrCodeUrl,
+            resultCode,
+            message
+          }
+        });
+      } else {
+        // MoMo returned an error
+        return res.status(400).json({
+          success: false,
+          message: message || 'MoMo payment creation failed',
+          data: {
+            resultCode,
+            message
+          }
+        });
+      }
+
+    } catch (axiosError) {
+      console.error('\n--- Axios Error ---');
+      console.error(axiosError.response?.data || axiosError.message);
+
+      // Update payment record as FAILED
+      await prisma.momoPayment.update({
+        where: { id: momoPayment.id },
+        data: {
+          status: 'FAILED',
+          message: axiosError.response?.data?.message || axiosError.message,
+          resultCode: axiosError.response?.data?.resultCode || null,
+          updatedAt: new Date()
+        }
+      });
+
+      // Return detailed MoMo error to frontend
+      return res.status(400).json({
+        success: false,
+        message: 'MoMo API error',
+        data: axiosError.response?.data || { message: axiosError.message }
+      });
     }
 
-    throw error;
+  } catch (error) {
+    console.error('\n=== Create Payment Error ===');
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
   }
 }
 
-/**
- * Handle MoMo payment callback (IPN)
- * @param {Object} callbackData - Callback data from MoMo
- * @returns {Object} - Processing result
- */
-async function handlePaymentCallback(callbackData) {
+// ================= PAYMENT CALLBACK =================
+async function handlePaymentCallback(req, res) {
   try {
     const {
       partnerCode,
@@ -172,136 +232,264 @@ async function handlePaymentCallback(callbackData) {
       responseTime,
       extraData,
       signature
-    } = callbackData;
+    } = req.body;
 
-    // Verify signature
-    const rawSignature = `accessKey=${MOMO_CONFIG.accessKey}&amount=${amount}&extraData=${extraData}&message=${message}&orderId=${orderId}&orderInfo=${orderInfo}&orderType=${orderType}&partnerCode=${partnerCode}&payType=${payType}&requestId=${requestId}&responseTime=${responseTime}&resultCode=${resultCode}&transId=${transId}`;
-    
-    const expectedSignature = generateSignature(rawSignature, MOMO_CONFIG.secretKey);
-    
-    if (signature !== expectedSignature) {
-      throw new Error('Invalid callback signature');
+    console.log('\n=== MoMo Callback Received ===');
+    console.log('Order ID:', orderId);
+    console.log('Request ID:', requestId);
+    console.log('Result Code:', resultCode);
+    console.log('Message:', message);
+    console.log('Trans ID:', transId);
+
+    // Verify signature (for production)
+    const rawSignature =
+      `accessKey=${MOMO_CONFIG.ACCESS_KEY}` +
+      `&amount=${amount}` +
+      `&extraData=${extraData}` +
+      `&message=${message}` +
+      `&orderId=${orderId}` +
+      `&orderInfo=${orderInfo}` +
+      `&orderType=${orderType}` +
+      `&partnerCode=${partnerCode}` +
+      `&payType=${payType}` +
+      `&requestId=${requestId}` +
+      `&responseTime=${responseTime}` +
+      `&resultCode=${resultCode}` +
+      `&transId=${transId}`;
+
+    const expectedSignature = generateSignature(rawSignature, MOMO_CONFIG.SECRET_KEY);
+
+    console.log('\n--- Signature Verification ---');
+    console.log('Expected:', expectedSignature);
+    console.log('Received:', signature);
+
+    if (MOMO_CONFIG.ENVIRONMENT !== 'sandbox' && signature !== expectedSignature) {
+      console.warn('⚠️ Signature mismatch!');
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid signature'
+      });
     }
 
-    // Update payment status in database
-    const payment = await prisma.momoPayment.update({
-      where: { requestId: requestId },
+    // Find payment record
+    const payment = await prisma.momoPayment.findFirst({
+      where: { requestId: requestId }
+    });
+
+    if (!payment) {
+      console.error('Payment record not found for requestId:', requestId);
+      return res.status(404).json({
+        success: false,
+        message: 'Payment not found'
+      });
+    }
+
+    // Determine payment status based on MoMo resultCode
+    // Reference: https://developers.momo.vn/v3/vi/docs/payment/api/result-handling/resultcode
+    let newStatus, orderPaymentStatus;
+
+    if (resultCode === 0) {
+      // Success
+      newStatus = 'SUCCESS';
+      orderPaymentStatus = 'PAID';
+    } else if ([1000, 7000, 7002, 9000].includes(resultCode)) {
+      // Pending statuses:
+      // 1000: Giao dịch đã được khởi tạo, chờ người dùng xác nhận thanh toán
+      // 7000: Giao dịch đang được xử lý
+      // 7002: Giao dịch đang được xử lý bởi nhà cung cấp
+      // 9000: Giao dịch đã được xác nhận thành công (chờ capture)
+      newStatus = 'PENDING';
+      orderPaymentStatus = 'PENDING';
+    } else {
+      // All other codes are failures (1001-1088, 4001-4100, etc.)
+      newStatus = 'FAILED';
+      orderPaymentStatus = 'FAILED';
+    }
+
+    // Update payment record
+    await prisma.momoPayment.update({
+      where: { id: payment.id },
       data: {
-        transId: transId.toString(),
+        status: newStatus,
+        transId: transId || null,
         resultCode: resultCode,
-        message: message,
-        payType: payType,
-        status: resultCode === 0 ? 'SUCCESS' : 'FAILED',
-        responseTime: new Date(responseTime),
+        message: message || null,
+        payType: payType || null,
+        responseTime: responseTime ? new Date(responseTime) : null,
         updatedAt: new Date()
       }
     });
 
-    // If payment successful, update order status
-    if (resultCode === 0) {
-      await prisma.customer_orders.update({
-        where: { id: parseInt(orderId) },
+    // Update order status
+    const order = await prisma.customer_order.findUnique({
+      where: { id: payment.orderId }
+    });
+
+    if (order) {
+      await prisma.customer_order.update({
+        where: { id: payment.orderId },
         data: {
-          payment_status: 'PAID',
+          payment_status: orderPaymentStatus,
           payment_method: 'MOMO',
-          payment_transaction_id: transId.toString(),
+          payment_transaction_id: transId || null,
+          status: resultCode === 0 ? 'processing' : order.status,
           updated_at: new Date()
         }
       });
+
+      // Create notification only for final statuses (success or failure)
+      if (order.email && (resultCode === 0 || newStatus === 'FAILED')) {
+        await createPaymentNotification({
+          userId: order.email,
+          orderId: order.id,
+          status: resultCode === 0 ? 'success' : 'failed',
+          amount: amount,
+          transactionId: transId
+        });
+      }
+
+      console.log(`✅ Order ${order.id} updated to payment_status: ${orderPaymentStatus} (resultCode: ${resultCode})`);
     }
 
-    return {
+    return res.status(200).json({
       success: true,
-      resultCode: resultCode,
-      message: message,
-      orderId: orderId,
-      transId: transId
-    };
+      message: resultCode === 0 ? 'Payment successful' : 'Payment failed'
+    });
 
   } catch (error) {
-    console.error('MoMo callback processing error:', error);
-    throw error;
+    console.error('\n=== Callback Error ===');
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
   }
 }
 
-/**
- * Query payment status from MoMo
- * @param {string} orderId - Order ID to query
- * @returns {Object} - Payment status
- */
-async function queryPaymentStatus(orderId) {
+// ================= QUERY PAYMENT STATUS =================
+async function queryPaymentStatus(req, res) {
   try {
-    const requestId = `${orderId}_query_${Date.now()}`;
-    
-    const requestData = {
-      partnerCode: MOMO_CONFIG.partnerCode,
-      requestId: requestId,
-      orderId: orderId,
-      lang: 'vi'
-    };
+    const { orderId } = req.params;
 
-    // Generate signature for query
-    const rawSignature = `accessKey=${MOMO_CONFIG.accessKey}&orderId=${orderId}&partnerCode=${MOMO_CONFIG.partnerCode}&requestId=${requestId}`;
-    requestData.signature = generateSignature(rawSignature, MOMO_CONFIG.secretKey);
+    const payment = await prisma.momoPayment.findFirst({
+      where: { orderId: orderId },
+      orderBy: { createdAt: 'desc' }
+    });
 
-    const response = await axios.post(
-      `${MOMO_CONFIG.endpoint}/v2/gateway/api/query`,
-      requestData,
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        timeout: 30000
+    if (!payment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Payment not found'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        orderId: payment.orderId,
+        requestId: payment.requestId,
+        amount: payment.amount,
+        status: payment.status,
+        payUrl: payment.payUrl,
+        deeplink: payment.deeplink,
+        qrCodeUrl: payment.qrCodeUrl,
+        transId: payment.transId,
+        resultCode: payment.resultCode,
+        message: payment.message,
+        payType: payment.payType,
+        createdAt: payment.createdAt,
+        updatedAt: payment.updatedAt
       }
-    );
-
-    return response.data;
+    });
 
   } catch (error) {
-    console.error('MoMo query payment status error:', error);
-    throw error;
+    console.error('\n=== Query Status Error ===');
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
   }
 }
 
-/**
- * Refund MoMo payment
- * @param {Object} refundData - Refund information
- * @returns {Object} - Refund result
- */
-async function refundPayment(refundData) {
+// ================= REFUND PAYMENT =================
+async function refundPayment(req, res) {
   try {
-    const { orderId, amount, description } = refundData;
-    const requestId = `${orderId}_refund_${Date.now()}`;
-    
-    const requestData = {
-      partnerCode: MOMO_CONFIG.partnerCode,
+    const { orderId, amount, description } = req.body;
+
+    // Find original payment
+    const payment = await prisma.momoPayment.findFirst({
+      where: {
+        orderId: orderId,
+        status: 'SUCCESS'
+      }
+    });
+
+    if (!payment || !payment.transId) {
+      return res.status(404).json({
+        success: false,
+        message: 'Original payment not found or not successful'
+      });
+    }
+
+    const requestId = `${MOMO_CONFIG.PARTNER_CODE}_${Date.now()}_refund`;
+    const refundAmount = amount || payment.amount;
+
+    // Build raw signature for refund
+    const rawSignature =
+      `accessKey=${MOMO_CONFIG.ACCESS_KEY}` +
+      `&amount=${refundAmount}` +
+      `&description=${description}` +
+      `&orderId=${payment.orderId}` +
+      `&partnerCode=${MOMO_CONFIG.PARTNER_CODE}` +
+      `&requestId=${requestId}` +
+      `&transId=${payment.transId}`;
+
+    const signature = generateSignature(rawSignature, MOMO_CONFIG.SECRET_KEY);
+
+    const requestBody = {
+      partnerCode: MOMO_CONFIG.PARTNER_CODE,
+      orderId: payment.orderId,
       requestId: requestId,
-      orderId: orderId,
-      amount: amount.toString(),
-      description: description || 'Refund request',
-      lang: 'vi'
+      amount: refundAmount,
+      transId: payment.transId,
+      lang: 'vi',
+      description: description || 'Refund',
+      signature: signature
     };
 
-    // Generate signature for refund
-    const rawSignature = `accessKey=${MOMO_CONFIG.accessKey}&amount=${amount}&description=${requestData.description}&orderId=${orderId}&partnerCode=${MOMO_CONFIG.partnerCode}&requestId=${requestId}`;
-    requestData.signature = generateSignature(rawSignature, MOMO_CONFIG.secretKey);
+    console.log('\n--- Refund Request ---');
+    console.log(JSON.stringify(requestBody, null, 2));
 
     const response = await axios.post(
-      `${MOMO_CONFIG.endpoint}/v2/gateway/api/refund`,
-      requestData,
+      `${MOMO_CONFIG.ENDPOINT}/v2/gateway/api/refund`,
+      requestBody,
       {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        timeout: 30000
+        headers: { 'Content-Type': 'application/json' }
       }
     );
 
-    return response.data;
+    console.log('\n--- Refund Response ---');
+    console.log(JSON.stringify(response.data, null, 2));
+
+    return res.status(200).json({
+      success: true,
+      data: response.data
+    });
 
   } catch (error) {
-    console.error('MoMo refund error:', error);
-    throw error;
+    console.error('\n=== Refund Error ===');
+    console.error(error.response?.data || error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Refund failed',
+      error: error.response?.data || error.message
+    });
   }
 }
 
@@ -309,6 +497,5 @@ module.exports = {
   createPaymentRequest,
   handlePaymentCallback,
   queryPaymentStatus,
-  refundPayment,
-  generateSignature
+  refundPayment
 };

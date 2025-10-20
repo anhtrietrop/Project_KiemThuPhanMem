@@ -4,7 +4,7 @@ const { asyncHandler, AppError } = require("../utills/errorHandler");
 
 const createOrderProduct = asyncHandler(async (request, response) => {
   const { customerOrderId, productId, quantity } = request.body;
-  
+
   // Validate required fields
   if (!customerOrderId) {
     throw new AppError("Customer order ID is required", 400);
@@ -25,7 +25,7 @@ const createOrderProduct = asyncHandler(async (request, response) => {
     throw new AppError("Customer order not found", 404);
   }
 
-  // Verify that the product exists
+  // Verify that the product exists and check stock
   const existingProduct = await prisma.product.findUnique({
     where: { id: productId }
   });
@@ -34,16 +34,36 @@ const createOrderProduct = asyncHandler(async (request, response) => {
     throw new AppError("Product not found", 404);
   }
 
-  // Create the order product
-  const orderProduct = await prisma.customer_order_product.create({
-    data: {
-      customerOrderId: customerOrderId,
-      productId: productId,
-      quantity: parseInt(quantity)
-    }
+  // Check if there's enough stock
+  if (existingProduct.quantity < quantity) {
+    throw new AppError(`Insufficient stock. Available: ${existingProduct.quantity}, Requested: ${quantity}`, 400);
+  }
+
+  // Use transaction to ensure data consistency
+  const result = await prisma.$transaction(async (tx) => {
+    // Create the order product
+    const orderProduct = await tx.customer_order_product.create({
+      data: {
+        customerOrderId: customerOrderId,
+        productId: productId,
+        quantity: parseInt(quantity)
+      }
+    });
+
+    // Update product quantity (subtract the ordered quantity)
+    await tx.product.update({
+      where: { id: productId },
+      data: {
+        quantity: {
+          decrement: parseInt(quantity)
+        }
+      }
+    });
+
+    return orderProduct;
   });
 
-  return response.status(201).json(orderProduct);
+  return response.status(201).json(result);
 });
 
 const updateProductOrder = asyncHandler(async (request, response) => {
@@ -121,11 +141,11 @@ const getProductOrder = asyncHandler(async (request, response) => {
       product: true
     }
   });
-  
+
   if (!order || order.length === 0) {
     throw new AppError("Order not found", 404);
   }
-  
+
   return response.status(200).json(order);
 });
 
@@ -188,10 +208,10 @@ const getAllProductOrders = asyncHandler(async (request, response) => {
   return response.json(groupedOrders);
 });
 
-module.exports = { 
-  createOrderProduct, 
-  updateProductOrder, 
-  deleteProductOrder, 
+module.exports = {
+  createOrderProduct,
+  updateProductOrder,
+  deleteProductOrder,
   getProductOrder,
   getAllProductOrders
 };

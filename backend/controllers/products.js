@@ -2,7 +2,7 @@ const prisma = require("../utills/db"); // ✅ Use shared connection with SSL
 const { asyncHandler, handleServerError, AppError } = require("../utills/errorHandler");
 
 // Security: Define whitelists for allowed filter types and operators
-const ALLOWED_FILTER_TYPES = ['price', 'rating', 'category', 'inStock', 'outOfStock'];
+const ALLOWED_FILTER_TYPES = ['price', 'rating', 'category'];
 const ALLOWED_OPERATORS = ['gte', 'lte', 'gt', 'lt', 'equals', 'contains'];
 const ALLOWED_SORT_VALUES = ['defaultSort', 'titleAsc', 'titleDesc', 'lowPrice', 'highPrice'];
 
@@ -23,10 +23,7 @@ function validateAndSanitizeFilterValue(filterType, filterValue) {
   switch (filterType) {
     case 'price':
     case 'rating':
-    case 'inStock':
-    case 'outOfStock':
-      const numValue = parseInt(filterValue);
-      return isNaN(numValue) ? null : numValue;
+
     case 'category':
       return typeof filterValue === 'string' && filterValue.trim().length > 0
         ? filterValue.trim()
@@ -106,10 +103,7 @@ const getAllProducts = asyncHandler(async (request, response) => {
             filterType = "rating";
           } else if (queryParam.includes("category")) {
             filterType = "category";
-          } else if (queryParam.includes("inStock")) {
-            filterType = "inStock";
-          } else if (queryParam.includes("outOfStock")) {
-            filterType = "outOfStock";
+
           } else {
             // Skip unknown filter types
             continue;
@@ -271,7 +265,7 @@ const createProduct = asyncHandler(async (request, response) => {
     description,
     manufacturer,
     categoryId,
-    inStock,
+
   } = request.body;
 
   if (!title) {
@@ -308,7 +302,7 @@ const createProduct = asyncHandler(async (request, response) => {
       description,
       manufacturer,
       categoryId,
-      inStock,
+
     },
   });
   return response.status(201).json(product);
@@ -329,7 +323,7 @@ const updateProduct = asyncHandler(async (request, response) => {
     description,
     manufacturer,
     categoryId,
-    inStock,
+
   } = request.body;
 
   // Basic validation
@@ -365,7 +359,7 @@ const updateProduct = asyncHandler(async (request, response) => {
       description: description,
       manufacturer: manufacturer,
       categoryId: categoryId,
-      inStock: inStock,
+
     },
   });
 

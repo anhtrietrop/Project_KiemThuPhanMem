@@ -69,10 +69,14 @@ interface Order {
   lastname: string;
   name: string;
   phone: string;
-  status: "processing" | "shipped" | "delivered" | "cancelled";
+  status: "processing" | "shipped" | "delivered" | "cancelled" | "success";
   city: string;
   orderNotice?: string;
   total: number;
+  payment_status?: "PENDING" | "PAID" | "FAILED";
+  payment_method?: string;
+  payment_transaction_id?: string;
+  cancelReason?: string;
 }
 
 interface SingleProductBtnProps {

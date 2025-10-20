@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import apiClient from "@/lib/api";
+import MomoPayment from "@/components/MomoPayment";
 
 const CheckoutPage = () => {
   const { data: session, status } = useSession();
@@ -20,7 +21,9 @@ const CheckoutPage = () => {
     city: "",
     orderNotice: "",
   });
-  
+
+  const [checkoutStep, setCheckoutStep] = useState<"form" | "payment" | "success">("form");
+  const [createdOrder, setCreatedOrder] = useState<{ id: string; total: number; } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { products, total, clearCart } = useProductStore();
   const router = useRouter();
@@ -36,41 +39,41 @@ const CheckoutPage = () => {
   // Add validation functions that match server requirements
   const validateForm = () => {
     const errors: string[] = [];
-    
+
     // Name validation
     if (!checkoutForm.name.trim() || checkoutForm.name.trim().length < 2) {
       errors.push("Name must be at least 2 characters");
     }
-    
+
     // Lastname validation
     if (!checkoutForm.lastname.trim() || checkoutForm.lastname.trim().length < 2) {
       errors.push("Lastname must be at least 2 characters");
     }
-    
+
     // Email validation
     const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
     if (!checkoutForm.email.trim() || !emailRegex.test(checkoutForm.email.trim())) {
       errors.push("Please enter a valid email address");
     }
-    
+
     // Phone validation (must be at least 10 digits)
     const phoneDigits = checkoutForm.phone.replace(/[^0-9]/g, '');
     if (!checkoutForm.phone.trim() || phoneDigits.length < 10) {
       errors.push("Phone number must be at least 10 digits");
     }
-    
+
     // Address validation
     if (!checkoutForm.adress.trim() || checkoutForm.adress.trim().length < 5) {
       errors.push("Address must be at least 5 characters");
     }
-    
+
     // City validation
     if (!checkoutForm.city.trim() || checkoutForm.city.trim().length < 5) {
       errors.push("City must be at least 5 characters");
     }
-    
+
     // Apartment is now optional - no validation needed
-    
+
     return errors;
   };
 
@@ -88,8 +91,8 @@ const CheckoutPage = () => {
     const requiredFields = [
       'name', 'lastname', 'phone', 'email', 'adress', 'city'
     ];
-    
-    const missingFields = requiredFields.filter(field => 
+
+    const missingFields = requiredFields.filter(field =>
       !checkoutForm[field as keyof typeof checkoutForm]?.trim()
     );
 
@@ -112,7 +115,7 @@ const CheckoutPage = () => {
 
     try {
       console.log("🚀 Starting order creation...");
-      
+
       // Get user ID if logged in
       let userId = null;
       if (session?.user?.email) {
@@ -130,7 +133,7 @@ const CheckoutPage = () => {
           console.log("⚠️  Error getting user ID:", userError);
         }
       }
-      
+
       // Prepare the order data
       const orderData = {
         name: checkoutForm.name.trim(),
@@ -155,18 +158,18 @@ const CheckoutPage = () => {
       console.log("  Status:", response.status);
       console.log("  Status Text:", response.statusText);
       console.log("  Response OK:", response.ok);
-      
+
       // Check if response is ok before parsing
       if (!response.ok) {
         console.error("❌ Response not OK:", response.status, response.statusText);
         const errorText = await response.text();
         console.error("Error response body:", errorText);
-        
+
         // Try to parse as JSON to get detailed error info
         try {
           const errorData = JSON.parse(errorText);
           console.error("Parsed error data:", errorData);
-          
+
           // Handle different error types
           if (response.status === 409) {
             // Duplicate order error
@@ -188,13 +191,13 @@ const CheckoutPage = () => {
           console.error("Could not parse error as JSON:", parseError);
           toast.error("Order creation failed. Please try again.");
         }
-        
+
         return; // Stop execution instead of throwing
       }
 
       const data = await response.json();
       console.log("✅ Parsed response data:", data);
-      
+
       const orderId: string = data.id;
       console.log("🆔 Extracted order ID:", orderId);
 
@@ -213,7 +216,7 @@ const CheckoutPage = () => {
           productId: products[i].id,
           quantity: products[i].amount
         });
-        
+
         await addOrderProduct(orderId, products[i].id, products[i].amount);
         console.log(`✅ Product ${i + 1} added successfully`);
       }
@@ -232,7 +235,7 @@ const CheckoutPage = () => {
         orderNotice: "",
       });
       clearCart();
-      
+
       // Refresh notification count if user is logged in
       try {
         // This will trigger a refresh of notifications in the background
@@ -240,14 +243,17 @@ const CheckoutPage = () => {
       } catch (error) {
         console.log('Note: Could not trigger notification refresh');
       }
-      
-      toast.success("Order created successfully! You will be contacted for payment.");
-      setTimeout(() => {
-        router.push("/");
-      }, 1000);
+
+      console.log("✅ Order created, proceeding to payment step.");
+      const finalAmount = Math.round(total + total / 5 + 5);
+      setCreatedOrder({ id: orderId, total: finalAmount });
+      setCheckoutStep("payment");
+
+      // Don't clear cart/form until payment is successful
+      // clearCart();
     } catch (error: any) {
       console.error("💥 Error in makePurchase:", error);
-      
+
       // Handle server validation errors
       if (error.response?.status === 400) {
         console.log(" Handling 400 error...");
@@ -270,7 +276,11 @@ const CheckoutPage = () => {
         toast.error("Duplicate order detected. Please wait before creating another order.");
       } else {
         console.log("🔍 Handling generic error...");
-        toast.error("Failed to create order. Please try again.");
+        if (error.message.includes("Insufficient stock")) {
+          toast.error(error.message);
+        } else {
+          toast.error("Failed to create order. Please try again.");
+        }
       }
     } finally {
       setIsSubmitting(false);
@@ -288,7 +298,7 @@ const CheckoutPage = () => {
         productId,
         quantity: productQuantity
       });
-      
+
       const response = await apiClient.post("/api/order-product", {
         customerOrderId: orderId,
         productId: productId,
@@ -296,16 +306,27 @@ const CheckoutPage = () => {
       });
 
       console.log("📡 Product order response:", response);
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error("❌ Product order failed:", response.status, errorText);
+
+        // Try to parse error message for stock issues
+        try {
+          const errorData = JSON.parse(errorText);
+          if (errorData.error && errorData.error.includes("Insufficient stock")) {
+            throw new Error(errorData.error);
+          }
+        } catch (parseError) {
+          // If can't parse, use generic error
+        }
+
         throw new Error(`Product order failed: ${response.status}`);
       }
 
       const data = await response.json();
       console.log("✅ Product order successful:", data);
-      
+
     } catch (error) {
       console.error("💥 Error creating product order:", error);
       throw error;
@@ -336,10 +357,35 @@ const CheckoutPage = () => {
     return null;
   }
 
+  // If we're in payment step, show MoMo payment component
+  if (checkoutStep === "payment" && createdOrder) {
+    return (
+      <div className="bg-white min-h-screen">
+        <SectionTitle title="Payment" path="Home | Cart | Checkout | Payment" />
+        <div className="max-w-2xl mx-auto px-4 py-8">
+          <MomoPayment
+            orderId={createdOrder.id}
+            amount={createdOrder.total}
+            orderInfo={`Thanh toán đơn hàng #${createdOrder.id.slice(0, 8)}`}
+            onSuccess={() => {
+              toast.success("Payment successful! Thank you for your order.");
+              clearCart();
+              router.push("/");
+            }}
+            onError={(error) => {
+              toast.error(`Payment failed: ${error}`);
+              setCheckoutStep("checkout");
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white">
       <SectionTitle title="Checkout" path="Home | Cart | Checkout" />
-      
+
       <div className="hidden h-full w-1/2 bg-white lg:block" aria-hidden="true" />
       <div className="hidden h-full w-1/2 bg-gray-50 lg:block" aria-hidden="true" />
 

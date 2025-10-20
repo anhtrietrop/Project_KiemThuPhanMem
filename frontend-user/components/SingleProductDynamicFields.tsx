@@ -23,7 +23,7 @@ const SingleProductDynamicFields = ({ product }: { product: Product }) => {
         setQuantityCount={setQuantityCount}
         max={product.quantity}
       />
-      {Boolean(product.inStock) && (
+      {product.quantity > 0 && (
         <div className="flex gap-x-5 max-[500px]:flex-col max-[500px]:items-center max-[500px]:gap-y-1">
           <AddToCartSingleProductBtn
             quantityCount={quantityCount}
