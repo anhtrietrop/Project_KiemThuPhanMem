@@ -9,17 +9,31 @@ import QuantityInputCart from "@/components/QuantityInputCart";
 import { sanitize } from "@/lib/sanitize";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export const CartModule = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { products, removeFromCart, calculateTotals, total } =
+  const { products, removeFromCart, calculateTotals, total, isLoading } =
     useProductStore();
+  const [removingItems, setRemovingItems] = useState<Set<string>>(new Set());
 
-  const handleRemoveItem = (id: string) => {
-    removeFromCart(id);
-    calculateTotals();
-    toast.success("Product removed from the cart");
+  const handleRemoveItem = async (id: string) => {
+    setRemovingItems(prev => new Set(prev).add(id));
+    try {
+      await removeFromCart(id);
+      calculateTotals();
+      toast.success("Product removed from the cart");
+    } catch (error) {
+      toast.error("Failed to remove product from cart");
+      console.error("Error removing from cart:", error);
+    } finally {
+      setRemovingItems(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(id);
+        return newSet;
+      });
+    }
   };
 
   const handleCheckout = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -90,7 +104,8 @@ export const CartModule = () => {
                       <button
                         onClick={() => handleRemoveItem(product.id)}
                         type="button"
-                        className="-m-2 inline-flex p-2 text-gray-400 hover:text-gray-500"
+                        disabled={isLoading || removingItems.has(product.id)}
+                        className="-m-2 inline-flex p-2 text-gray-400 hover:text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <span className="sr-only">Remove</span>
                         <FaXmark className="h-5 w-5" aria-hidden="true" />

@@ -16,24 +16,40 @@ import { FaMinus } from "react-icons/fa6";
 import toast from "react-hot-toast";
 
 const QuantityInputCart = ({ product }: { product: ProductInCart }) => {
-  const [quantityCount, setQuantityCount] = useState<number>(product.amount);
-  const { updateCartAmount, calculateTotals } = useProductStore();
+    const [quantityCount, setQuantityCount] = useState<number>(product.amount);
+  const { updateCartAmount, calculateTotals, isLoading } = useProductStore();
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  const handleQuantityChange = (actionName: string): void => {
+  const handleQuantityChange = async (actionName: string) => {
+    let newQuantity: number;
+
     if (actionName === "plus") {
-      if (quantityCount + 1 > product.quantity) {
+      newQuantity = quantityCount + 1;
+      if (newQuantity > product.quantity) {
         toast.error(`Cannot increase quantity beyond available stock: ${product.quantity} available`);
         return;
       }
-      setQuantityCount(() => quantityCount + 1);
-      updateCartAmount(product.id, quantityCount + 1);
-      calculateTotals();
+    } else if (actionName === "minus") {
+      newQuantity = quantityCount - 1;
+      if (newQuantity < 1) {
+        return;
+      }
+    } else {
+      return;
+    }
 
+    setQuantityCount(newQuantity);
+    setIsUpdating(true);
 
-    } else if (actionName === "minus" && quantityCount !== 1) {
-      setQuantityCount(() => quantityCount - 1);
-      updateCartAmount(product.id, quantityCount - 1);
+    try {
+      await updateCartAmount(product.id, newQuantity);
       calculateTotals();
+    } catch (error) {
+      toast.error("Failed to update quantity.");
+      console.error("Error updating cart quantity:", error);
+      setQuantityCount(product.amount); // Revert on error
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -48,7 +64,8 @@ const QuantityInputCart = ({ product }: { product: ProductInCart }) => {
         <button
           type="button"
           aria-label="Decrease quantity"
-          className="size-10 leading-10 text-gray-600 transition hover:opacity-75 flex items-center justify-center"
+          disabled={isUpdating || isLoading || quantityCount <= 1}
+          className="size-10 leading-10 text-gray-600 transition hover:opacity-75 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={() => handleQuantityChange("minus")}
         >
           <FaMinus />
@@ -65,7 +82,8 @@ const QuantityInputCart = ({ product }: { product: ProductInCart }) => {
         <button
           type="button"
           aria-label="Increase quantity"
-          className="size-10 leading-10 text-gray-600 transition hover:opacity-75 flex items-center justify-center"
+          disabled={isUpdating || isLoading || quantityCount >= product.quantity}
+          className="size-10 leading-10 text-gray-600 transition hover:opacity-75 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={() => handleQuantityChange("plus")}
         >
           <FaPlus />

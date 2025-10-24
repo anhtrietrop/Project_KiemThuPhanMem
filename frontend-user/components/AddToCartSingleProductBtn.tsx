@@ -11,16 +11,17 @@
 
 
 
-import React from "react";
+import React, { useState } from "react";
 import { useProductStore } from "@/app/_zustand/store";
 import toast from "react-hot-toast";
 
 
 
 const AddToCartSingleProductBtn = ({ product, quantityCount }: SingleProductBtnProps) => {
-  const { addToCart, calculateTotals } = useProductStore();
+  const { addToCart, calculateTotals, isLoading } = useProductStore();
+  const [isAdding, setIsAdding] = useState(false);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (product?.quantity <= 0) {
       toast.error("Product is out of stock");
       return;
@@ -29,23 +30,34 @@ const AddToCartSingleProductBtn = ({ product, quantityCount }: SingleProductBtnP
       toast.error(`Only ${product?.quantity} items available in stock`);
       return;
     }
-    addToCart({
-      id: product?.id.toString(),
-      title: product?.title,
-      price: product?.price,
-      image: product?.mainImage,
-      amount: quantityCount,
-      quantity: product?.quantity
-    });
-    calculateTotals();
-    toast.success("Product added to the cart");
+
+    setIsAdding(true);
+    try {
+      await addToCart({
+        id: product?.id.toString(),
+        title: product?.title,
+        price: product?.price,
+        image: product?.mainImage,
+        amount: quantityCount,
+        quantity: product?.quantity
+      });
+      calculateTotals();
+      toast.success("Product added to the cart");
+    } catch (error) {
+      toast.error("Failed to add product to cart");
+      console.error("Error adding to cart:", error);
+    } finally {
+      setIsAdding(false);
+    }
   };
   return (
     <button
+      type="button"
       onClick={handleAddToCart}
-      className="btn w-[200px] text-lg border border-gray-300 border-1 font-normal bg-white text-blue-500 hover:bg-blue-500 hover:text-white hover:border-blue-500 hover:scale-110 transition-all uppercase ease-in max-[500px]:w-full"
+      disabled={isAdding || isLoading}
+      className="btn w-[200px] text-lg border border-gray-300 border-1 font-normal bg-white text-blue-500 hover:bg-blue-500 hover:text-white hover:border-blue-500 hover:scale-110 transition-all uppercase ease-in max-[500px]:w-full disabled:bg-gray-300 disabled:cursor-not-allowed"
     >
-      Add to cart
+      {isAdding ? "Adding..." : "Add to cart"}
     </button>
   );
 };
