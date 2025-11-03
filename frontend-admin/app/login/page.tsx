@@ -33,7 +33,8 @@ const LoginPage = () => {
 
   useEffect(() => {
     // This effect handles redirection based on authentication status
-    if (sessionStatus === "authenticated" && session?.user?.role === "admin") {
+    const userRole = (session?.user as any)?.role;
+    if (sessionStatus === "authenticated" && userRole === "admin") {
       // If an admin is already logged in, redirect them to the dashboard.
       router.replace("/admin");
     } else if (sessionStatus === "authenticated") {

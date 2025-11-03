@@ -300,7 +300,6 @@ const AdminSingleOrder = () => {
                     | "processing"
                     | "shipped"
                     | "delivered"
-                    | "success"
                     | "cancelled",
                 })
               }

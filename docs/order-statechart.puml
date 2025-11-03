@@ -1,0 +1,178 @@
+@startuml Order State Chart
+!theme plain
+
+title Quy trình đặt hàng - State Chart Diagram
+
+[*] --> CartCreated : Khách hàng thêm sản phẩm vào giỏ
+
+state CartCreated {
+  CartCreated : Giỏ hàng được tạo
+  CartCreated : - Chứa danh sách sản phẩm
+  CartCreated : - Tính tổng tiền
+}
+
+CartCreated --> OrderInitiated : Khách hàng bấm "Đặt hàng"
+
+state OrderInitiated {
+  OrderInitiated : Đơn hàng được khởi tạo
+  OrderInitiated : - Tạo mã đơn hàng
+  OrderInitiated : - Lưu thông tin khách hàng
+  OrderInitiated : - Status: PENDING
+}
+
+OrderInitiated --> PaymentPending : Chuyển đến thanh toán
+
+state PaymentPending {
+  PaymentPending : Chờ thanh toán
+  PaymentPending : - Hiển thị thông tin thanh toán
+  PaymentPending : - Chờ khách hàng xác nhận
+  PaymentPending : - Status: PAYMENT_PENDING
+}
+
+PaymentPending --> PaymentFailed : Thanh toán thất bại
+PaymentPending --> PaymentCompleted : Thanh toán thành công
+PaymentPending --> OrderCancelled : Khách hàng hủy
+
+state PaymentFailed {
+  PaymentFailed : Thanh toán thất bại
+  PaymentFailed : - Lưu lý do thất bại
+  PaymentFailed : - Status: PAYMENT_FAILED
+}
+
+PaymentFailed --> PaymentPending : Thử lại thanh toán
+PaymentFailed --> OrderCancelled : Hủy đơn hàng
+
+state PaymentCompleted {
+  PaymentCompleted : Thanh toán thành công
+  PaymentCompleted : - Xác nhận giao dịch
+  PaymentCompleted : - Tạo hóa đơn
+  PaymentCompleted : - Status: PAID
+}
+
+PaymentCompleted --> OrderConfirmed : Tự động xác nhận
+
+state OrderConfirmed {
+  OrderConfirmed : Đơn hàng được xác nhận
+  OrderConfirmed : - Gửi email xác nhận
+  OrderConfirmed : - Chuẩn bị hàng
+  OrderConfirmed : - Status: CONFIRMED
+}
+
+OrderConfirmed --> Processing : Bắt đầu xử lý
+
+state Processing {
+  Processing : Đang xử lý
+  Processing : - Kiểm tra tồn kho
+  Processing : - Chuẩn bị sản phẩm
+  Processing : - Status: PROCESSING
+}
+
+Processing --> OutOfStock : Hết hàng
+Processing --> ReadyToShip : Sẵn sàng giao hàng
+
+state OutOfStock {
+  OutOfStock : Hết hàng
+  OutOfStock : - Thông báo khách hàng
+  OutOfStock : - Status: OUT_OF_STOCK
+}
+
+OutOfStock --> Processing : Có hàng trở lại
+OutOfStock --> OrderCancelled : Khách hàng hủy
+
+state ReadyToShip {
+  ReadyToShip : Sẵn sàng giao hàng
+  ReadyToShip : - Đóng gói hoàn tất
+  ReadyToShip : - Tạo vận đơn
+  ReadyToShip : - Status: READY_TO_SHIP
+}
+
+ReadyToShip --> Shipping : Bắt đầu giao hàng
+
+state Shipping {
+  Shipping : Đang giao hàng
+  Shipping : - Hàng đã được gửi đi
+  Shipping : - Có mã vận đơn
+  Shipping : - Status: SHIPPING
+}
+
+Shipping --> Delivered : Giao thành công
+Shipping --> DeliveryFailed : Giao thất bại
+
+state DeliveryFailed {
+  DeliveryFailed : Giao hàng thất bại
+  DeliveryFailed : - Lý do: không có người nhận
+  DeliveryFailed : - Status: DELIVERY_FAILED
+}
+
+DeliveryFailed --> Shipping : Giao lại
+DeliveryFailed --> Returned : Trả về kho
+
+state Delivered {
+  Delivered : Đã giao hàng
+  Delivered : - Khách hàng đã nhận
+  Delivered : - Xác nhận giao hàng
+  Delivered : - Status: DELIVERED
+}
+
+Delivered --> Completed : Hoàn thành tự động sau 7 ngày
+
+state Completed {
+  Completed : Hoàn thành
+  Completed : - Đơn hàng kết thúc
+  Completed : - Không thể thay đổi
+  Completed : - Status: COMPLETED
+}
+
+state Returned {
+  Returned : Hàng bị trả về
+  Returned : - Hàng về lại kho
+  Returned : - Status: RETURNED
+}
+
+Returned --> RefundProcessing : Xử lý hoàn tiền
+
+state RefundProcessing {
+  RefundProcessing : Đang hoàn tiền
+  RefundProcessing : - Xử lý hoàn tiền
+  RefundProcessing : - Status: REFUND_PROCESSING
+}
+
+RefundProcessing --> Refunded : Hoàn tiền thành công
+
+state Refunded {
+  Refunded : Đã hoàn tiền
+  Refunded : - Tiền đã được hoàn
+  Refunded : - Status: REFUNDED
+}
+
+state OrderCancelled {
+  OrderCancelled : Đơn hàng bị hủy
+  OrderCancelled : - Lý do hủy
+  OrderCancelled : - Status: CANCELLED
+}
+
+OrderCancelled --> RefundProcessing : Hoàn tiền (nếu đã thanh toán)
+
+Completed --> [*]
+Refunded --> [*]
+OrderCancelled --> [*] : Không hoàn tiền
+
+note right of CartCreated
+  Điểm bắt đầu:
+  Khách hàng thêm sản phẩm
+  vào giỏ hàng
+end note
+
+note right of Completed
+  Điểm kết thúc thành công:
+  Đơn hàng hoàn thành
+  sau 7 ngày giao hàng
+end note
+
+note right of OrderCancelled
+  Điểm kết thúc thất bại:
+  Đơn hàng bị hủy
+  ở bất kỳ giai đoạn nào
+end note
+
+@enduml

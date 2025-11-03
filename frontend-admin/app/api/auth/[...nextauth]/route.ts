@@ -1,10 +1,10 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
-import { Account, User as AuthUser } from "next-auth";
+import NextAuth from "next-auth/next";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import prisma from "@/utils/db";
 
-export const authOptions: NextAuthOptions = {
+// AuthOptions configuration for NextAuth
+const authOptions: any = {
   // Configure one or more authentication providers
   providers: [
     CredentialsProvider({
@@ -47,14 +47,14 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account }: { user: AuthUser; account: Account }) {
+    async signIn({ user, account }: { user: any; account: any }) {
       // Only allow credentials login
       if (account?.provider === "credentials") {
         return true;
       }
       return false;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user }: any) {
       if (user) {
         token.role = user.role;
         token.id = user.id;
@@ -73,7 +73,7 @@ export const authOptions: NextAuthOptions = {
       
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: any) {
       if (token) {
         session.user.role = token.role as string;
         session.user.id = token.id as string;
@@ -97,5 +97,5 @@ export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === "development",
 };
 
-export const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST, authOptions };

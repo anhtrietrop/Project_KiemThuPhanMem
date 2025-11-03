@@ -132,7 +132,7 @@ const AdminOrders = () => {
         setOrders(prevOrders =>
           prevOrders.map(order =>
             order.id === orderId
-              ? { ...order, status: newStatus }
+              ? { ...order, status: newStatus as "processing" | "shipped" | "delivered" | "cancelled" }
               : order
           )
         );
@@ -182,7 +182,7 @@ const AdminOrders = () => {
             <tr>
               <th>
                 <label>
-                  <input type="checkbox" className="checkbox" />
+                  <input type="checkbox" className="checkbox" aria-label="Select order" />
                 </label>
               </th>
               <th>Order ID</th>
@@ -200,7 +200,7 @@ const AdminOrders = () => {
                 <tr key={order?.id}>
                   <th>
                     <label>
-                      <input type="checkbox" className="checkbox" />
+                      <input type="checkbox" className="checkbox"  aria-label="Select order"/>
                     </label>
                   </th>
 
@@ -214,7 +214,7 @@ const AdminOrders = () => {
                     <div className="flex items-center gap-5">
                       <div>
                         <div className="font-bold">{order?.name}</div>
-                        <div className="text-sm opacity-50">{order?.country}</div>
+                        <div className="text-sm opacity-50">{order?.city}</div>
                       </div>
                     </div>
                   </td>
@@ -224,14 +224,14 @@ const AdminOrders = () => {
                       <select
                         className="select  bg-white text-black border border-gray-300"
                         value={order?.status}
+                        title="Order Status"
                         onChange={(e) => updateOrderStatus(order.id, e.target.value)}
                         disabled={updatingStatus === order.id}
                         style={{
                           backgroundColor: order?.status === 'processing' ? '#fbbf24' :
                             order?.status === 'shipped' ? '#3b82f6' :
                               order?.status === 'delivered' ? '#10b981' :
-                                order?.status === 'success' ? '#059669' :
-                                  order?.status === 'cancelled' ? '#ef4444' : '#ffffff',
+                                order?.status === 'cancelled' ? '#ef4444' : '#ffffff',
                           color: '#000000'
                         }}
                       >
