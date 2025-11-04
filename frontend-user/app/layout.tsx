@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth-config";
 import 'svgmap/dist/svgMap.min.css';
 import SessionProvider from "@/utils/SessionProvider";
 import Header from "@/components/Header";
@@ -22,7 +23,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
   return (
     <html lang="en" data-theme="light">
       <body className={inter.className}>

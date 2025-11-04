@@ -1,0 +1,122 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: singitronic_db
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    ports:
+      - "3307:3306"  # Map to 3307 để tránh conflict với MySQL local
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: singitronic_backend
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    ports:
+      - "3002:3002"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      MOMO_PARTNER_CODE: ${MOMO_PARTNER_CODE}
+      MOMO_ACCESS_KEY: ${MOMO_ACCESS_KEY}
+      MOMO_SECRET_KEY: ${MOMO_SECRET_KEY}
+      MOMO_ENDPOINT: ${MOMO_ENDPOINT}
+      MOMO_RETURN_URL: ${MOMO_RETURN_URL}
+      MOMO_NOTIFY_URL: ${MOMO_NOTIFY_URL}
+      NODE_ENV: ${NODE_ENV:-development}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+      - ./backend/logs:/usr/src/app/logs
+
+  # Frontend User
+  frontend-user:
+    build:
+      context: ./frontend-user
+      dockerfile: Dockerfile
+    container_name: singitronic_frontend_user
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    ports:
+      - "3000:3000"
+    environment:
+      NEXTAUTH_URL: ${NEXTAUTH_URL_USER}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+      DATABASE_URL: ${DATABASE_URL}
+      MOMO_PARTNER_CODE: ${MOMO_PARTNER_CODE}
+      MOMO_ACCESS_KEY: ${MOMO_ACCESS_KEY}
+      MOMO_SECRET_KEY: ${MOMO_SECRET_KEY}
+      NODE_ENV: ${NODE_ENV:-development}
+    depends_on:
+      - backend
+      - db
+    networks:
+      - app-network
+    volumes:
+      - ./frontend-user:/usr/src/app
+      - /usr/src/app/node_modules
+      # No .next volume in dev mode
+
+  # Frontend Admin
+  frontend-admin:
+    build:
+      context: ./frontend-admin
+      dockerfile: Dockerfile
+    container_name: singitronic_frontend_admin
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    ports:
+      - "3001:3001"
+    environment:
+      NEXTAUTH_URL: ${NEXTAUTH_URL_ADMIN}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+      DATABASE_URL: ${DATABASE_URL}
+      NODE_ENV: ${NODE_ENV:-development}
+    depends_on:
+      - backend
+      - db
+    networks:
+      - app-network
+    volumes:
+      - ./frontend-admin:/usr/src/app
+      - /usr/src/app/node_modules
+      # No .next volume in dev mode
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local

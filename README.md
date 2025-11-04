@@ -256,6 +256,15 @@ npm run start             # Chạy production
 npm run lint              # Kiểm tra lỗi
 ```
 
+### Deploy
+
+```bash
+docker compose up -d
+Get-Content database_backup\full_database_dump.sql | docker compose exec -T db mysql -u root -prootpassword123 singitronic_nextjs_db
+docker compose exec backend npx prisma generate
+docker compose restart backend
+```
+
 ## 🎯 Testing
 
 Dự án này đã được tách riêng để dễ dàng:

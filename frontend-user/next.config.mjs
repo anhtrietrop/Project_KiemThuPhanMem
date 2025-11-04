@@ -58,17 +58,17 @@ const nextConfig = {
     // Output standalone - DISABLED vì gây lỗi "self is not defined"
     // output: 'standalone',
 
-    // Webpack optimization - Simplified để tránh lỗi "exports is not defined"
-    webpack: (config, { isServer }) => {
-        // Chỉ optimize cho client-side
-        if (!isServer) {
-            config.optimization = {
-                ...config.optimization,
-                moduleIds: 'deterministic',
-            };
-        }
-        return config;
-    },
+    // Webpack optimization - COMMENTED OUT for Next.js 15 compatibility
+    // webpack: (config, { isServer }) => {
+    //     // Chỉ optimize cho client-side
+    //     if (!isServer) {
+    //         config.optimization = {
+    //             ...config.optimization,
+    //             moduleIds: 'deterministic',
+    //         };
+    //     }
+    //     return config;
+    // },
 
     // Tắt source maps trong production (giảm kích thước)
     productionBrowserSourceMaps: false,
@@ -77,27 +77,28 @@ const nextConfig = {
         NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
     },
     
-    async headers() {
-      return [
-        {
-          source: '/(.*)',
-          headers: [
-            {
-              key: 'X-Frame-Options',
-              value: 'DENY',
-            },
-            {
-              key: 'X-Content-Type-Options',
-              value: 'nosniff',
-            },
-            {
-              key: 'X-XSS-Protection',
-              value: '1; mode=block',
-            },
-          ],
-        },
-      ];
-    },
+    // Headers - COMMENTED OUT for Next.js 15 Docker build compatibility
+    // async headers() {
+    //   return [
+    //     {
+    //       source: '/(.*)',
+    //       headers: [
+    //         {
+    //           key: 'X-Frame-Options',
+    //           value: 'DENY',
+    //         },
+    //         {
+    //           key: 'X-Content-Type-Options',
+    //           value: 'nosniff',
+    //         },
+    //         {
+    //           key: 'X-XSS-Protection',
+    //           value: '1; mode=block',
+    //         },
+    //       ],
+    //     },
+    //   ];
+    // },
 };
 
 export default nextConfig;

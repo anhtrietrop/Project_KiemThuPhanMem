@@ -1,11 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -15,7 +10,7 @@ datasource db {
 
 model Product {
   id             String                   @id @default(uuid())
-  slug           String                   @unique
+  slug           String                   @unique(map: "Product_slug_key")
   title          String
   mainImage      String
   price          Float?                   @default(0)
@@ -24,182 +19,155 @@ model Product {
   rating         Int                      @default(0)
   description    String
   manufacturer   String
-
   categoryId     String
-  category       Category                 @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  customerOrders customer_order_product[]
-  Wishlist       Wishlist[]
-  cartItems      CartItem[]
-
   merchantId     String
-  merchant       Merchant @relation(fields: [merchantId], references: [id])
-}
+  cartitem       cartitem[]
+  customerOrders customer_order_product[]
+  category       category                 @relation(fields: [categoryId], references: [id], onDelete: Cascade, map: "Product_categoryId_fkey")
+  merchant       merchant                 @relation(fields: [merchantId], references: [id], onDelete: NoAction, map: "Product_merchantId_fkey")
+  wishlist       wishlist[]
 
-model Image {
-  imageID   String @id @default(uuid())
-  productID String
-  image     String
-}
-
-model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
-  password      String?
-  role          String?        @default("user")
-  Wishlist      Wishlist[]
-  notifications Notification[]
-  cart          Cart?
-}
-
-model Customer_order {
-  id           String                   @id @default(uuid())
-  name         String
-  lastname     String
-  phone        String
-  email        String
-  adress       String
-  apartment    String?
-  dateTime     DateTime?                @default(now())
-  status       String
-  city         String
-  orderNotice  String?
-  cancelReason String?
-  total        Int
-  payment_status String?               @default("PENDING")
-  payment_method String?
-  payment_transaction_id String?
-  updated_at   DateTime?               @updatedAt
-  products     customer_order_product[]
+  @@index([categoryId], map: "Product_categoryId_fkey")
+  @@index([merchantId], map: "Product_merchantId_fkey")
+  @@map("product")
 }
 
 model customer_order_product {
   id              String         @id @default(uuid())
-  customerOrder   Customer_order @relation(fields: [customerOrderId], references: [id])
   customerOrderId String
-  product         Product        @relation(fields: [productId], references: [id])
   productId       String
   quantity        Int
+  customerOrder   customer_order @relation(fields: [customerOrderId], references: [id], onDelete: NoAction)
+  product         Product        @relation(fields: [productId], references: [id], onDelete: NoAction)
+
+  @@index([customerOrderId], map: "customer_order_product_customerOrderId_fkey")
+  @@index([productId], map: "customer_order_product_productId_fkey")
 }
 
-model Category {
-  id       String    @id @default(uuid())
-  name     String    @unique
-  products Product[] // Define a one-to-many relationship
+model cart {
+  id        String     @id
+  userId    String     @unique(map: "Cart_userId_key")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime
+  user      user       @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Cart_userId_fkey")
+  cartitem  cartitem[]
+
+  @@index([userId], map: "Cart_userId_idx")
 }
 
-model Wishlist {
-  id        String  @id @default(uuid())
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+model cartitem {
+  id        String   @id
+  cartId    String
   productId String
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  cart      cart     @relation(fields: [cartId], references: [id], onDelete: Cascade, map: "CartItem_cartId_fkey")
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade, map: "CartItem_productId_fkey")
+
+  @@unique([cartId, productId], map: "CartItem_cartId_productId_key")
+  @@index([cartId], map: "CartItem_cartId_idx")
+  @@index([productId], map: "CartItem_productId_idx")
 }
 
-enum NotificationType {
-  ORDER_UPDATE
-  PAYMENT_STATUS
-  PROMOTION
-  SYSTEM_ALERT
+model category {
+  id       String    @id
+  name     String    @unique(map: "Category_name_key")
+  products Product[]
 }
 
-enum NotificationPriority {
-  LOW
-  NORMAL
-  HIGH
-  URGENT
+model customer_order {
+  id                     String                   @id
+  name                   String
+  lastname               String
+  phone                  String
+  email                  String
+  adress                 String
+  apartment              String?
+  dateTime               DateTime?                @default(now())
+  status                 String
+  city                   String
+  orderNotice            String?
+  cancelReason           String?
+  total                  Int
+  payment_status         String?                  @default("PENDING")
+  payment_method         String?
+  payment_transaction_id String?
+  updated_at             DateTime?
+  products               customer_order_product[]
 }
 
-model Notification {
-  id        String               @id @default(uuid())
-  userId    String
-  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title     String
-  message   String               @db.Text
-  type      NotificationType
-  isRead    Boolean              @default(false)
-  priority  NotificationPriority @default(NORMAL)
-  metadata  Json?
-  createdAt DateTime             @default(now())
-  updatedAt DateTime             @updatedAt
-
-  @@index([userId])
-  @@index([userId, isRead])
-  @@index([userId, type])
-  @@index([createdAt])
+model image {
+  imageID   String @id
+  productID String
+  image     String
 }
-model Merchant {
-  id          String   @id @default(uuid())
+
+model merchant {
+  id          String    @id
   name        String
   description String?
   email       String?
   phone       String?
   address     String?
-  status      String   @default("ACTIVE")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // relasi
-  products Product[]
-}
-
-model MomoPayment {
-  id          String    @id @default(uuid())
-  orderId     String
-  requestId   String    @unique
-  amount      Int
-  orderInfo   String
-  extraData   String?
-  payUrl      String?
-  deeplink    String?
-  qrCodeUrl   String?
-  transId     String?
-  resultCode  Int?      @default(-1)
-  message     String?
-  payType     String?
-  responseTime DateTime?
+  status      String    @default("ACTIVE")
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@index([orderId])
-  @@index([resultCode])
+  updatedAt   DateTime
+  products    Product[]
 }
 
-model Cart {
-  id        String     @id @default(uuid())
-  userId    String     @unique
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items     CartItem[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+model momopayment {
+  id           String    @id
+  orderId      String
+  requestId    String    @unique(map: "MomoPayment_requestId_key")
+  amount       Int
+  orderInfo    String
+  extraData    String?
+  payUrl       String?
+  deeplink     String?
+  qrCodeUrl    String?
+  transId      String?
+  resultCode   Int?      @default(-1)
+  message      String?
+  payType      String?
+  responseTime DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime
 
-  @@index([userId])
+  @@index([orderId], map: "MomoPayment_orderId_idx")
+  @@index([resultCode], map: "MomoPayment_resultCode_idx")
 }
 
-model CartItem {
-  id        String  @id @default(uuid())
-  cartId    String
-  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  quantity  Int     @default(1)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model notification {
+  id        String                @id
+  userId    String
+  title     String
+  message   String                @db.Text
+  type      notification_type
+  isRead    Boolean               @default(false)
+  priority  notification_priority @default(NORMAL)
+  metadata  String?               @db.LongText
+  createdAt DateTime              @default(now())
+  updatedAt DateTime
+  user      user                  @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Notification_userId_fkey")
 
-  @@unique([cartId, productId])
-  @@index([cartId])
-  @@index([productId])
+  @@index([createdAt], map: "Notification_createdAt_idx")
+  @@index([userId], map: "Notification_userId_idx")
+  @@index([userId, isRead], map: "Notification_userId_isRead_idx")
+  @@index([userId, type], map: "Notification_userId_type_idx")
 }
 
-model RateLimitLog {
-  id        String   @id @default(uuid())
+model ratelimitlog {
+  id        String   @id
   key       String
   timestamp DateTime @default(now())
 
-  @@index([key, timestamp])
+  @@index([key, timestamp], map: "RateLimitLog_key_timestamp_idx")
 }
 
-model SecurityLog {
-  id        String   @id @default(uuid())
+model securitylog {
+  id        String   @id
   event     String
   details   String   @db.Text
   severity  String
@@ -207,7 +175,42 @@ model SecurityLog {
   userAgent String   @db.Text
   timestamp DateTime @default(now())
 
-  @@index([event])
-  @@index([severity])
-  @@index([timestamp])
+  @@index([event], map: "SecurityLog_event_idx")
+  @@index([severity], map: "SecurityLog_severity_idx")
+  @@index([timestamp], map: "SecurityLog_timestamp_idx")
+}
+
+model user {
+  id           String         @id
+  email        String         @unique(map: "User_email_key")
+  password     String?
+  role         String?        @default("user")
+  cart         cart?
+  notification notification[]
+  wishlist     wishlist[]
+}
+
+model wishlist {
+  id        String  @id
+  productId String
+  userId    String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade, map: "Wishlist_productId_fkey")
+  user      user    @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Wishlist_userId_fkey")
+
+  @@index([productId], map: "Wishlist_productId_fkey")
+  @@index([userId], map: "Wishlist_userId_fkey")
+}
+
+enum notification_type {
+  ORDER_UPDATE
+  PAYMENT_STATUS
+  PROMOTION
+  SYSTEM_ALERT
+}
+
+enum notification_priority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
 }

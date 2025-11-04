@@ -1,5 +1,10 @@
 const { PrismaClient } = require('@prisma/client');
-const { nanoid } = require('nanoid');
+const crypto = require('crypto');
+
+// Helper function to generate nanoid-like IDs using crypto
+const nanoid = () => {
+  return crypto.randomBytes(16).toString('base64url').substring(0, 21);
+};
 
 const prisma = new PrismaClient();
 

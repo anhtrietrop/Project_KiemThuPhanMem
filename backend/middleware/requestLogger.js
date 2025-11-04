@@ -1,6 +1,14 @@
 const morgan = require('morgan');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+
+// Helper function to generate nanoid-like IDs using crypto
+const nanoid = (length = 21) => {
+  return crypto.randomBytes(Math.ceil(length * 3 / 4))
+    .toString('base64url')
+    .substring(0, length);
+};
 
 // Create logs directory if it doesn't exist
 const logsDir = path.join(__dirname, '..', 'logs');
@@ -30,7 +38,7 @@ const errorLogStream = fs.createWriteStream(
 
 // Middleware to add request ID
 const addRequestId = (req, res, next) => {
-  req.reqId = require('nanoid').nanoid(8);
+  req.reqId = nanoid(8);
   res.setHeader('X-Request-ID', req.reqId);
   next();
 };
