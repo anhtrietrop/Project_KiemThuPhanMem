@@ -8,6 +8,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ========================================
+// UC3 MODELS: UC2 + Order & Payment
+// - All UC2 models
+// - Customer Orders
+// - MoMo Payment
+// ========================================
+
 model Product {
   id             String                   @id @default(uuid())
   slug           String                   @unique(map: "Product_slug_key")
@@ -138,56 +145,13 @@ model momopayment {
   @@index([resultCode], map: "MomoPayment_resultCode_idx")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model notification {
-  id        String                @id
-  userId    String
-  title     String
-  message   String                @db.Text
-  type      notification_type
-  isRead    Boolean               @default(false)
-  priority  notification_priority @default(NORMAL)
-  metadata  String?               @db.LongText
-  createdAt DateTime              @default(now())
-  updatedAt DateTime
-  user      user                  @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Notification_userId_fkey")
-
-  @@index([createdAt], map: "Notification_createdAt_idx")
-  @@index([userId], map: "Notification_userId_idx")
-  @@index([userId, isRead], map: "Notification_userId_isRead_idx")
-  @@index([userId, type], map: "Notification_userId_type_idx")
-}
-
-model ratelimitlog {
-  id        String   @id
-  key       String
-  timestamp DateTime @default(now())
-
-  @@index([key, timestamp], map: "RateLimitLog_key_timestamp_idx")
-}
-
-model securitylog {
-  id        String   @id
-  event     String
-  details   String   @db.Text
-  severity  String
-  ip        String
-  userAgent String   @db.Text
-  timestamp DateTime @default(now())
-
-  @@index([event], map: "SecurityLog_event_idx")
-  @@index([severity], map: "SecurityLog_severity_idx")
-  @@index([timestamp], map: "SecurityLog_timestamp_idx")
-}
-
 model user {
-  id           String         @id
-  email        String         @unique(map: "User_email_key")
-  password     String?
-  role         String?        @default("user")
-  cart         cart?
-  notification notification[]
-  wishlist     wishlist[]
+  id       String     @id
+  email    String     @unique(map: "User_email_key")
+  password String?
+  role     String?    @default("user")
+  cart     cart?
+  wishlist wishlist[]
 }
 
 model wishlist {
@@ -199,18 +163,4 @@ model wishlist {
 
   @@index([productId], map: "Wishlist_productId_fkey")
   @@index([userId], map: "Wishlist_userId_fkey")
-}
-
-enum notification_type {
-  ORDER_UPDATE
-  PAYMENT_STATUS
-  PROMOTION
-  SYSTEM_ALERT
-}
-
-enum notification_priority {
-  LOW
-  NORMAL
-  HIGH
-  URGENT
 }
