@@ -1,0 +1,71 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ========================================
+// UC1 MODELS: Core Features
+// - User Authentication
+// - Products CRUD
+// - Categories
+// - Merchant
+// - Images
+// ========================================
+
+model Product {
+  id           String   @id @default(uuid())
+  slug         String   @unique(map: "Product_slug_key")
+  title        String
+  mainImage    String
+  price        Float?   @default(0)
+  costPrice    Float?
+  quantity     Int      @default(0)
+  rating       Int      @default(0)
+  description  String
+  manufacturer String
+  categoryId   String
+  merchantId   String
+  category     category @relation(fields: [categoryId], references: [id], onDelete: Cascade, map: "Product_categoryId_fkey")
+  merchant     merchant @relation(fields: [merchantId], references: [id], onDelete: NoAction, map: "Product_merchantId_fkey")
+
+  @@index([categoryId], map: "Product_categoryId_fkey")
+  @@index([merchantId], map: "Product_merchantId_fkey")
+  @@map("product")
+}
+
+model category {
+  id       String    @id
+  name     String    @unique(map: "Category_name_key")
+  products Product[]
+}
+
+model image {
+  imageID   String @id
+  productID String
+  image     String
+}
+
+model merchant {
+  id          String    @id
+  name        String
+  description String?
+  email       String?
+  phone       String?
+  address     String?
+  status      String    @default("ACTIVE")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime
+  products    Product[]
+}
+
+model user {
+  id       String  @id
+  email    String  @unique(map: "User_email_key")
+  password String?
+  role     String? @default("user")
+}
