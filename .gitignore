@@ -46,6 +46,13 @@ Thumbs.db
 # Prisma
 */prisma/migrations/*_dev.sql
 
+# Docker MySQL data (để tránh conflict giữa các UC branches)
+mysql_data/
+mysql_data_uc1/
+mysql_data_uc2/
+mysql_data_uc3/
+mysql_data_uc4/
+
 # Testing
 coverage/
 .nyc_output/
