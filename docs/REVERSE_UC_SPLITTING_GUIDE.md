@@ -183,7 +183,7 @@ git push -u origin uc2
 ### **BƯỚC 4: Tạo UC1 branch (chỉ giữ core features)**
 
 ```powershell
-git checkout uc2
+git checkout uc2;
 git checkout -b uc1
 ```
 
@@ -191,25 +191,25 @@ git checkout -b uc1
 
 ```powershell
 # 1. Xóa Cart routes
-git rm backend/routes/cart.js
+git rm backend/routes/cart.js;
 git rm backend/controllers/cart.js
 
 # 2. Xóa Wishlist routes
-git rm backend/routes/wishlist.js
+git rm backend/routes/wishlist.js;
 git rm backend/controllers/wishlist.js
 
 # 3. Xóa Cart, Wishlist models khỏi Prisma schema
 # Edit backend/prisma/schema.prisma - comment out Cart, CartItem, Wishlist
 
 # 4. Xóa frontend cart/wishlist pages
-git rm -r frontend-user/app/cart
-git rm -r frontend-user/app/wishlist
-git rm frontend-user/components/modules/cart
-git rm frontend-user/components/modules/wishlist
+git rm -r frontend-user/app/cart;
+git rm -r frontend-user/app/wishlist;
+git rm frontend-user/components/modules/cart -r;
+git rm frontend-user/components/modules/wishlist -r
 
 # 5. Commit
-git add .
-git commit -m "feat(uc1): core features only (auth, products, categories, search)"
+git add .;
+git commit -m "feat(uc1): core features only (auth, products, categories, search)";
 git push -u origin uc1
 ```
 
