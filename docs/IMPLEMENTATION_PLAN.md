@@ -1,7 +1,6 @@
 # 🚀 E-COMMERCE PROJECT - IMPLEMENTATION ROADMAP
 
 > **Dự án:** Website thương mại điện tử (E-Commerce)  
-> **Team:** Nhóm Do Anh Triet  
 > **Tech Stack:** Next.js 15, Node.js, MySQL, Prisma, Docker  
 > **Deployment:** Local (Docker) → Cloud (optional)
 

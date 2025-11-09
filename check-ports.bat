@@ -1,6 +1,7 @@
 @echo off
 echo ========================================
 echo  Checking Required Ports
+echo  kiểm tra các cổng cần thiết tránh trùng lặp
 echo ========================================
 echo.
 
