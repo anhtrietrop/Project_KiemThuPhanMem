@@ -40,6 +40,7 @@ git clone Project_KiemThuPhanMem Project_KiemThuPhanMem_BACKUP
 Dựa trên `UC_ANALYSIS.md`:
 
 **UC1 Features:**
+
 - ✅ User Authentication (`backend/routes/users.js`, `backend/controllers/users.js`)
 - ✅ Products CRUD (`backend/routes/products.js`, `backend/controllers/products.js`)
 - ✅ Categories (`backend/routes/category.js`)
@@ -48,14 +49,17 @@ Dựa trên `UC_ANALYSIS.md`:
 - ✅ Product Images (`backend/routes/productImages.js`, `backend/routes/mainImages.js`)
 
 **UC2 Features (thêm vào UC1):**
+
 - ✅ Cart (`backend/routes/cart.js`, `backend/controllers/cart.js`)
 - ✅ Wishlist (`backend/routes/wishlist.js`, `backend/controllers/wishlist.js`)
 
 **UC3 Features (thêm vào UC2):**
+
 - ✅ Orders (`backend/routes/customer_orders.js`, `backend/controllers/customer_orders.js`)
 - ✅ MoMo Payment (`backend/routes/momoPayment.js`, `backend/controllers/momoPayment.js`)
 
 **UC4 Features (thêm vào UC3):**
+
 - ✅ Notifications (`backend/routes/notifications.js`, `backend/controllers/notificationController.js`)
 - ✅ Security Logging (`backend/middleware/rateLimiter.js`, `backend/middleware/requestLogger.js`)
 
@@ -123,6 +127,7 @@ git push -u origin uc3
 ```
 
 **UC3 checklist:**
+
 - ✅ UC1: Auth, Products, Categories
 - ✅ UC2: Cart, Wishlist
 - ✅ UC3: Orders, MoMo Payment
@@ -168,6 +173,7 @@ git push -u origin uc2
 ```
 
 **UC2 checklist:**
+
 - ✅ UC1: Auth, Products, Categories
 - ✅ UC2: Cart, Wishlist
 - ❌ UC3: Orders, MoMo
@@ -209,6 +215,7 @@ git push -u origin uc1
 ```
 
 **UC1 checklist:**
+
 - ✅ UC1: Auth, Products, Categories, Search, Merchant
 - ❌ UC2: Cart, Wishlist
 - ❌ UC3: Orders, Payment
@@ -285,14 +292,14 @@ DATABASE_URL="mysql://root:@localhost:3306/singitronic_uc4"
 Tạo `docker-compose.uc1.yml`:
 
 ```yaml
-version: '3.8'
+version: "3.8"
 
 services:
   db:
     image: mysql:8.0
     container_name: singitronic_db_uc1
     ports:
-      - "3307:3306"  # UC1 port
+      - "3307:3306" # UC1 port
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword123
       MYSQL_DATABASE: singitronic_uc1
@@ -361,10 +368,11 @@ git checkout uc1
 
 Tạo `UC1_README.md`:
 
-```markdown
+````markdown
 # UC1 - Core Features
 
 ## Features
+
 - ✅ User Authentication (register, login, session)
 - ✅ Product Management (CRUD)
 - ✅ Category Management
@@ -373,6 +381,7 @@ Tạo `UC1_README.md`:
 - ✅ Product Images
 
 ## NOT Included (sẽ có trong UC2-UC4)
+
 - ❌ Shopping Cart
 - ❌ Wishlist
 - ❌ Orders
@@ -380,24 +389,28 @@ Tạo `UC1_README.md`:
 - ❌ Notifications
 
 ## Setup
+
 ```bash
 docker compose -f docker-compose.uc1.yml up -d
 docker compose exec backend npx prisma migrate dev
 node backend/scripts/seed-uc1.js
 ```
+````
 
 ## Test
+
 - Products: http://localhost:3000
 - Admin: http://localhost:3001
 - API: http://localhost:3002/api/products
-```
+
+````
 
 Commit:
 ```powershell
 git add UC1_README.md
 git commit -m "docs: add UC1 README"
 git push
-```
+````
 
 Tương tự tạo `UC2_README.md`, `UC3_README.md`, `UC4_README.md` cho các branches khác.
 
@@ -490,37 +503,34 @@ Tạo seed scripts riêng:
 ### **backend/scripts/seed-uc1.js:**
 
 ```javascript
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding UC1 data...');
+  console.log("🌱 Seeding UC1 data...");
 
   // 1. Users
   await prisma.user.createMany({
     data: [
-      { email: 'user@test.com', password: 'hashed', role: 'user' },
-      { email: 'admin@test.com', password: 'hashed', role: 'admin' }
-    ]
+      { email: "user@test.com", password: "hashed", role: "user" },
+      { email: "admin@test.com", password: "hashed", role: "admin" },
+    ],
   });
 
   // 2. Categories
   await prisma.category.createMany({
-    data: [
-      { name: 'Laptops' },
-      { name: 'Phones' }
-    ]
+    data: [{ name: "Laptops" }, { name: "Phones" }],
   });
 
   // 3. Merchants
   await prisma.merchant.createMany({
-    data: [{ name: 'Main Store' }]
+    data: [{ name: "Main Store" }],
   });
 
   // 4. Products (10 products)
   // ... create products
 
-  console.log('✅ UC1 seed completed!');
+  console.log("✅ UC1 seed completed!");
 }
 
 main();
@@ -532,12 +542,12 @@ main();
 // Chạy seed-uc1.js trước, sau đó thêm:
 
 async function seedUC2() {
-  console.log('🌱 Seeding UC2 additional data...');
+  console.log("🌱 Seeding UC2 additional data...");
 
   // 1. Cart for test user
-  const user = await prisma.user.findFirst({ where: { role: 'user' } });
+  const user = await prisma.user.findFirst({ where: { role: "user" } });
   const cart = await prisma.cart.create({
-    data: { userId: user.id }
+    data: { userId: user.id },
   });
 
   // 2. Cart items
@@ -547,15 +557,15 @@ async function seedUC2() {
       data: {
         cartId: cart.id,
         productId: product.id,
-        quantity: 1
-      }
+        quantity: 1,
+      },
     });
   }
 
   // 3. Wishlist
   // ...
 
-  console.log('✅ UC2 seed completed!');
+  console.log("✅ UC2 seed completed!");
 }
 ```
 
@@ -570,6 +580,7 @@ Tương tự cho UC3, UC4.
 **Problem:** Xóa model khỏi schema nhưng code vẫn import.
 
 **Solution:**
+
 ```powershell
 # Search tất cả imports
 grep -r "prisma.notification" backend/
@@ -581,6 +592,7 @@ grep -r "prisma.notification" backend/
 **Problem:** Frontend vẫn có links đến features chưa có.
 
 **Solution:**
+
 ```powershell
 # UC1: Comment out cart/wishlist links in Header.tsx
 # UC2: Comment out checkout links
@@ -640,17 +652,17 @@ ls frontend-user/app/
 
 ## 📅 TIMELINE ĐỀ XUẤT
 
-| Week | Task | Branch |
-|------|------|--------|
-| 1 | Tạo UC1 branch, xóa UC2-UC4 features | uc1 |
-| 1 | Test UC1 thoroughly | uc1 |
-| 2 | Tạo UC2 từ UC1, thêm Cart/Wishlist | uc2 |
-| 2 | Test UC2 | uc2 |
-| 3 | Tạo UC3 từ UC2, thêm Orders/Payment | uc3 |
-| 3 | Test UC3 | uc3 |
-| 4 | Tạo UC4 từ UC3, thêm Notifications | uc4 |
-| 4 | Final testing | all |
-| 5 | Demo cho giáo viên | all |
+| Week | Task                                 | Branch |
+| ---- | ------------------------------------ | ------ |
+| 1    | Tạo UC1 branch, xóa UC2-UC4 features | uc1    |
+| 1    | Test UC1 thoroughly                  | uc1    |
+| 2    | Tạo UC2 từ UC1, thêm Cart/Wishlist   | uc2    |
+| 2    | Test UC2                             | uc2    |
+| 3    | Tạo UC3 từ UC2, thêm Orders/Payment  | uc3    |
+| 3    | Test UC3                             | uc3    |
+| 4    | Tạo UC4 từ UC3, thêm Notifications   | uc4    |
+| 4    | Final testing                        | all    |
+| 5    | Demo cho giáo viên                   | all    |
 
 ---
 
