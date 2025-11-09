@@ -146,29 +146,28 @@ git checkout -b uc2
 
 ```powershell
 # 1. Xóa Order routes
-git rm backend/routes/customer_orders.js
-git rm backend/routes/customer_order_product.js
-git rm backend/controllers/customer_orders.js
+git rm backend/routes/customer_orders.js;
+git rm backend/routes/customer_order_product.js;
+git rm backend/controllers/customer_orders.js;
 git rm backend/controllers/customer_order_product.js
-
 # 2. Xóa MoMo Payment
-git rm backend/routes/momoPayment.js
-git rm backend/controllers/momoPayment.js
-git rm -r backend/utills/momoSecurity.js
+git rm backend/routes/momoPayment.js;
+git rm backend/controllers/momoPayment.js;
+git rm -r backend/utills/momoSecurity.js;
 git rm -r backend/middleware/momoErrorHandler.js
 
 # 3. Xóa Order models khỏi Prisma schema
 # Edit backend/prisma/schema.prisma - comment out Customer_order, customer_order_product, MomoPayment
 
 # 4. Xóa frontend order/payment pages
-git rm -r frontend-user/app/my-orders
-git rm -r frontend-user/app/order
-git rm -r frontend-user/app/checkout
+git rm -r frontend-user/app/my-orders;
+git rm -r frontend-user/app/order;
+git rm -r frontend-user/app/checkout;
 git rm -r frontend-user/app/payment
 
 # 5. Commit
-git add .
-git commit -m "feat(uc2): remove UC3 features (orders, payment)"
+git add .;
+git commit -m "feat(uc2): remove UC3 features (orders, payment)";
 git push -u origin uc2
 ```
 
