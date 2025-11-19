@@ -1,4 +1,4 @@
-# CHIẾN LƯỢC & LỸ THUẬT SINH TEST CASES
+# CHIẾN LƯỢC & KỸ THUẬT SINH TEST CASES
 
 > **Mục đích:** Giải thích các kỹ thuật, phương pháp và quy trình để sinh ra test cases hiệu quả
 
@@ -6,16 +6,208 @@
 
 ## 📚 MỤC LỤC
 
-1. [Các Kỹ Thuật Test Cơ Bản](#1-các-kỹ-thuật-test-cơ-bản)
-2. [Phương Pháp Phân Tích Yêu Cầu](#2-phương-pháp-phân-tích-yêu-cầu)
-3. [Áp Dụng Vào Project](#3-áp-dụng-vào-project)
-4. [Ví Dụ Cụ Thể](#4-ví-dụ-cụ-thể)
+1. [Cấu Trúc Test Plan](#1-cấu-trúc-test-plan)
+2. [Các Kỹ Thuật Test Cơ Bản](#2-các-kỹ-thuật-test-cơ-bản)
+3. [Phương Pháp Phân Tích Yêu Cầu](#3-phương-pháp-phân-tích-yêu-cầu)
+4. [Áp Dụng Vào Project](#4-áp-dụng-vào-project)
+5. [Ví Dụ Cụ Thể](#5-ví-dụ-cụ-thể)
 
 ---
 
-## 1. CÁC KỸ THUẬT TEST CƠ BẢN
+## 1. CẤU TRÚC TEST PLAN
 
-### 1.1 Equivalence Partitioning (Phân vùng tương đương)
+### 1.1 Giới thiệu
+
+#### 1.1.1 Test Stages (Các giai đoạn kiểm thử)
+
+```
+Unit Testing → Integration Testing → System Testing → Acceptance Testing
+```
+
+- **Unit Testing**: Kiểm thử từng module độc lập (Auth, Product, Order...)
+- **Integration Testing**: Kiểm thử tích hợp giữa các modules (Auth + Cart, Cart + Order...)
+- **System Testing**: Kiểm thử toàn bộ hệ thống end-to-end
+- **Acceptance Testing**: Kiểm thử chấp nhận theo user stories
+
+#### 1.1.2 Test Types (Các loại kiểm thử)
+
+```
+├── Functional Testing (Kiểm thử chức năng)
+│   ├── API Testing
+│   ├── Business Logic Testing
+│   └── Data Validation Testing
+├── Non-Functional Testing
+│   ├── Performance Testing
+│   ├── Security Testing
+│   └── Usability Testing
+└── Regression Testing (Kiểm thử hồi quy)
+```
+
+---
+
+### 1.2 Đối tượng kiểm thử
+
+#### 1.2.1 Kiểm thử chức năng (Nghiệp vụ)
+
+**Phạm vi:**
+
+- Authentication & Authorization (UC1)
+- Product Management (UC1)
+- Cart & Wishlist (UC2)
+- Order Management (UC3)
+- Payment Processing (UC3)
+- Notifications (UC4)
+- Admin Functions (UC4)
+
+**Mục tiêu:**
+
+- Verify các chức năng hoạt động đúng theo yêu cầu
+- Đảm bảo business logic được implement chính xác
+- Validate input/output của các API endpoints
+
+#### 1.2.2 Kiểm thử quy trình
+
+**Phạm vi:**
+
+- Complete user journey: Register → Browse → Cart → Checkout → Payment
+- Merchant flow: Register → Add Products → Manage Orders
+- Admin flow: User Management → Product Approval → Dashboard
+
+**Mục tiêu:**
+
+- Verify toàn bộ quy trình end-to-end hoạt động
+- Đảm bảo data flow giữa các modules
+- Test state transitions và workflows
+
+#### 1.2.3 Kiểm thử dữ liệu
+
+**Phạm vi:**
+
+- Data validation (types, formats, ranges)
+- Data integrity (foreign keys, constraints)
+- Data sanitization (XSS, SQL injection)
+- Data persistence và consistency
+
+**Mục tiêu:**
+
+- Đảm bảo dữ liệu hợp lệ được lưu đúng
+- Từ chối dữ liệu không hợp lệ
+- Bảo vệ khỏi các lỗ hổng bảo mật
+
+---
+
+### 1.3 Điều kiện hoàn thành
+
+#### Unit Tests:
+
+- ✅ Code coverage >= 80%
+- ✅ Tất cả test cases PASS
+- ✅ Không có console.log/debug code
+- ✅ Test execution time < 5 giây
+
+#### Integration Tests:
+
+- ✅ Tất cả API endpoints đã được test
+- ✅ Tất cả user flows chính đã được cover
+- ✅ Database transactions hoạt động đúng
+- ✅ Error handling đã được verify
+
+#### System Tests:
+
+- ✅ End-to-end flows hoàn chỉnh
+- ✅ Performance benchmarks đạt yêu cầu
+- ✅ Security vulnerabilities đã được check
+- ✅ Cross-browser compatibility (frontend)
+
+#### Acceptance Tests:
+
+- ✅ Tất cả User Stories đã implement và test
+- ✅ Stakeholder approval
+- ✅ Production-ready documentation
+
+---
+
+### 1.4 Phương pháp kiểm thử
+
+Áp dụng các kỹ thuật testing chuyên nghiệp:
+
+1. **Equivalence Partitioning** - Phân vùng tương đương
+2. **Boundary Value Analysis** - Phân tích giá trị biên
+3. **Decision Table Testing** - Bảng quyết định
+4. **State Transition Testing** - Kiểm thử chuyển trạng thái
+5. **Error Guessing** - Dự đoán lỗi
+
+_(Chi tiết các kỹ thuật xem phần 2)_
+
+---
+
+### 1.5 Quản lý
+
+#### 1.5.1 Môi trường kiểm thử
+
+```yaml
+Development:
+  Database: MySQL (local)
+  Node.js: v18+
+  Ports: 3000 (backend), 3001 (admin), 3002 (user)
+
+Testing:
+  Database: MySQL Test Database (isolated)
+  Test data: Auto-seeding
+  Mock services: MoMo Payment, Email
+
+CI/CD:
+  Platform: GitHub Actions
+  Trigger: On PR & Push to main
+  Reports: Coverage, Test Results
+```
+
+#### 1.5.2 Phần mềm & Tools
+
+| Tool           | Purpose                    | Version       |
+| -------------- | -------------------------- | ------------- |
+| Jest           | Unit & Integration Testing | ^29.0.0       |
+| Supertest      | HTTP API Testing           | ^6.3.0        |
+| Prisma         | ORM & Database Migrations  | ^5.0.0        |
+| GitHub Actions | CI/CD Pipeline             | N/A           |
+| Istanbul/NYC   | Code Coverage              | Built-in Jest |
+
+#### 1.5.3 Phân công
+
+```
+Team Member 1: UC1 - Auth & Product (Core modules)
+Team Member 2: UC2 - Cart & Wishlist
+Team Member 3: UC3 - Order & Payment
+Team Member 4: UC4 - Notifications & Admin
+Test Lead: Integration & E2E Tests
+```
+
+---
+
+### 1.6 Kết quả dự kiến
+
+```
+📊 Test Metrics:
+├── Total Tests: 150+ test cases
+├── Pass Rate: >= 95%
+├── Code Coverage: >= 80%
+├── Execution Time: < 2 minutes
+└── Bug Detection: Critical bugs = 0
+
+📈 Deliverables:
+├── Test Report (HTML/JSON)
+├── Coverage Report
+├── Bug Report (categorized by severity)
+└── Performance Metrics
+```
+
+---
+
+## 2. CÁC KỸ THUẬT TEST CƠ BẢN
+
+---
+
+### 2.1 Equivalence Partitioning (Phân vùng tương đương)
 
 **Lý thuyết:**
 
@@ -40,7 +232,7 @@ Test cases (chọn 1 đại diện/nhóm):
 
 ---
 
-### 1.2 Boundary Value Analysis (Phân tích giá trị biên)
+### 2.2 Boundary Value Analysis (Phân tích giá trị biên)
 
 **Lý thuyết:**
 
@@ -96,7 +288,7 @@ describe("Auth - Password Length Boundary", () => {
 
 ---
 
-### 1.3 Decision Table Testing (Bảng quyết định)
+### 2.3 Decision Table Testing (Bảng quyết định)
 
 **Lý thuyết:**
 
@@ -174,7 +366,7 @@ describe("Auth - Login Decision Table", () => {
 
 ---
 
-### 1.4 State Transition Testing (Kiểm thử chuyển trạng thái)
+### 2.4 State Transition Testing (Kiểm thử chuyển trạng thái)
 
 **Lý thuyết:**
 
@@ -257,7 +449,7 @@ describe("Order - State Transition Testing", () => {
 
 ---
 
-### 1.5 Error Guessing (Dự đoán lỗi)
+### 2.5 Error Guessing (Dự đoán lỗi)
 
 **Lý thuyết:**
 
@@ -289,9 +481,9 @@ TC7: Duplicate simultaneous add     → Handle race condition
 
 ---
 
-## 2. PHƯƠNG PHÁP PHÂN TÍCH YÊU CẦU
+## 3. PHƯƠNG PHÁP PHÂN TÍCH YÊU CẦU
 
-### 2.1 Từ User Story đến Test Cases
+### 3.1 Từ User Story đến Test Cases
 
 **Bước 1: Phân tích User Story**
 
@@ -354,7 +546,7 @@ describe("UC1: User Registration", () => {
 
 ---
 
-### 2.2 Từ API Endpoint đến Test Cases
+### 3.2 Từ API Endpoint đến Test Cases
 
 **Phân tích API:**
 
@@ -400,9 +592,9 @@ describe("POST /api/auth/register", () => {
 
 ---
 
-## 3. ÁP DỤNG VÀO PROJECT
+## 4. ÁP DỤNG VÀO PROJECT
 
-### 3.1 Quy Trình Sinh Test Cases
+### 4.1 Quy Trình Sinh Test Cases
 
 ```
 Step 1: Đọc Requirements/User Stories
@@ -425,7 +617,7 @@ Step 6: Run tests + Coverage report
 
 ---
 
-### 3.2 Template Sinh Test Cases
+### 4.2 Template Sinh Test Cases
 
 ```markdown
 ## Module: [Tên Module]
@@ -467,9 +659,9 @@ Step 6: Run tests + Coverage report
 
 ---
 
-## 4. VÍ DỤ CỤ THỂ: PRODUCT SEARCH
+## 5. VÍ DỤ CỤ THỂ: PRODUCT SEARCH
 
-### 4.1 Phân Tích Yêu Cầu
+### 5.1 Phân Tích Yêu Cầu
 
 ```
 Feature: Tìm kiếm sản phẩm
@@ -486,7 +678,7 @@ Query Parameters:
 - limit: integer, 1-100, default=20
 ```
 
-### 4.2 Áp Dụng Kỹ Thuật
+### 5.2 Áp Dụng Kỹ Thuật
 
 **1. Equivalence Partitioning:**
 
@@ -534,7 +726,7 @@ Limit (range 1-100):
 └─────┴────────┴──────────┴───────────┴────────────┴────────────┘
 ```
 
-### 4.3 Implement Tests
+### 5.3 Implement Tests
 
 ```javascript
 describe("Product Search - Equivalence Partitioning", () => {
@@ -614,7 +806,7 @@ describe("Product Search - Decision Table", () => {
 
 ---
 
-## 5. CHECKLIST SINH TEST CASES
+## 6. CHECKLIST SINH TEST CASES
 
 Khi sinh test cho một feature mới, hãy đi qua checklist này:
 
@@ -655,9 +847,9 @@ Khi sinh test cho một feature mới, hãy đi qua checklist này:
 
 ---
 
-## 6. CÔNG CỤ HỖ TRỢ
+## 7. CÔNG CỤ HỖ TRỢ
 
-### 6.1 Tạo Test Data
+### 7.1 Tạo Test Data
 
 ```javascript
 // Factory pattern để tạo test data
@@ -676,7 +868,7 @@ const validUser = UserFactory.create();
 const userWithInvalidEmail = UserFactory.create({ email: "invalid" });
 ```
 
-### 6.2 Helper Functions
+### 7.2 Helper Functions
 
 ```javascript
 // Helper để test API
@@ -705,7 +897,7 @@ test("Register then login flow", async () => {
 
 ---
 
-## 7. KẾT LUẬN
+## 8. KẾT LUẬN
 
 **Quy trình tổng quát:**
 
