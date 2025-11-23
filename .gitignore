@@ -49,6 +49,14 @@ Thumbs.db
 # Testing
 coverage/
 .nyc_output/
+*/coverage/
+*/.nyc_output/
+test-results/
+*/test-results/
+
+# Test uploads & temporary files
+test_uploads/
+*/test_uploads/
 
 # Misc
 .cache/

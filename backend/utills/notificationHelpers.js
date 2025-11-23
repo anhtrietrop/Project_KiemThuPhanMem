@@ -61,11 +61,12 @@ const createOrderUpdateNotification = async (userId, orderStatus, orderId, total
         type: 'ORDER_UPDATE',
         priority: statusInfo.priority,
         isRead: false,
-        metadata: {
+        updatedAt: new Date(),
+        metadata: JSON.stringify({
           orderId: orderId,
           status: orderStatus,
           ...(totalAmount && { totalAmount: totalAmount })
-        }
+        })
       }
     });
 
@@ -115,11 +116,11 @@ const createPaymentNotification = async (userId, paymentStatus, amount, orderId)
         type: 'PAYMENT_STATUS',
         priority: statusInfo.priority,
         isRead: false,
-        metadata: {
+        metadata: JSON.stringify({
           orderId: orderId,
           paymentStatus: paymentStatus,
           amount: amount
-        }
+        })
       }
     });
 
@@ -145,10 +146,10 @@ const createPromotionNotification = async (userId, title, message, promoCode = n
         type: 'PROMOTION',
         priority: 'NORMAL',
         isRead: false,
-        metadata: {
+        metadata: JSON.stringify({
           ...(promoCode && { promoCode: promoCode }),
           ...(discount && { discount: discount })
-        }
+        })
       }
     });
 
@@ -174,9 +175,9 @@ const createSystemAlertNotification = async (userId, title, message, priority = 
         type: 'SYSTEM_ALERT',
         priority: priority,
         isRead: false,
-        metadata: {
+        metadata: JSON.stringify({
           alertType: 'system'
-        }
+        })
       }
     });
 
@@ -201,7 +202,7 @@ const createBulkNotifications = async (userIds, title, message, type = 'SYSTEM_A
       type: type,
       priority: priority,
       isRead: false,
-      metadata: metadata
+      metadata: typeof metadata === 'string' ? metadata : JSON.stringify(metadata)
     }));
 
     await prisma.notification.createMany({

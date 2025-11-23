@@ -7,6 +7,7 @@ const categoryRouter = require("./routes/category");
 const searchRouter = require("./routes/search");
 const mainImageRouter = require("./routes/mainImages");
 const userRouter = require("./routes/users");
+const authRouter = require("./routes/auth");
 const orderRouter = require("./routes/customer_orders");
 const slugRouter = require("./routes/slugs");
 const orderProductRouter = require('./routes/customer_order_product');
@@ -15,6 +16,8 @@ const notificationsRouter = require('./routes/notifications');
 const merchantRouter = require('./routes/merchant'); // Add this line
 const momoPaymentRouter = require('./routes/momoPayment');
 const cartRouter = require('./routes/cart');
+const adminRouter = require('./routes/admin');
+const reviewsRouter = require('./routes/reviews');
 var cors = require("cors");
 
 // Import logging middleware
@@ -117,11 +120,13 @@ app.use("/api/merchants", productLimiter);
 app.use("/api/cart", generalLimiter);
 
 // Apply stricter rate limiting to authentication-related routes
+app.use("/api/auth", authLimiter); // For login attempts
 app.use("/api/users/email", authLimiter); // For login attempts via email lookup
 
 // Apply admin rate limiting to admin routes
 app.use("/api/users", adminLimiter); // Admin user management
 
+app.use("/api/auth", authRouter);
 app.use("/api/products", productsRouter);
 app.use("/api/categories", categoryRouter);
 app.use("/api/images", productImagesRouter);
@@ -136,6 +141,8 @@ app.use("/api/notifications", notificationsRouter);
 app.use("/api/merchants", merchantRouter);
 app.use("/api/payments/momo", momoPaymentRouter);
 app.use("/api/cart", cartRouter);
+app.use('/api/admin', adminRouter);
+app.use('/api/reviews', reviewsRouter);
 
 // Health check endpoint (no rate limiting)
 app.get('/health', (req, res) => {
@@ -175,9 +182,15 @@ app.use((err, req, res, next) => {
   handleServerError(err, res, `${req.method} ${req.path}`);
 });
 
-const PORT = process.env.PORT || 3002;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log('Rate limiting and request logging enabled for all endpoints');
-  console.log('Logs are being written to server/logs/ directory');
-});
+// Export app for testing
+module.exports = app;
+
+// Only start server if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+  const PORT = process.env.PORT || 3002;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log('Rate limiting and request logging enabled for all endpoints');
+    console.log('Logs are being written to server/logs/ directory');
+  });
+}

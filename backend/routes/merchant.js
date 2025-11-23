@@ -5,7 +5,10 @@ const {
   getMerchantById,
   createMerchant,
   updateMerchant,
-  deleteMerchant,
+    deleteMerchant,
+    approveMerchant,
+    rejectMerchant,
+    getMerchantStatistics,
 } = require("../controllers/merchant");
 
 // Get all merchants
@@ -22,5 +25,14 @@ router.put("/:id", updateMerchant);
 
 // Delete a merchant
 router.delete("/:id", deleteMerchant);
+
+// Admin: Approve a merchant
+router.post("/:id/approve", approveMerchant);
+
+// Admin: Reject a merchant
+router.post("/:id/reject", rejectMerchant);
+
+// Get merchant statistics
+router.get("/:id/statistics", getMerchantStatistics);
 
 module.exports = router;

@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { randomUUID } = require('crypto');
 
 // Lấy giỏ hàng của user
 const getCart = async (req, res) => {
@@ -9,7 +10,7 @@ const getCart = async (req, res) => {
     let cart = await prisma.cart.findUnique({
       where: { userId },
       include: {
-        items: {
+        cartitem: {
           include: {
             product: {
               select: {
@@ -28,9 +29,12 @@ const getCart = async (req, res) => {
     // Nếu chưa có cart thì tạo mới
     if (!cart) {
       cart = await prisma.cart.create({
-        data: { userId },
+        data: { 
+          id: randomUUID(),
+          userId 
+        },
         include: {
-          items: {
+          cartitem: {
             include: {
               product: {
                 select: {
@@ -48,21 +52,17 @@ const getCart = async (req, res) => {
     }
 
     // Tính tổng tiền và số lượng
-    const total = cart.items.reduce((sum, item) => {
+    const total = cart.cartitem.reduce((sum, item) => {
       return sum + (item.product.price * item.quantity);
     }, 0);
 
-    const allQuantity = cart.items.reduce((sum, item) => {
+    const allQuantity = cart.cartitem.reduce((sum, item) => {
       return sum + item.quantity;
     }, 0);
 
     res.json({
-      success: true,
-      data: {
-        cart,
-        total,
-        allQuantity
-      }
+      items: cart.cartitem || cart.items || [],
+      total
     });
   } catch (error) {
     console.error('Error getting cart:', error);
@@ -95,24 +95,22 @@ const addToCart = async (req, res) => {
     // Kiểm tra số lượng tồn kho
     if (product.quantity < quantity) {
       return res.status(400).json({
-        success: false,
-        message: 'Số lượng sản phẩm không đủ'
+        error: 'Not enough stock available',
+        message: 'Product is out of stock or not available'
       });
     }
 
     // Tìm hoặc tạo cart
-    let cart = await prisma.cart.findUnique({
-      where: { userId }
-    });
+    let cart = await prisma.cart.findUnique({ where: { userId } });
 
     if (!cart) {
       cart = await prisma.cart.create({
-        data: { userId }
+        data: { id: randomUUID(), userId, updatedAt: new Date() }
       });
     }
 
     // Kiểm tra sản phẩm đã có trong cart chưa
-    const existingItem = await prisma.cartItem.findUnique({
+    const existingItem = await prisma.cartitem.findUnique({
       where: {
         cartId_productId: {
           cartId: cart.id,
@@ -128,14 +126,14 @@ const addToCart = async (req, res) => {
       
       if (product.quantity < newQuantity) {
         return res.status(400).json({
-          success: false,
-          message: 'Số lượng sản phẩm không đủ'
+          error: 'Not enough stock available',
+          message: 'Product is out of stock or not available'
         });
       }
 
-      cartItem = await prisma.cartItem.update({
+      cartItem = await prisma.cartitem.update({
         where: { id: existingItem.id },
-        data: { quantity: newQuantity },
+        data: { quantity: newQuantity, updatedAt: new Date() },
         include: {
           product: {
             select: {
@@ -150,11 +148,13 @@ const addToCart = async (req, res) => {
       });
     } else {
       // Tạo mới cart item
-      cartItem = await prisma.cartItem.create({
+      cartItem = await prisma.cartitem.create({
         data: {
+          id: randomUUID(),
           cartId: cart.id,
           productId: productId,
-          quantity: quantity
+          quantity: quantity,
+          updatedAt: new Date()
         },
         include: {
           product: {
@@ -170,10 +170,12 @@ const addToCart = async (req, res) => {
       });
     }
 
-    res.json({
-      success: true,
-      message: 'Thêm sản phẩm vào giỏ hàng thành công',
-      data: cartItem
+    return res.status(201).json({
+      id: cartItem.id,
+      productId: cartItem.productId,
+      quantity: cartItem.quantity,
+      userId,
+      product: cartItem.product
     });
   } catch (error) {
     console.error('Error adding to cart:', error);
@@ -211,7 +213,7 @@ const updateCartItem = async (req, res) => {
     }
 
     // Kiểm tra sản phẩm có trong cart không
-    const cartItem = await prisma.cartItem.findUnique({
+    const cartItem = await prisma.cartitem.findUnique({
       where: {
         cartId_productId: {
           cartId: cart.id,
@@ -239,9 +241,9 @@ const updateCartItem = async (req, res) => {
     }
 
     // Cập nhật số lượng
-    const updatedItem = await prisma.cartItem.update({
+    const updatedItem = await prisma.cartitem.update({
       where: { id: cartItem.id },
-      data: { quantity },
+      data: { quantity, updatedAt: new Date() },
       include: {
         product: {
           select: {
@@ -288,7 +290,7 @@ const removeFromCart = async (req, res) => {
     }
 
     // Xóa sản phẩm khỏi cart
-    const deletedItem = await prisma.cartItem.deleteMany({
+    const deletedItem = await prisma.cartitem.deleteMany({
       where: {
         cartId: cart.id,
         productId: productId
@@ -334,7 +336,7 @@ const clearCart = async (req, res) => {
     }
 
     // Xóa tất cả items trong cart
-    await prisma.cartItem.deleteMany({
+    await prisma.cartitem.deleteMany({
       where: { cartId: cart.id }
     });
 
@@ -369,7 +371,7 @@ const syncCart = async (req, res) => {
     let cart = await prisma.cart.findUnique({
       where: { userId },
       include: {
-        items: {
+        cartitem: {
           include: {
             product: true
           }
@@ -379,9 +381,12 @@ const syncCart = async (req, res) => {
 
     if (!cart) {
       cart = await prisma.cart.create({
-        data: { userId },
+        data: { 
+          id: randomUUID(),
+          userId 
+        },
         include: {
-          items: {
+          cartitem: {
             include: {
               product: true
             }
@@ -450,7 +455,7 @@ const syncCart = async (req, res) => {
     const updatedCart = await prisma.cart.findUnique({
       where: { userId },
       include: {
-        items: {
+        cartitem: {
           include: {
             product: {
               select: {
@@ -467,11 +472,11 @@ const syncCart = async (req, res) => {
     });
 
     // Tính tổng tiền và số lượng
-    const total = updatedCart.items.reduce((sum, item) => {
+    const total = updatedCart.cartitem.reduce((sum, item) => {
       return sum + (item.product.price * item.quantity);
     }, 0);
 
-    const allQuantity = updatedCart.items.reduce((sum, item) => {
+    const allQuantity = updatedCart.cartitem.reduce((sum, item) => {
       return sum + item.quantity;
     }, 0);
 

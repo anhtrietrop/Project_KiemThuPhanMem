@@ -43,14 +43,21 @@ const handlePrismaError = (error) => {
   
   switch (prismaError.code) {
     case 'P2002':
+      const target = prismaError.meta?.target;
+      const targetStr = Array.isArray(target) ? target.join(', ') : (typeof target === 'string' ? target : 'unknown');
+      const statusCode = 409;
       return {
+        message: "A record with this information already exists",
         error: "A record with this information already exists",
-        details: prismaError.meta?.target ? `Field: ${prismaError.meta.target.join(', ')}` : undefined,
+        details: target ? `Field: ${targetStr}` : undefined,
+        statusCode,
         timestamp: new Date().toISOString()
       };
     case 'P2025':
       return {
+        message: "Record not found",
         error: "Record not found",
+        statusCode: 404,
         timestamp: new Date().toISOString()
       };
     case 'P2003':
@@ -110,6 +117,7 @@ const handleServerError = (error, res, context = '') => {
   // Custom application errors
   if (error instanceof AppError) {
     res.status(error.statusCode).json({
+      message: error.message,
       error: error.message,
       timestamp
     });
@@ -119,7 +127,7 @@ const handleServerError = (error, res, context = '') => {
   // Prisma errors
   if (error && typeof error === 'object' && 'code' in error) {
     const errorResponse = handlePrismaError(error);
-    const statusCode = getStatusCodeFromPrismaError(error);
+    const statusCode = errorResponse.statusCode || getStatusCodeFromPrismaError(error);
     
     res.status(statusCode).json(errorResponse);
     return;
@@ -127,6 +135,7 @@ const handleServerError = (error, res, context = '') => {
 
   // Generic server error
   res.status(500).json({
+    message: "Internal server error. Please try again later.",
     error: "Internal server error. Please try again later.",
     timestamp
   });

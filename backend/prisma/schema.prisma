@@ -23,6 +23,7 @@ model Product {
   merchantId     String
   cartitem       cartitem[]
   customerOrders customer_order_product[]
+  reviews        review[]
   category       category                 @relation(fields: [categoryId], references: [id], onDelete: Cascade, map: "Product_categoryId_fkey")
   merchant       merchant                 @relation(fields: [merchantId], references: [id], onDelete: NoAction, map: "Product_merchantId_fkey")
   wishlist       wishlist[]
@@ -78,6 +79,7 @@ model category {
 
 model customer_order {
   id                     String                   @id
+  userId                 String?
   name                   String
   lastname               String
   phone                  String
@@ -94,7 +96,10 @@ model customer_order {
   payment_method         String?
   payment_transaction_id String?
   updated_at             DateTime?
+  user                   user?                    @relation(fields: [userId], references: [id], onDelete: SetNull)
   products               customer_order_product[]
+
+  @@index([userId])
 }
 
 model image {
@@ -181,13 +186,36 @@ model securitylog {
 }
 
 model user {
-  id           String         @id
-  email        String         @unique(map: "User_email_key")
-  password     String?
-  role         String?        @default("user")
-  cart         cart?
-  notification notification[]
-  wishlist     wishlist[]
+  id            String           @id
+  email         String           @unique(map: "User_email_key")
+  password      String?
+  role          String?          @default("user")
+  status        String           @default("ACTIVE")
+  name          String?
+  phone         String?
+  deletedAt     DateTime?
+  cart          cart?
+  orders        customer_order[]
+  notification  notification[]
+  reviews       review[]
+  wishlist      wishlist[]
+}
+
+model review {
+  id        String   @id @default(uuid())
+  productId String
+  userId    String
+  rating    Int
+  comment   String?
+  orderId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([userId])
+  @@index([orderId])
 }
 
 model wishlist {
@@ -206,6 +234,7 @@ enum notification_type {
   PAYMENT_STATUS
   PROMOTION
   SYSTEM_ALERT
+  INFO
 }
 
 enum notification_priority {

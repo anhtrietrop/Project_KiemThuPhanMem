@@ -1,17 +1,29 @@
 const express = require("express");
-
 const router = express.Router();
-
+const { authenticate } = require('../middleware/auth');
 const {
   getAllWishlistByUserId,
   getAllWishlist,
   createWishItem,
   deleteWishItem,
+  deleteWishItemById,
   getSingleProductFromWishlist
 } = require("../controllers/wishlist");
 
-router.route("/").get(getAllWishlist).post(createWishItem);
+// Auth-based routes - convert userId to String
+router.post('/', authenticate, (req, res, next) => {
+  req.body.userId = String(req.user.id || req.user.userId);
+  createWishItem(req, res, next);
+});
 
+router.get('/', authenticate, (req, res, next) => {
+  req.params.userId = String(req.user.id || req.user.userId);
+  getAllWishlistByUserId(req, res, next);
+});
+
+router.delete('/:id', authenticate, deleteWishItemById);
+
+// Param-based routes
 router.route("/:userId").get(getAllWishlistByUserId);
 router.route("/:userId/:productId").get(getSingleProductFromWishlist).delete(deleteWishItem);
 
