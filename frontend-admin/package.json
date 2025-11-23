@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
+    "dev:3101": "next dev -p 3101",
     "build": "next build",
     "build:analyze": "cross-env ANALYZE=true next build",
     "start": "next start -p 3001",
+    "start:3101": "next start -p 3101",
     "lint": "next lint --fix",
     "lint:check": "next lint",
     "type-check": "tsc --noEmit --incremental",
