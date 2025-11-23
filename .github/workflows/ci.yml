@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false # Added to ensure one failure doesn't kill the other matrix jobs immediately for better debugging
       matrix:
         node-version: [18.x, 20.x]
 
@@ -105,26 +106,31 @@ jobs:
         run: |
           echo "Checking coverage thresholds..."
           node -e "
-            const coverage = require('./coverage/coverage-summary.json');
-            const total = coverage.total;
-            const thresholds = { lines: 70, functions: 60, branches: 60, statements: 70 };
-            let failed = false;
-            
-            Object.keys(thresholds).forEach(key => {
-              const actual = total[key].pct;
-              const threshold = thresholds[key];
-              console.log(\`\${key}: \${actual}% (threshold: \${threshold}%)\`);
-              if (actual < threshold) {
-                console.error(\`❌ Coverage for \${key} (\${actual}%) is below threshold (\${threshold}%)\`);
-                failed = true;
+            try {
+              const coverage = require('./coverage/coverage-summary.json');
+              const total = coverage.total;
+              const thresholds = { lines: 70, functions: 60, branches: 60, statements: 70 };
+              let failed = false;
+              
+              Object.keys(thresholds).forEach(key => {
+                const actual = total[key].pct;
+                const threshold = thresholds[key];
+                console.log(\`\${key}: \${actual}% (threshold: \${threshold}%)\`);
+                if (actual < threshold) {
+                  console.error(\`❌ Coverage for \${key} (\${actual}%) is below threshold (\${threshold}%)\`);
+                  failed = true;
+                }
+              });
+              
+              if (failed) {
+                console.error('❌ Coverage thresholds not met!');
+                process.exit(1);
               }
-            });
-            
-            if (failed) {
-              console.error('❌ Coverage thresholds not met!');
+              console.log('✅ All coverage thresholds met!');
+            } catch (e) {
+              console.error('Could not read coverage summary. Ensure tests ran successfully.');
               process.exit(1);
             }
-            console.log('✅ All coverage thresholds met!');
           "
         continue-on-error: false
 
@@ -137,9 +143,10 @@ jobs:
           name: backend-coverage
         continue-on-error: true
 
+      # FIXED: Updated from v3 to v4 to resolve deprecation error
       - name: Archive test results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results-node-${{ matrix.node-version }}
           path: |
@@ -175,14 +182,14 @@ jobs:
         run: npm run lint || echo "Linter not configured yet"
         continue-on-error: true
 
+      # FIXED: Added Mock ENV variables. Next.js builds often require these checks to pass.
       - name: Build frontend-admin
         working-directory: ./frontend-admin
+        env:
+          DATABASE_URL: "mysql://mock_user:mock_password@localhost:3306/mock_db"
+          NEXTAUTH_SECRET: "super_fake_secret_for_build_only"
+          NEXTAUTH_URL: "http://localhost:3000"
         run: npm run build
-
-      # Uncomment when tests are added
-      # - name: Run tests
-      #   working-directory: ./frontend-admin
-      #   run: npm test
 
   test-frontend-user:
     name: Test Frontend User
@@ -212,14 +219,15 @@ jobs:
         run: npm run lint || echo "Linter not configured yet"
         continue-on-error: true
 
+      # FIXED: Added Mock ENV variables.
+      # NOTE: You still need to fix app/search/page.tsx code manually for Next.js 15 support.
       - name: Build frontend-user
         working-directory: ./frontend-user
+        env:
+          DATABASE_URL: "mysql://mock_user:mock_password@localhost:3306/mock_db"
+          NEXTAUTH_SECRET: "super_fake_secret_for_build_only"
+          NEXTAUTH_URL: "http://localhost:3000"
         run: npm run build
-
-      # Uncomment when tests are added
-      # - name: Run tests
-      #   working-directory: ./frontend-user
-      #   run: npm test
 
   build-status:
     name: Build Status
