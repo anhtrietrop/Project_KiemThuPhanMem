@@ -2,33 +2,32 @@ const express = require('express');
 const router = express.Router();
 const {
   getUserNotifications,
+  getNotificationById,
   createNotification,
   updateNotification,
+  markNotificationRead,
+  markAllRead,
   bulkMarkAsRead,
   deleteNotification,
   bulkDeleteNotifications,
   getUnreadCount
 } = require('../controllers/notificationController');
+const { authenticate } = require('../middleware/auth');
 
-// GET /api/notifications/:userId/unread-count - Get unread notification count
-router.get('/:userId/unread-count', getUnreadCount);
+// Authenticated root list using token user id
+router.get('/', authenticate, getUserNotifications);
 
-// GET /api/notifications/:userId - Get user notifications with filtering and pagination
-router.get('/:userId', getUserNotifications);
-
-// POST /api/notifications - Create new notification
+router.get('/:userId/unread-count', authenticate, getUnreadCount);
+// Get single notification by id
+router.get('/:id', authenticate, getNotificationById);
+// Optional: list notifications for a specific userId via a distinct path to avoid conflicts
+router.get('/user/:userId', authenticate, getUserNotifications);
 router.post('/', createNotification);
-
-// POST /api/notifications/mark-read - Bulk mark notifications as read
-router.post('/mark-read', bulkMarkAsRead);
-
-// DELETE /api/notifications/bulk - Bulk delete notifications
-router.delete('/bulk', bulkDeleteNotifications);
-
-// PUT /api/notifications/:id - Update notification (mark as read/unread)
-router.put('/:id', updateNotification);
-
-// DELETE /api/notifications/:id - Delete single notification
-router.delete('/:id', deleteNotification);
+router.post('/mark-read', authenticate, bulkMarkAsRead);
+router.put('/:id/read', authenticate, markNotificationRead);
+router.put('/read-all', authenticate, markAllRead);
+router.put('/:id', authenticate, updateNotification);
+router.delete('/bulk', authenticate, bulkDeleteNotifications);
+router.delete('/:id', authenticate, deleteNotification);
 
 module.exports = router;

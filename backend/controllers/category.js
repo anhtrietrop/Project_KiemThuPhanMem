@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const { asyncHandler, AppError } = require("../utills/errorHandler");
@@ -11,6 +12,7 @@ const createCategory = asyncHandler(async (request, response) => {
 
   const category = await prisma.category.create({
     data: {
+      id: crypto.randomUUID(),
       name: name.trim(),
     },
   });

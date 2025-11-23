@@ -301,7 +301,7 @@ const orderValidation = {
       throw new ValidationError('Total must be greater than 0', 'total');
     }
 
-    if (numTotal > 999999.99) {
+    if (numTotal > 9999999.99) {
       throw new ValidationError('Total amount is too large', 'total');
     }
 

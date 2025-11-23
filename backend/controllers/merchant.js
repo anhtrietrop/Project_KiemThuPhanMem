@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
@@ -42,14 +43,21 @@ async function createMerchant(request, response) {
   try {
     const { name, email, phone, address, description, status } = request.body;
 
+    if (!name || name.trim().length === 0) {
+      return response.status(400).json({ error: "Merchant name is required" });
+    }
+
     const merchant = await prisma.merchant.create({
       data: {
-        name,
+        id: crypto.randomUUID(),
+        name: name.trim(),
         email,
         phone,
         address,
         description,
         status: status || "ACTIVE",
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     });
 
@@ -66,16 +74,15 @@ async function updateMerchant(request, response) {
     const { name, email, phone, address, description, status } = request.body;
 
     const merchant = await prisma.merchant.update({
-      where: {
-        id: id,
-      },
+      where: { id },
       data: {
-        name,
+        ...(name && { name: name.trim() }),
         email,
         phone,
         address,
         description,
-        status,
+        ...(status && { status }),
+        updatedAt: new Date(),
       },
     });
 

@@ -2,6 +2,7 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const { validateOrderData, ValidationError } = require('../utills/validation');
 const { createOrderUpdateNotification } = require('../utills/notificationHelpers');
+const { randomUUID } = require('crypto');
 
 async function createCustomerOrder(request, response) {
   try {
@@ -65,6 +66,7 @@ async function createCustomerOrder(request, response) {
     // Create the order with validated data
     const corder = await prisma.customer_order.create({
       data: {
+        id: randomUUID(),
         name: validatedData.name,
         lastname: validatedData.lastname,
         phone: validatedData.phone,
@@ -307,7 +309,7 @@ async function updateOrderStatus(request, response) {
     }
 
     // Validate status values
-    const validStatuses = ['processing', 'shipped', 'delivered', 'success', 'cancelled'];
+    const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'success', 'cancelled'];
     if (!validStatuses.includes(status)) {
       return response.status(400).json({
         error: "Invalid status value",
@@ -331,6 +333,7 @@ async function updateOrderStatus(request, response) {
     // Validate status transition rules
     const currentStatus = existingOrder.status;
     const validTransitions = {
+      'pending': ['processing', 'shipped', 'cancelled'],
       'processing': ['shipped', 'cancelled'],
       'shipped': ['delivered', 'cancelled'],
       'delivered': ['success'],

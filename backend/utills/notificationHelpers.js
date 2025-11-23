@@ -61,6 +61,7 @@ const createOrderUpdateNotification = async (userId, orderStatus, orderId, total
         type: 'ORDER_UPDATE',
         priority: statusInfo.priority,
         isRead: false,
+        updatedAt: new Date(),
         metadata: {
           orderId: orderId,
           status: orderStatus,

@@ -1,6 +1,7 @@
 const express = require('express');
 
 const router = express.Router();
+const { authenticate } = require('../middleware/auth');
 
 const {
     getUser,
@@ -8,12 +9,23 @@ const {
     updateUser,
     deleteUser,
     getAllUsers, 
-    getUserByEmail
+    getUserByEmail,
+    loginUser,
+    getUserProfile,
+    updateUserProfile
   } = require('../controllers/users');
 
+  // Public routes
+  router.post('/login', loginUser);
+  
   router.route('/')
   .get(getAllUsers)
   .post(createUser);
+
+  // Profile routes (need auth middleware)
+  router.route('/profile')
+  .get(authenticate, getUserProfile)
+  .put(authenticate, updateUserProfile);
 
   router.route('/:id')
   .get(getUser)
