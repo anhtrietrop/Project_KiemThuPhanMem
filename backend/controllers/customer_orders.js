@@ -67,6 +67,7 @@ async function createCustomerOrder(request, response) {
     const corder = await prisma.customer_order.create({
       data: {
         id: randomUUID(),
+        userId: request.user?.id || request.body.userId || null, // Save userId if available
         name: validatedData.name,
         lastname: validatedData.lastname,
         phone: validatedData.phone,

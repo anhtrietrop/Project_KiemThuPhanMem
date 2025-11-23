@@ -557,6 +557,17 @@ async function cleanupAfterTest(resources) {
         }
       }
       
+      // Clean up reviews
+      if (resources.reviews && resources.reviews.size > 0) {
+        for (const id of resources.reviews) {
+          try {
+            await prisma.review.delete({ where: { id } }).catch(() => {});
+          } catch (error) {
+            // Ignore
+          }
+        }
+      }
+      
       // Clean up products
       if (resources.products && resources.products.size > 0) {
         for (const id of resources.products) {

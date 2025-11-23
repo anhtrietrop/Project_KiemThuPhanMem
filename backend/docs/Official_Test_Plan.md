@@ -2,10 +2,10 @@
 
 **Tài liệu chính thức cho đồ án tốt nghiệp**
 
-**Ngày tạo:** [Điền ngày tháng]  
-**Người soạn thảo:** [Điền tên người soạn thảo]  
-**Người phê duyệt:** [Điền tên người phê duyệt]  
-**Phiên bản:** 1.0
+**Ngày tạo:** 22/11/2025  
+**Người soạn thảo:**
+**Phiên bản:** 2.0  
+**Trạng thái:** ✅ Đã hoàn thành 107/107 test cases (100%)
 
 ---
 
@@ -319,21 +319,124 @@ Dự đoán lỗi dựa trên kinh nghiệm. Ví dụ: SQL injection trong searc
 
 ## 6. SẢN PHẨM BÀN GIAO (DELIVERABLES)
 
-1. **Test Plan Document:** Tài liệu kế hoạch kiểm thử chi tiết (this document)
-2. **Test Cases Document:** Danh sách đầy đủ test cases với expected results
-3. **Test Execution Reports:** Báo cáo kết quả thực thi tests (HTML/JSON format)
-4. **Code Coverage Reports:** Báo cáo độ bao phủ code (Istanbul/NYC)
-5. **Bug Reports:** Danh sách defects được phát hiện, categorized by severity
-6. **Test Data Files:** Scripts tạo dữ liệu test và mock services
-7. **Test Automation Scripts:** Jest test files cho unit/integration tests
-8. **Performance Metrics:** Báo cáo execution time, memory usage
-9. **Traceability Matrix:** Mapping requirements với test cases
-10. **Test Summary Report:** Báo cáo tổng kết cho stakeholder approval
+1. **Test Plan Document:** ✅ Tài liệu kế hoạch kiểm thử chi tiết (this document)
+2. **Test Cases Document:** ✅ Danh sách đầy đủ 107 test cases với expected results
+3. **Test Execution Reports:** 🔄 Báo cáo kết quả thực thi tests (chạy với `npm test`)
+4. **Code Coverage Reports:** 🔄 Báo cáo độ bao phủ code (chạy với `npm run test:coverage`)
+5. **Bug Reports:** 🔄 Danh sách defects được phát hiện (nếu có)
+6. **Test Data Files:** ✅ Scripts tạo dữ liệu test và mock services (`tests/setup.js`, `tests/helpers.js`)
+7. **Test Automation Scripts:** ✅ Jest test files cho unit/integration tests (11 files)
+8. **Performance Metrics:** 🔄 Báo cáo execution time, memory usage
+9. **Traceability Matrix:** ✅ Mapping requirements với test cases (xem bảng chi tiết bên dưới)
+10. **Test Summary Report:** 🔄 Báo cáo tổng kết cho stakeholder approval
+
+---
+
+## 7. TRẠNG THÁI THỰC THI (TEST EXECUTION STATUS)
+
+### 7.1 Tổng quan
+
+| Tổng Test Cases | Đã Implement | Đang Chờ | Pass Rate | Code Coverage |
+| --------------- | ------------ | -------- | --------- | ------------- |
+| 107             | 107 (100%)   | 0 (0%)   | 🔄 TBD    | 🔄 TBD        |
+
+### 7.2 Chi tiết theo module
+
+| Module                       | Test Cases | File Location                                   | Status |
+| ---------------------------- | ---------- | ----------------------------------------------- | ------ |
+| Authentication & User (UC1)  | 22         | `tests/unit/auth-user.test.js`                  | ✅     |
+| Product Management (UC1)     | 14         | `tests/unit/product.test.js`                    | ✅     |
+| Category & Merchant (UC1)    | 11         | `tests/unit/category-merchant.test.js`          | ✅     |
+| Cart & Wishlist (UC2)        | 12         | `tests/unit/cart-wishlist.test.js`              | ✅     |
+| Review System (UC2)          | 8          | `tests/unit/review.test.js`                     | ✅     |
+| Order Management (UC3)       | 13         | `tests/unit/order.test.js`                      | ✅     |
+| Payment Processing (UC3)     | 7          | `tests/unit/payment.test.js`                    | ✅     |
+| Notification & Admin (UC4)   | 12         | `tests/unit/notification-admin.test.js`         | ✅     |
+| Auth Flow Integration        | 3          | `tests/integration/auth-flow.test.js`           | ✅     |
+| Shopping Flow Integration    | 3          | `tests/integration/shopping-flow.test.js`       | ✅     |
+| Order/Merchant Flow (INT5-7) | 2          | `tests/integration/order-merchant-flow.test.js` | ✅     |
+| **TOTAL**                    | **107**    | **11 test files**                               | ✅     |
+
+### 7.3 Lệnh thực thi
+
+```bash
+# Chạy tất cả tests
+cd backend
+npm test
+
+# Chạy tests với coverage report
+npm run test:coverage
+
+# Chạy tests cho module cụ thể
+npm test -- auth-user.test.js
+npm test -- cart-wishlist.test.js
+
+# Chạy tests trong watch mode (development)
+npm test -- --watch
+
+# Chạy integration tests
+npm test -- tests/integration/
+```
+
+### 7.4 Test Coverage Goals
+
+| Component             | Target | Current | Status |
+| --------------------- | ------ | ------- | ------ |
+| Overall Code Coverage | ≥80%   | 🔄 TBD  | 🔄     |
+| Controllers           | ≥90%   | 🔄 TBD  | 🔄     |
+| Services/Utilities    | ≥85%   | 🔄 TBD  | 🔄     |
+| Middlewares           | ≥95%   | 🔄 TBD  | 🔄     |
+| Routes                | ≥90%   | 🔄 TBD  | 🔄     |
+| Critical Paths        | 100%   | 🔄 TBD  | 🔄     |
 
 ---
 
 **Kết thúc tài liệu**
 
-**Người soạn thảo:** [Điền tên]  
-**Ngày:** [Điền ngày]  
+**Người soạn thảo:** GitHub Copilot + Development Team  
+**Ngày cập nhật:** 22/11/2025  
 **Phê duyệt:** [Điền tên người phê duyệt]
+
+---
+
+## PHỤ LỤC A: DANH SÁCH TEST FILES
+
+```
+backend/tests/
+├── setup.js                                    # Global test setup & teardown
+├── helpers.js                                  # Test utilities & factories
+├── unit/
+│   ├── auth-user.test.js                       # UC1.1-UC1.21 (22 tests)
+│   ├── product.test.js                         # UC1.22-UC1.34 (14 tests)
+│   ├── category-merchant.test.js               # UC1.35-UC1.45 (11 tests)
+│   ├── cart-wishlist.test.js                   # UC2.1-UC2.12 (12 tests)
+│   ├── review.test.js                          # UC2.13-UC2.20 (8 tests)
+│   ├── order.test.js                           # UC3.1-UC3.13 (13 tests)
+│   ├── payment.test.js                         # UC3.14-UC3.20 (7 tests)
+│   └── notification-admin.test.js              # UC4.1-UC4.12 (12 tests)
+└── integration/
+    ├── auth-flow.test.js                       # INT1-INT3 (3 tests)
+    ├── shopping-flow.test.js                   # INT3-INT5 (3 tests)
+    └── order-merchant-flow.test.js             # INT5, INT7 (2 tests)
+```
+
+## PHỤ LỤC B: CI/CD INTEGRATION
+
+**GitHub Actions Workflow:** `.github/workflows/ci.yml`
+
+- ✅ Tự động chạy tests khi push/PR vào branch `main`
+- ✅ Test trên Node.js 18.x và 20.x
+- ✅ Sử dụng MySQL 8.0 test database
+- ✅ Generate coverage reports
+- ✅ Block PR merge nếu tests fail hoặc coverage < threshold
+- ✅ Concurrency control để tránh conflict
+
+**Environment Variables:**
+
+```env
+NODE_ENV=test
+DATABASE_URL=mysql://test_user:test_password@127.0.0.1:3306/test_db
+JWT_SECRET=test-jwt-secret-key
+DISABLE_EXTERNAL_CALLS=true
+MOCK_SERVICES=true
+```

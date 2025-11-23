@@ -8,14 +8,13 @@ const {
   cleanupAfterTest,
 } = require('../helpers');
 
-describe.skip('UC2.13-UC2.20: Review System Tests', () => {
-  // SKIPPED: Review model does not exist in schema.prisma
+describe('UC2.13-UC2.20: Review System Tests', () => {
+  // Review model implemented - testing review functionality
   let createdResources = {
     users: new Set(),
     products: new Set(),
     reviews: new Set(),
     orders: new Set(),
-    addresses: new Set(),
     merchants: new Set(),
     categories: new Set(),
   };
@@ -24,34 +23,31 @@ describe.skip('UC2.13-UC2.20: Review System Tests', () => {
 
   beforeAll(async () => {
     // Create test merchant
-    merchant = await TestDataFactory.createMerchant({
+    merchant = await TestDatabaseHelper.createMerchant({
       name: 'Review Test Shop',
-      status: 'APPROVED',
+      status: 'ACTIVE',
     });
     createdResources.merchants.add(merchant.id);
 
     // Create test category
     category = await TestDatabaseHelper.createCategory({
       name: 'Review Test Category',
-      slug: 'review-test-category',
     });
     createdResources.categories.add(category.id);
 
     // Create test user
-    user = await TestDataFactory.createUser({
+    user = await TestDatabaseHelper.createUser({
       email: 'reviewuser@test.com',
       password: 'password123',
-      fullName: 'Review Test User',
     });
     createdResources.users.add(user.id);
     token = TestJWTHelper.generateToken(user);
 
     // Create test product
     product = await TestDatabaseHelper.createProduct({
-      name: 'Review Test Product',
-      slug: 'review-test-product',
+      title: 'Review Test Product',
       price: 300000,
-      stock: 100,
+      quantity: 100,
       categoryId: category.id,
       merchantId: merchant.id,
     });
@@ -64,37 +60,31 @@ describe.skip('UC2.13-UC2.20: Review System Tests', () => {
 
   test('UC2.13: Tạo đánh giá sản phẩm', async () => {
     // Create order first (user must purchase to review)
-    const address = await TestDatabaseHelper.createAddress({
-      userId: user.id,
-      fullName: 'Review Test User',
-      phone: '0123456789',
-      address: '123 Test Street',
-      city: 'Test City',
-      district: 'Test District',
-      ward: 'Test Ward',
-      isDefault: true,
+    const order = await prisma.customer_order.create({
+      data: {
+        id: require('crypto').randomUUID(),
+        userId: user.id,
+        name: 'Test',
+        lastname: 'User',
+        phone: '0123456789',
+        email: user.email,
+        adress: '123 Test St',
+        city: 'Test City',
+        status: 'delivered', // Must be delivered to review
+        total: 300000,
+        payment_method: 'COD',
+      }
     });
-    createdResources.addresses.add(address.id);
+    createdResources.orders.add(order.id);
 
-    const orderResponse = await request(app)
-      .post('/api/orders')
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        addressId: address.id,
-        items: [
-          {
-            productId: product.id,
-            quantity: 1,
-            price: product.price,
-          },
-        ],
-        paymentMethod: 'COD',
-      });
-    createdResources.orders.add(orderResponse.body.id);
-
-    // Mark order as delivered
-    await TestDatabaseHelper.updateOrder(orderResponse.body.id, {
-      status: 'DELIVERED',
+    // Create order_product relation
+    await prisma.customer_order_product.create({
+      data: {
+        id: require('crypto').randomUUID(),
+        customerOrderId: order.id,
+        productId: product.id,
+        quantity: 1,
+      }
     });
 
     // Create review
