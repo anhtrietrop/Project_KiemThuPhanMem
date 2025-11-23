@@ -13,7 +13,7 @@ const { getPrismaClient } = require('../setup');
 
 const app = require('../../app');
 
-describe.skip('INT1: Complete Authentication Flow', () => {
+describe('INT1: Complete Authentication Flow', () => {
   // SKIPPED: Tests use name, phone fields not in user schema
   let prisma;
   let createdResources = [];

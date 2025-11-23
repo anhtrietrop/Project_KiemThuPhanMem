@@ -11,6 +11,10 @@ const {
 } = require("../controllers/products");
 
 router.route("/").get(getAllProducts).post(createProduct);
+router.get('/search', (req, res, next) => {
+  req.query.query = req.query.q || req.query.query; // normalize q -> query
+  next();
+}, searchProducts);
 
 
 router

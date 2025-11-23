@@ -180,7 +180,12 @@ describe('UC1: Product Management Tests', () => {
     });
 
     test.skip('UC1.27: Không cho phép tạo sản phẩm với giá âm', async () => {
-      // SKIPPED: API does not validate negative price
+      // TODO: Implement price validation in product creation endpoint
+      // Currently, the API doesn't validate negative prices - requires:
+      // 1. Add validation in POST /api/products controller
+      // 2. Prisma schema constraint or check in validation layer
+      // 3. Return 400 Bad Request with error message for negative prices
+      
       const productData = TestDataFactory.createProductData({
         price: -1000, // Giá âm
         merchantId: testMerchant.id,

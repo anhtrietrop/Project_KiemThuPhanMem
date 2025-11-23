@@ -20,6 +20,11 @@ class TestDataFactory {
    * Tạo user data mẫu
    */
   static createUserData(overrides = {}) {
+    // Remove fullName if present since it doesn't exist in schema
+    if (overrides.fullName) {
+      delete overrides.fullName;
+    }
+    
     return {
       id: uuidv4(),
       email: `test${Date.now()}${Math.random()}@example.com`,
@@ -177,10 +182,28 @@ class TestDatabaseHelper {
       productData = { ...productData, categoryId: category.id };
     }
     
-    // Auto-create merchant if not provided  
+    // Ensure merchant exists: if merchantId provided but no merchant record, create one using provided id
+    const prismaMerchant = getPrismaClient();
     if (!productData.merchantId) {
       const merchant = await this.createMerchant();
       productData = { ...productData, merchantId: merchant.id };
+    } else {
+      const existingMerchant = await prismaMerchant.merchant.findUnique({ where: { id: productData.merchantId } });
+      if (!existingMerchant) {
+        // Create minimal merchant record with supplied id
+        await prismaMerchant.merchant.create({
+          data: {
+            id: productData.merchantId,
+            name: productData.merchantName || 'Auto Merchant',
+            description: 'Auto-created for product linkage',
+            status: 'APPROVED',
+            email: null,
+            phone: null,
+            address: null,
+            updatedAt: new Date(),
+          }
+        });
+      }
     }
     
     const data = TestDataFactory.createProductData(productData);
@@ -315,9 +338,13 @@ class TestDatabaseHelper {
   }
 
   /**
-   * Update order in database
+   * Update order
    */
   static async updateOrder(orderId, updateData) {
+    if (!orderId) {
+      throw new Error('orderId is required for updateOrder');
+    }
+    
     const prisma = getPrismaClient();
     const data = { ...updateData };
     if (Object.prototype.hasOwnProperty.call(data, 'paymentStatus')) {
@@ -369,11 +396,16 @@ class TestJWTHelper {
    */
   static generateToken(payload = {}) {
     const jwt = require('jsonwebtoken');
+    // If payload is a user object with id property, extract userId from it
+    const userId = payload.id || payload.userId || '1';
+    const email = payload.email || 'test@example.com';
+    const role = payload.role || 'USER';
+    
     const defaultPayload = {
-      userId: 1,
-      email: 'test@example.com',
-      role: 'USER',
-      ...payload,
+      id: userId,  // Use 'id' to match what controllers expect from req.user
+      userId: userId,  // Keep userId for backward compatibility
+      email: email,
+      role: role,
     };
     
     return jwt.sign(defaultPayload, process.env.JWT_SECRET, {

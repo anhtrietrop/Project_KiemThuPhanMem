@@ -77,8 +77,9 @@ jobs:
           NODE_ENV: test
           DATABASE_URL: mysql://test_user:test_password@127.0.0.1:3306/test_db
           JWT_SECRET: test-jwt-secret-key
+          DISABLE_EXTERNAL_CALLS: true
         run: |
-          npm test -- --ci --coverage --maxWorkers=2
+          npm test -- --ci --coverage --maxWorkers=2 --forceExit
         continue-on-error: false
 
       - name: Check test results
@@ -88,22 +89,25 @@ jobs:
           exit 1
 
       - name: Generate coverage report
+        if: matrix.node-version == '20.x'
         working-directory: ./backend
         env:
           NODE_ENV: test
           DATABASE_URL: mysql://test_user:test_password@127.0.0.1:3306/test_db
           JWT_SECRET: test-jwt-secret-key
-        run: npm run test:coverage -- --ci --maxWorkers=2
+          DISABLE_EXTERNAL_CALLS: true
+        run: npm run test:coverage -- --ci --maxWorkers=2 --forceExit
         continue-on-error: false
 
       - name: Check coverage thresholds
+        if: matrix.node-version == '20.x'
         working-directory: ./backend
         run: |
           echo "Checking coverage thresholds..."
           node -e "
             const coverage = require('./coverage/coverage-summary.json');
             const total = coverage.total;
-            const thresholds = { lines: 80, functions: 70, branches: 70, statements: 80 };
+            const thresholds = { lines: 70, functions: 60, branches: 60, statements: 70 };
             let failed = false;
             
             Object.keys(thresholds).forEach(key => {

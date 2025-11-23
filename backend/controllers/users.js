@@ -28,7 +28,7 @@ const getAllUsers = asyncHandler(async (request, response) => {
 });
 
 const createUser = asyncHandler(async (request, response) => {
-  const { email, password, role, status } = request.body;
+  const { email, password, role, status, name, phone } = request.body;
 
   // Basic validation
   if (!email || !password) {
@@ -55,6 +55,8 @@ const createUser = asyncHandler(async (request, response) => {
       password: hashedPassword,
       role: role || "user",
       status: status || "ACTIVE",
+      name: name || null,
+      phone: phone || null,
     },
   });
   // Exclude password from response
@@ -63,7 +65,7 @@ const createUser = asyncHandler(async (request, response) => {
 
 const updateUser = asyncHandler(async (request, response) => {
   const { id } = request.params;
-  const { email, password, role, status } = request.body;
+  const { email, password, role, status, name, phone } = request.body;
 
   if (!id) {
     throw new AppError("User ID is required", 400);
@@ -94,12 +96,10 @@ const updateUser = asyncHandler(async (request, response) => {
     }
     updateData.password = await bcrypt.hash(password, 14);
   }
-  if (role) {
-    updateData.role = role;
-  }
-  if (status) {
-    updateData.status = status;
-  }
+  if (role) updateData.role = role;
+  if (status) updateData.status = status;
+  if (name !== undefined) updateData.name = name === '' ? null : name;
+  if (phone !== undefined) updateData.phone = phone === '' ? null : phone;
 
   const updatedUser = await prisma.user.update({
     where: {
@@ -250,8 +250,8 @@ const updateUserProfile = asyncHandler(async (request, response) => {
 
   // Don't allow email updates - remove email from update data
   const updateData = {};
-  if (name !== undefined) updateData.name = name;
-  if (phone !== undefined) updateData.phone = phone;
+  if (name !== undefined) updateData.name = name === '' ? null : name;
+  if (phone !== undefined) updateData.phone = phone === '' ? null : phone;
   if (role !== undefined) updateData.role = role;
 
   const updatedUser = await prisma.user.update({

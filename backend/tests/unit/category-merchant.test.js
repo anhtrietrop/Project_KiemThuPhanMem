@@ -166,12 +166,36 @@ describe('UC1.35-UC1.45: Category & Merchant Management Tests', () => {
       createdResources.merchants.add(merchant.id);
     });
 
-    test.skip('UC1.41: Duyệt merchant (Admin)', async () => {
-      // Skipped: approve route not implemented in current API.
+    test('UC1.41: Duyệt merchant (Admin)', async () => {
+      const pendingMerchant = await TestDataFactory.createMerchant({
+        name: 'Pending Approval Store',
+        status: 'ACTIVE'
+      });
+      createdResources.merchants.add(pendingMerchant.id);
+
+      const response = await request(app)
+        .post(`/api/merchants/${pendingMerchant.id}/approve`)
+        .set('Authorization', `Bearer ${merchantToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('status', 'APPROVED');
     });
 
-    test.skip('UC1.42: Từ chối merchant (Admin)', async () => {
-      // Skipped: reject route not implemented.
+    test('UC1.42: Từ chối merchant (Admin)', async () => {
+      const rejectMerchant = await TestDataFactory.createMerchant({
+        name: 'Reject Me Store',
+        status: 'ACTIVE'
+      });
+      createdResources.merchants.add(rejectMerchant.id);
+
+      const response = await request(app)
+        .post(`/api/merchants/${rejectMerchant.id}/reject`)
+        .set('Authorization', `Bearer ${merchantToken}`)
+        .send({ reason: 'Incomplete documents' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('status', 'REJECTED');
+      expect(response.body).toHaveProperty('rejectionReason');
     });
 
     test('UC1.43: Cập nhật thông tin cửa hàng', async () => {
@@ -229,8 +253,54 @@ describe('UC1.35-UC1.45: Category & Merchant Management Tests', () => {
       response.body.products.forEach(p => expect(p.merchantId).toBe(testMerchant.id));
     });
 
-    test.skip('UC1.45: Lấy thống kê bán hàng của merchant', async () => {
-      // Skipped: /statistics endpoint not implemented.
+    test('UC1.45: Lấy thống kê bán hàng của merchant', async () => {
+      const statsMerchant = await TestDataFactory.createMerchant({
+        name: 'Stats Store',
+        status: 'ACTIVE'
+      });
+      createdResources.merchants.add(statsMerchant.id);
+
+      const category = await TestDatabaseHelper.createCategory({ name: 'Stats Category' });
+      createdResources.categories.add(category.id);
+
+      // Create products and associated orders (with join rows) to generate statistics
+      for (let i = 1; i <= 2; i++) {
+        const product = await TestDatabaseHelper.createProduct({
+          name: `Stats Product ${i}`,
+          price: 50000 * i,
+          quantity: 20,
+          categoryId: category.id,
+          merchantId: statsMerchant.id,
+        });
+        createdResources.products.add(product.id);
+
+        // Create an order then link product via customer_order_product
+        const order = await TestDatabaseHelper.createOrder({
+          status: 'COMPLETED',
+          total: product.price * i,
+          email: `stats${i}@example.com`
+        });
+        // Link product to order with purchased quantity
+        await prisma.customer_order_product.create({
+          data: {
+            customerOrderId: order.id,
+            productId: product.id,
+            quantity: i,
+          }
+        });
+      }
+
+      const response = await request(app)
+        .get(`/api/merchants/${statsMerchant.id}/statistics`)
+        .set('Authorization', `Bearer ${merchantToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('statistics');
+      expect(response.body.statistics).toHaveProperty('totalProducts');
+      expect(response.body.statistics).toHaveProperty('totalOrders');
+      expect(response.body.statistics).toHaveProperty('totalSales');
+      expect(response.body.statistics.totalProducts).toBeGreaterThanOrEqual(2);
+      expect(response.body.statistics.totalOrders).toBeGreaterThanOrEqual(2);
     });
   });
 });

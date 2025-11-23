@@ -23,7 +23,13 @@ function validateAndSanitizeFilterValue(filterType, filterValue) {
   switch (filterType) {
     case 'price':
     case 'rating':
-
+      // Parse numeric values
+      const numericValue = Number(filterValue);
+      if (isNaN(numericValue)) {
+        return null;
+      }
+      return numericValue;
+      
     case 'category':
       return typeof filterValue === 'string' && filterValue.trim().length > 0
         ? filterValue.trim()
@@ -283,6 +289,16 @@ const createProduct = asyncHandler(async (request, response) => {
 
   if (!price) {
     throw new AppError("Missing required field: price", 400);
+
+    // Validate price is not negative
+    if (price < 0) {
+      throw new AppError("Price cannot be negative", 400);
+    }
+
+    // Validate costPrice if provided
+    if (costPrice !== undefined && costPrice < 0) {
+      throw new AppError("Cost price cannot be negative", 400);
+    }
   }
 
   if (!categoryId) {
@@ -395,29 +411,18 @@ const deleteProduct = asyncHandler(async (request, response) => {
 
 const searchProducts = asyncHandler(async (request, response) => {
   const { query } = request.query;
-
   if (!query) {
-    throw new AppError("Query parameter is required", 400);
+    return response.json({ products: [] });
   }
-
   const products = await prisma.product.findMany({
     where: {
       OR: [
-        {
-          title: {
-            contains: query,
-          },
-        },
-        {
-          description: {
-            contains: query,
-          },
-        },
+        { title: { contains: query } },
+        { description: { contains: query } },
       ],
     },
   });
-
-  return response.json(products);
+  return response.json({ products });
 });
 
 const getProductById = asyncHandler(async (request, response) => {

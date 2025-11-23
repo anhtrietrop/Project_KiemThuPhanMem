@@ -84,6 +84,9 @@ describe('UC3: Order Management Tests', () => {
           city: 'Hanoi',
           total: 1000000,
           status: 'pending',
+          items: [
+            { productId: product.id, quantity: 2 }
+          ],
         });
 
       expect(response.status).toBe(201);
@@ -114,6 +117,9 @@ describe('UC3: Order Management Tests', () => {
           city: 'Hanoi',
           total: expectedTotal,
           status: 'pending',
+          items: [
+            { productId: product.id, quantity: 3 }
+          ],
         });
 
       expect(response.status).toBe(201);
@@ -144,6 +150,9 @@ describe('UC3: Order Management Tests', () => {
           city: 'Hanoi',
           total: 500000,
           status: 'pending',
+          items: [
+            { productId: product.id, quantity: 1 }
+          ],
         });
 
       expect(response.status).toBe(201);
@@ -167,6 +176,9 @@ describe('UC3: Order Management Tests', () => {
           city: 'Hanoi',
           total: 600000,
           status: 'pending',
+          items: [
+            { productId: product.id, quantity: 1 }
+          ],
         });
 
       const orderId = orderResponse.body.id;
@@ -201,6 +213,9 @@ describe('UC3: Order Management Tests', () => {
           city: 'Hanoi',
           total: 700000,
           status: 'pending',
+          items: [
+            { productId: product.id, quantity: 1 }
+          ],
         });
 
       const orderId = orderResponse.body.id;
@@ -232,6 +247,9 @@ describe('UC3: Order Management Tests', () => {
           city: 'Hanoi',
           total: 800000,
           status: 'pending',
+          items: [
+            { productId: product.id, quantity: 1 }
+          ],
         });
 
       const orderId = orderResponse.body.id;

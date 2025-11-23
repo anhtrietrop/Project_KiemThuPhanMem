@@ -30,7 +30,7 @@ async function createReview(request, response) {
         productId: productId,
         customerOrder: {
           userId: userId,
-          status: { in: ['delivered', 'completed'] }
+          status: { in: ['delivered', 'completed', 'DELIVERED', 'COMPLETED'] }
         }
       },
       include: {
@@ -125,8 +125,22 @@ async function getProductReviews(request, response) {
       where: { productId }
     });
 
+    // Calculate average rating
+    const ratings = await prisma.review.findMany({
+      where: { productId },
+      select: { rating: true }
+    });
+    const averageRating = ratings.length > 0 
+      ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length 
+      : 0;
+
     return response.json({
       reviews,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      averageRating: parseFloat(averageRating.toFixed(1)),
       pagination: {
         page,
         limit,

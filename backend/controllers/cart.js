@@ -94,7 +94,10 @@ const addToCart = async (req, res) => {
 
     // Kiểm tra số lượng tồn kho
     if (product.quantity < quantity) {
-      return res.status(400).json({ error: 'Not enough stock available' });
+      return res.status(400).json({
+        error: 'Not enough stock available',
+        message: 'Product is out of stock or not available'
+      });
     }
 
     // Tìm hoặc tạo cart
@@ -122,7 +125,10 @@ const addToCart = async (req, res) => {
       const newQuantity = existingItem.quantity + quantity;
       
       if (product.quantity < newQuantity) {
-        return res.status(400).json({ error: 'Not enough stock available' });
+        return res.status(400).json({
+          error: 'Not enough stock available',
+          message: 'Product is out of stock or not available'
+        });
       }
 
       cartItem = await prisma.cartitem.update({

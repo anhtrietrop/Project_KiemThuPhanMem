@@ -191,6 +191,8 @@ model user {
   password      String?
   role          String?          @default("user")
   status        String           @default("ACTIVE")
+  name          String?
+  phone         String?
   deletedAt     DateTime?
   cart          cart?
   orders        customer_order[]

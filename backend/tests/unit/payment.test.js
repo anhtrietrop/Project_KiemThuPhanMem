@@ -100,7 +100,10 @@ describe('UC3.14-UC3.20: Payment Processing Tests', () => {
         adress: '123 Test Street',
         city: 'Hanoi',
         total: 250000,
-        status: 'pending'
+        status: 'pending',
+        items: [
+          { productId: product.id, quantity: 1 }
+        ]
       });
 
     expect(response.status).toBe(201);

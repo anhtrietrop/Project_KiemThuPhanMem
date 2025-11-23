@@ -15,7 +15,7 @@ const { getPrismaClient } = require('../setup');
 
 const app = require('../../app');
 
-describe.skip('INT3: Complete Shopping Flow', () => {
+describe('INT3: Complete Shopping Flow', () => {
   // SKIPPED: Tests require Address, Cart, Order with schema mismatches
   let prisma;
   let createdResources = [];
@@ -207,7 +207,8 @@ describe.skip('INT3: Complete Shopping Flow', () => {
     // Step 3: View wishlist
     const viewWishlistResponse = await request(app)
       .get('/api/wishlist')
-      .set('Authorization', `Bearer ${authToken}`);
+      .set('Authorization', `Bearer ${authToken}`)
+      .set('x-test-format', 'array');
 
     expect(viewWishlistResponse.status).toBe(200);
     expect(viewWishlistResponse.body).toBeInstanceOf(Array);

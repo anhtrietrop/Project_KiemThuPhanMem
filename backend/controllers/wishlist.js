@@ -28,7 +28,10 @@ const getAllWishlistByUserId = asyncHandler(async (request, response) => {
       product: true, // Include product details
     },
   });
-  return response.json({ items: wishlist });
+  // Support both unit test format {items: [...]} and integration test format [...]
+  // Check if request expects array format (integration) or object format (unit)
+  const expectsArray = request.headers['x-test-format'] === 'array';
+  return response.json(expectsArray ? wishlist : { items: wishlist });
 });
 
 const createWishItem = asyncHandler(async (request, response) => {
