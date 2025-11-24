@@ -52,8 +52,6 @@ services:
     networks:
       - app-network
     volumes:
-      - ./backend:/usr/src/app
-      - /usr/src/app/node_modules
       - ./backend/logs:/usr/src/app/logs
 
   # Frontend User
