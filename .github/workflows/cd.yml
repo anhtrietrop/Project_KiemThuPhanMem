@@ -62,7 +62,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Image Digest
-        run: echo "Image pushed successfully! Digest: ${{ steps.meta.outputs.tags }}"
+        run: echo "Image pushed successfully! Tags - ${{ steps.meta.outputs.tags }}"
 
   deploy:
     name: Deploy to Environment
