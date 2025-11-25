@@ -35,17 +35,17 @@ const nextConfig = {
         formats: ['image/avif', 'image/webp'], // Sử dụng format mới nhẹ hơn
         minimumCacheTTL: 60,
         remotePatterns: [
-          {
-            protocol: 'https',
-            hostname: 'placehold.co',
-            port: ""
-          },
+            {
+                protocol: 'https',
+                hostname: 'placehold.co',
+                port: ""
+            },
         ],
     },
 
-    // Parallel processing - build nhanh hơn
+    // Parallel processing - disabled due to DataCloneError
     experimental: {
-        workerThreads: true,
+        workerThreads: false,
         cpus: 4,
     },
 
@@ -73,7 +73,7 @@ const nextConfig = {
     env: {
         NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
     },
-    
+
     // Headers - COMMENTED OUT for Next.js 15 Docker build compatibility
     // async headers() {
     //   return [
