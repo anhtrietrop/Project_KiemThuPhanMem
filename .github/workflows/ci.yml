@@ -230,7 +230,7 @@ jobs:
         working-directory: ./frontend-admin
         env:
           DATABASE_URL: "mysql://mock_user:mock_password@localhost:3306/mock_db"
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_SECRET: "test-nextauth-secret-for-ci-only"
           NEXTAUTH_URL: "http://localhost:3001"
           NEXT_PUBLIC_API_BASE_URL: "http://localhost:3002"
         run: npm run build
@@ -270,7 +270,7 @@ jobs:
         working-directory: ./frontend-user
         env:
           DATABASE_URL: "mysql://mock_user:mock_password@localhost:3306/mock_db"
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_SECRET: "test-nextauth-secret-for-ci-only"
           NEXTAUTH_URL: "http://localhost:3000"
           NEXT_PUBLIC_API_BASE_URL: "http://localhost:3002"
         run: npm run build
