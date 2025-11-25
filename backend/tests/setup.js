@@ -7,15 +7,32 @@ require('dotenv').config({ path: '.env.test' });
 // Set test environment variables
 process.env.NODE_ENV = 'test';
 
-// Verify critical environment variables
+// Set default values for CI environment if not already set
 if (!process.env.DATABASE_URL) {
-  console.error('❌ DATABASE_URL is not set in .env.test');
-  process.exit(1);
+  process.env.DATABASE_URL = 'mysql://root:test_password@localhost:3307/test_ecommerce_db';
+  console.log('ℹ️  Using default DATABASE_URL for CI environment');
 }
 
 if (!process.env.JWT_SECRET) {
-  console.error('❌ JWT_SECRET is not set in .env.test');
-  process.exit(1);
+  process.env.JWT_SECRET = 'test-jwt-secret-key-for-ci-environment-only-do-not-use-in-production';
+  console.log('ℹ️  Using default JWT_SECRET for CI environment');
+}
+
+// Set other default environment variables for CI
+if (!process.env.NEXTAUTH_SECRET) {
+  process.env.NEXTAUTH_SECRET = 'test-nextauth-secret-for-ci-only';
+}
+
+if (!process.env.MOMO_ACCESS_KEY) {
+  process.env.MOMO_ACCESS_KEY = 'test-momo-access-key';
+}
+
+if (!process.env.MOMO_SECRET_KEY) {
+  process.env.MOMO_SECRET_KEY = 'test-momo-secret-key';
+}
+
+if (!process.env.MOMO_PARTNER_CODE) {
+  process.env.MOMO_PARTNER_CODE = 'test-partner-code';
 }
 
 // Increase timeout for slow tests
