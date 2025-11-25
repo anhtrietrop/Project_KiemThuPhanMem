@@ -41,8 +41,9 @@ const DashboardSingleUserPage = ({
         const data = await response.json();
         throw Error(data.error || "There was an error while deleting user");
       }
-    } catch (error: any) {
-      toast.error(error.message || "There was an error while deleting user");
+    } catch (error) {
+      const err = error as Error;
+      toast.error(err.message || "There was an error while deleting user");
     }
   };
 
@@ -61,8 +62,9 @@ const DashboardSingleUserPage = ({
         const data = await response.json();
         throw Error(data.error || `Có lỗi khi ${action} user`);
       }
-    } catch (error: any) {
-      toast.error(error.message || "Có lỗi xảy ra");
+    } catch (error) {
+      const err = error as Error;
+      toast.error(err.message || "Có lỗi xảy ra");
     }
   };
 
@@ -183,10 +185,10 @@ const DashboardSingleUserPage = ({
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">Trạng thái:</span>
           <span className={`px-3 py-1 rounded-full text-sm font-semibold ${userStatus === 'blocked'
-              ? 'bg-red-100 text-red-800'
-              : userStatus === 'DELETED'
-                ? 'bg-gray-100 text-gray-800'
-                : 'bg-green-100 text-green-800'
+            ? 'bg-red-100 text-red-800'
+            : userStatus === 'DELETED'
+              ? 'bg-gray-100 text-gray-800'
+              : 'bg-green-100 text-green-800'
             }`}>
             {userStatus === 'blocked' ? '🚫 Đã chặn' : userStatus === 'DELETED' ? '🗑️ Đã xóa' : '✓ Hoạt động'}
           </span>
@@ -203,8 +205,8 @@ const DashboardSingleUserPage = ({
           <button
             type="button"
             className={`uppercase px-10 py-5 text-lg border border-gray-300 font-bold text-white shadow-sm focus:outline-none focus:ring-2 ${userStatus === 'blocked'
-                ? 'bg-green-600 hover:bg-green-700'
-                : 'bg-yellow-600 hover:bg-yellow-700'
+              ? 'bg-green-600 hover:bg-green-700'
+              : 'bg-yellow-600 hover:bg-yellow-700'
               }`}
             onClick={toggleBlockUser}
           >

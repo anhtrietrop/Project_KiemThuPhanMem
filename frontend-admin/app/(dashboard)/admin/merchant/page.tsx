@@ -13,7 +13,7 @@ interface Merchant {
   address: string | null;
   description: string | null;
   status: string;
-  products: any[];
+  products: unknown[];
 }
 
 export default function MerchantPage() {
@@ -76,11 +76,10 @@ export default function MerchantPage() {
                     <td className="py-4">{merchant.email || "N/A"}</td>
                     <td className="py-4">
                       <span
-                        className={`px-2 py-1 rounded text-xs ${
-                          merchant.status === "ACTIVE"
+                        className={`px-2 py-1 rounded text-xs ${merchant.status === "ACTIVE"
                             ? "bg-green-100 text-green-800"
                             : "bg-red-100 text-red-800"
-                        }`}
+                          }`}
                       >
                         {merchant.status}
                       </span>

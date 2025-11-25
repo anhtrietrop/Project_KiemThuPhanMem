@@ -84,7 +84,7 @@ const AddNewProduct = () => {
       const data: Merchant[] = await res.json();
       setMerchants(data || []);
       setProduct((prev) => ({
-      ...prev,
+        ...prev,
         merchantId: prev.merchantId || data?.[0]?.id || "",
       }));
     } catch (e) {
@@ -92,7 +92,7 @@ const AddNewProduct = () => {
     }
   };
 
-  const uploadFile = async (file: any) => {
+  const uploadFile = async (file: File) => {
     const formData = new FormData();
     formData.append("uploadedFile", file);
 
@@ -103,9 +103,9 @@ const AddNewProduct = () => {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        await response.json();
       } else {
-        console.error("File upload unsuccessfull");
+        console.error("File upload unsuccessful");
       }
     } catch (error) {
       console.error("Error happend while sending request:", error);

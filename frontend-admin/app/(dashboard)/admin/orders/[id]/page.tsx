@@ -107,7 +107,7 @@ const AdminSingleOrder = () => {
               console.error('Update error:', data);
               // Show specific validation errors from backend
               if (data.details && Array.isArray(data.details)) {
-                data.details.forEach((error: any) => {
+                data.details.forEach((error: { field: string; message: string }) => {
                   toast.error(`${error.field}: ${error.message}`);
                 });
               } else {

@@ -81,7 +81,7 @@ const DashboardProductDetails = ({
   };
 
   // functionality for uploading main image file
-  const uploadFile = async (file: any) => {
+  const uploadFile = async (file: File) => {
     const formData = new FormData();
     formData.append("uploadedFile", file);
 
@@ -92,7 +92,7 @@ const DashboardProductDetails = ({
       });
 
       if (response.ok) {
-        const data = await response.json();
+        await response.json();
       } else {
         toast.error("File upload unsuccessful.");
       }
