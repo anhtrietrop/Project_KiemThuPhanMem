@@ -60,9 +60,14 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
 
       - name: Image Digest
-        run: echo "Image pushed successfully! Tags - ${{ steps.meta.outputs.tags }}"
+        run: |
+          echo "✅ Image pushed successfully!"
+          echo "📦 Service: ${{ matrix.service }}"
+          echo "🏷️  Tags: ${{ steps.meta.outputs.tags }}"
+          echo "🔗 Registry: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.service }}"
 
   deploy:
     name: Deploy to Environment
@@ -79,12 +84,22 @@ jobs:
           echo "📦 Docker images built and pushed to GitHub Container Registry"
           echo "🔗 Images available at: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}"
           echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "Available images:"
-          echo "  - backend: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/backend:latest"
-          echo "  - frontend-user: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/frontend-user:latest"
-          echo "  - frontend-admin: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/frontend-admin:latest"
+          echo "  🔹 backend:       ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/backend:latest"
+          echo "  🔹 frontend-user: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/frontend-user:latest"
+          echo "  🔹 frontend-admin: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/frontend-admin:latest"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "📝 Next steps:"
+          echo "  1. SSH to your production server"
+          echo "  2. Pull the latest images: docker compose pull"
+          echo "  3. Restart services: docker compose up -d --force-recreate"
 
-      # OPTIONAL: Uncomment and configure if you have a deployment server
+      # ========================================
+      # OPTION 1: Deploy via SSH to VPS/Server
+      # ========================================
+      # Uncomment and configure if you deploy to a VPS
       # - name: Deploy to Production Server
       #   uses: appleboy/ssh-action@v1.0.0
       #   with:
@@ -94,21 +109,68 @@ jobs:
       #     port: ${{ secrets.DEPLOY_PORT }}
       #     script: |
       #       cd /path/to/your/app
+      #
+      #       # Pull latest images
       #       docker compose pull
-      #       docker compose up -d --force-recreate
-      #       docker image prune -f
+      #
+      #       # Restart services with zero downtime
+      #       docker compose up -d --force-recreate --remove-orphans
+      #
+      #       # Clean up old images
+      #       docker image prune -af --filter "until=48h"
+      #
+      #       # Health check
+      #       echo "🏥 Running health checks..."
+      #       sleep 10
+      #       curl -f http://localhost:3002/health || exit 1
+      #
+      #       echo "✅ Deployment successful!"
 
-      # OPTIONAL: Kubernetes deployment example
-      # - name: Deploy to Kubernetes
-      #   uses: azure/k8s-deploy@v4
+      # ========================================
+      # OPTION 2: Deploy to Kubernetes
+      # ========================================
+      # Uncomment if you deploy to Kubernetes cluster
+      # - name: Setup kubectl
+      #   uses: azure/setup-kubectl@v3
       #   with:
-      #     manifests: |
-      #       k8s/deployment.yaml
-      #       k8s/service.yaml
-      #     images: |
-      #       ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/backend:${{ github.sha }}
-      #       ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/frontend-user:${{ github.sha }}
-      #       ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/frontend-admin:${{ github.sha }}
+      #     version: 'latest'
+      #
+      # - name: Configure Kubernetes Context
+      #   uses: azure/k8s-set-context@v3
+      #   with:
+      #     method: kubeconfig
+      #     kubeconfig: ${{ secrets.KUBE_CONFIG }}
+      #
+      # - name: Deploy to Kubernetes
+      #   run: |
+      #     kubectl set image deployment/backend backend=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/backend:${{ github.sha }}
+      #     kubectl set image deployment/frontend-user frontend-user=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/frontend-user:${{ github.sha }}
+      #     kubectl set image deployment/frontend-admin frontend-admin=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/frontend-admin:${{ github.sha }}
+      #
+      #     kubectl rollout status deployment/backend
+      #     kubectl rollout status deployment/frontend-user
+      #     kubectl rollout status deployment/frontend-admin
+
+      # ========================================
+      # OPTION 3: Deploy to AWS ECS
+      # ========================================
+      # - name: Deploy to AWS ECS
+      #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      #   with:
+      #     task-definition: ecs-task-definition.json
+      #     service: my-service
+      #     cluster: my-cluster
+      #     wait-for-service-stability: true
+
+      # ========================================
+      # OPTION 4: Deploy to Google Cloud Run
+      # ========================================
+      # - name: Deploy to Cloud Run
+      #   uses: google-github-actions/deploy-cloudrun@v1
+      #   with:
+      #     service: backend
+      #     image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/backend:latest
+      #     region: asia-southeast1
 
   notification:
     name: Deployment Notification
@@ -117,18 +179,146 @@ jobs:
     if: always()
 
     steps:
-      - name: Send Slack Notification (Optional)
+      - name: Send Success Notification
         if: success()
         run: |
-          echo "✅ Deployment successful!"
-          echo "To send Slack notifications, configure SLACK_WEBHOOK_URL secret"
-          # Example Slack notification:
-          # curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
-          #   -H 'Content-Type: application/json' \
-          #   -d '{"text":"✅ Deployment successful for commit ${{ github.sha }}"}'
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ DEPLOYMENT SUCCESSFUL!"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "📊 Deployment Summary:"
+          echo "  • Commit: ${{ github.sha }}"
+          echo "  • Branch: ${{ github.ref_name }}"
+          echo "  • Author: ${{ github.actor }}"
+          echo "  • Time: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo ""
+          echo "🐳 Docker Images:"
+          echo "  • ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/backend:latest"
+          echo "  • ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/frontend-user:latest"
+          echo "  • ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/frontend-admin:latest"
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-      - name: Send Failure Notification (Optional)
+      # ========================================
+      # Slack Notification (Optional)
+      # ========================================
+      # To enable: Add SLACK_WEBHOOK_URL to GitHub Secrets
+      # - name: Send Slack Notification
+      #   if: success()
+      #   run: |
+      #     curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+      #       -H 'Content-Type: application/json' \
+      #       -d '{
+      #         "text": "✅ Deployment successful!",
+      #         "blocks": [
+      #           {
+      #             "type": "header",
+      #             "text": {
+      #               "type": "plain_text",
+      #               "text": "✅ Production Deployment Successful"
+      #             }
+      #           },
+      #           {
+      #             "type": "section",
+      #             "fields": [
+      #               {
+      #                 "type": "mrkdwn",
+      #                 "text": "*Commit:*\n${{ github.sha }}"
+      #               },
+      #               {
+      #                 "type": "mrkdwn",
+      #                 "text": "*Author:*\n${{ github.actor }}"
+      #               },
+      #               {
+      #                 "type": "mrkdwn",
+      #                 "text": "*Branch:*\n${{ github.ref_name }}"
+      #               },
+      #               {
+      #                 "type": "mrkdwn",
+      #                 "text": "*Status:*\nDeployed"
+      #               }
+      #             ]
+      #           }
+      #         ]
+      #       }'
+
+      # ========================================
+      # Discord Notification (Optional)
+      # ========================================
+      # To enable: Add DISCORD_WEBHOOK_URL to GitHub Secrets
+      # - name: Send Discord Notification
+      #   if: success()
+      #   run: |
+      #     curl -X POST ${{ secrets.DISCORD_WEBHOOK_URL }} \
+      #       -H 'Content-Type: application/json' \
+      #       -d '{
+      #         "embeds": [{
+      #           "title": "✅ Deployment Successful",
+      #           "description": "Production deployment completed successfully",
+      #           "color": 3066993,
+      #           "fields": [
+      #             {
+      #               "name": "Commit",
+      #               "value": "${{ github.sha }}",
+      #               "inline": true
+      #             },
+      #             {
+      #               "name": "Author",
+      #               "value": "${{ github.actor }}",
+      #               "inline": true
+      #             },
+      #             {
+      #               "name": "Branch",
+      #               "value": "${{ github.ref_name }}",
+      #               "inline": true
+      #             }
+      #           ],
+      #           "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%S.000Z)'"
+      #         }]
+      #       }'
+
+      # ========================================
+      # Email Notification (Optional)
+      # ========================================
+      # - name: Send Email Notification
+      #   if: success()
+      #   uses: dawidd6/action-send-mail@v3
+      #   with:
+      #     server_address: smtp.gmail.com
+      #     server_port: 465
+      #     username: ${{ secrets.EMAIL_USERNAME }}
+      #     password: ${{ secrets.EMAIL_PASSWORD }}
+      #     subject: "✅ Deployment Successful - ${{ github.repository }}"
+      #     to: team@yourcompany.com
+      #     from: GitHub Actions
+      #     body: |
+      #       Deployment to production completed successfully!
+      #
+      #       Commit: ${{ github.sha }}
+      #       Author: ${{ github.actor }}
+      #       Branch: ${{ github.ref_name }}
+      #       Time: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+
+      - name: Send Failure Notification
         if: failure()
         run: |
-          echo "❌ Deployment failed!"
-          # Add your notification logic here
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "❌ DEPLOYMENT FAILED!"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "📊 Failed Deployment Details:"
+          echo "  • Commit: ${{ github.sha }}"
+          echo "  • Branch: ${{ github.ref_name }}"
+          echo "  • Author: ${{ github.actor }}"
+          echo "  • Time: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo ""
+          echo "🔍 Please check the logs above for error details."
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      # Uncomment to send failure notifications to Slack/Discord
+      # - name: Send Failure Alert
+      #   if: failure()
+      #   run: |
+      #     curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+      #       -H 'Content-Type: application/json' \
+      #       -d '{"text":"❌ Deployment failed for commit ${{ github.sha }}. Please check GitHub Actions logs."}'
