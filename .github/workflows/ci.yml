@@ -98,7 +98,7 @@ jobs:
           DATABASE_URL: mysql://root:rootpassword123@127.0.0.1:3307/test_ecommerce_db
         run: |
           npx prisma generate
-          npx prisma migrate deploy
+          npx prisma db push --accept-data-loss --skip-generate
 
       - name: Run tests with coverage
         working-directory: ./backend
