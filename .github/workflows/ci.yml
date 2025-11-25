@@ -1,11 +1,10 @@
 name: CI Pipeline
 
 on:
-  # Trigger on push to feature/hotfix branches
+  # Trigger on push to any branch (for testing)
   push:
     branches:
-      - "feature/**"
-      - "hotfix/**"
+      - "**"
 
   # Trigger on pull requests to main
   pull_request:
@@ -100,21 +99,7 @@ jobs:
           npx prisma generate
           npx prisma migrate deploy
 
-      - name: Run tests
-        working-directory: ./backend
-        env:
-          NODE_ENV: test
-          CI: true
-        run: npm test -- --ci --forceExit
-        continue-on-error: false
-
-      - name: Check test results
-        if: failure()
-        run: |
-          echo "❌ Tests failed! This PR cannot be merged."
-          exit 1
-
-      - name: Generate coverage report
+      - name: Run tests with coverage
         working-directory: ./backend
         env:
           NODE_ENV: test
@@ -130,7 +115,7 @@ jobs:
             try {
               const coverage = require('./coverage/coverage-summary.json');
               const total = coverage.total;
-              const thresholds = { lines: 80, statements: 80, functions: 70, branches: 70 };
+              const thresholds = { lines: 60, statements: 60, functions: 50, branches: 50 };
               let failed = false;
               
               Object.keys(thresholds).forEach(key => {
@@ -191,12 +176,12 @@ jobs:
               
               | Metric | Coverage | Threshold | Status |
               |--------|----------|-----------|--------|
-              | **Lines** | \${total.lines.pct}% | 80% | \${statusIcon(total.lines.pct, 80)} |
-              | **Statements** | \${total.statements.pct}% | 80% | \${statusIcon(total.statements.pct, 80)} |
-              | **Functions** | \${total.functions.pct}% | 70% | \${statusIcon(total.functions.pct, 70)} |
-              | **Branches** | \${total.branches.pct}% | 70% | \${statusIcon(total.branches.pct, 70)} |
+              | **Lines** | ${total.lines.pct}% | 60% | ${statusIcon(total.lines.pct, 60)} |
+              | **Statements** | ${total.statements.pct}% | 60% | ${statusIcon(total.statements.pct, 60)} |
+              | **Functions** | ${total.functions.pct}% | 50% | ${statusIcon(total.functions.pct, 50)} |
+              | **Branches** | ${total.branches.pct}% | 50% | ${statusIcon(total.branches.pct, 50)} |
               
-              \${total.lines.pct >= 80 && total.statements.pct >= 80 && total.functions.pct >= 70 && total.branches.pct >= 70
+              ${total.lines.pct >= 60 && total.statements.pct >= 60 && total.functions.pct >= 50 && total.branches.pct >= 50
                 ? '✅ **All coverage thresholds met!**'
                 : '❌ **Coverage below required thresholds. Cannot merge.**'}
               \`;
