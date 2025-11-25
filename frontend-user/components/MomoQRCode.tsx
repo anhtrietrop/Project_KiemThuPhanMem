@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
 import { Copy, Download, RefreshCw } from 'lucide-react';
+import Image from 'next/image';
 
 interface MomoQRCodeProps {
   qrCodeData: string;
@@ -28,7 +29,7 @@ const MomoQRCode: React.FC<MomoQRCodeProps> = ({
     const generateQRCode = async () => {
       try {
         setIsLoading(true);
-        
+
         // Using qrcode library (you'll need to install: npm install qrcode @types/qrcode)
         const QRCode = await import('qrcode');
         const qrImage = await QRCode.toDataURL(qrCodeData, {
@@ -39,7 +40,7 @@ const MomoQRCode: React.FC<MomoQRCodeProps> = ({
             light: '#FFFFFF'
           }
         });
-        
+
         setQrCodeImage(qrImage);
       } catch (err) {
         console.error('Error generating QR code:', err);
@@ -95,7 +96,7 @@ const MomoQRCode: React.FC<MomoQRCodeProps> = ({
             light: '#FFFFFF'
           }
         });
-        
+
         setQrCodeImage(qrImage);
       } catch (err) {
         console.error('Error generating QR code:', err);
@@ -112,7 +113,7 @@ const MomoQRCode: React.FC<MomoQRCodeProps> = ({
     <Card className="w-full max-w-sm mx-auto">
       <CardHeader className="text-center">
         <CardTitle className="flex items-center justify-center gap-2">
-          <img src="/momo-logo.png" alt="MoMo" className="w-6 h-6" />
+          <Image src="/momo-logo.png" alt="MoMo" width={24} height={24} className="w-6 h-6" />
           MoMo QR Payment
         </CardTitle>
         <CardDescription>
@@ -134,14 +135,17 @@ const MomoQRCode: React.FC<MomoQRCodeProps> = ({
             </div>
           ) : qrCodeImage ? (
             <div className="relative">
-              <img 
-                src={qrCodeImage} 
-                alt="MoMo QR Code" 
+              <Image
+                src={qrCodeImage}
+                alt="MoMo QR Code"
+                width={256}
+                height={256}
+                unoptimized
                 className="w-64 h-64 border rounded-lg"
               />
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="bg-white p-2 rounded-full shadow-lg">
-                  <img src="/momo-logo.png" alt="MoMo" className="w-8 h-8" />
+                  <Image src="/momo-logo.png" alt="MoMo" width={32} height={32} className="w-8 h-8" />
                 </div>
               </div>
             </div>
@@ -156,7 +160,7 @@ const MomoQRCode: React.FC<MomoQRCodeProps> = ({
           <h4 className="font-medium text-blue-900 mb-2">How to pay:</h4>
           <ol className="text-sm text-blue-800 space-y-1">
             <li>1. Open MoMo app on your phone</li>
-            <li>2. Tap "Scan QR" or camera icon</li>
+            <li>2. Tap &quot;Scan QR&quot; or camera icon</li>
             <li>3. Point camera at the QR code above</li>
             <li>4. Confirm payment details</li>
             <li>5. Enter your MoMo PIN to complete</li>
@@ -178,7 +182,7 @@ const MomoQRCode: React.FC<MomoQRCodeProps> = ({
             <Copy className="w-4 h-4 mr-2" />
             Copy Data
           </Button>
-          
+
           {qrCodeImage && (
             <Button
               variant="outline"
@@ -190,7 +194,7 @@ const MomoQRCode: React.FC<MomoQRCodeProps> = ({
               Download
             </Button>
           )}
-          
+
           <Button
             variant="outline"
             size="sm"
@@ -203,7 +207,7 @@ const MomoQRCode: React.FC<MomoQRCodeProps> = ({
 
         <Alert>
           <AlertDescription className="text-center">
-            <strong>Important:</strong> This QR code will expire in 15 minutes. 
+            <strong>Important:</strong> This QR code will expire in 15 minutes.
             Please complete your payment before then.
           </AlertDescription>
         </Alert>

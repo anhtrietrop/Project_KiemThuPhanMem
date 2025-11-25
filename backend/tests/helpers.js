@@ -24,7 +24,7 @@ class TestDataFactory {
     if (overrides.fullName) {
       delete overrides.fullName;
     }
-    
+
     return {
       id: uuidv4(),
       email: `test${Date.now()}${Math.random()}@example.com`,
@@ -42,14 +42,14 @@ class TestDataFactory {
     if (overrides.name && !overrides.title) {
       overrides.title = overrides.name;
       delete overrides.name;
-    
-        // Map 'stock' to 'quantity' for schema compatibility
-        if (overrides.stock !== undefined && overrides.quantity === undefined) {
-          overrides.quantity = overrides.stock;
-          delete overrides.stock;
-        }
+
+      // Map 'stock' to 'quantity' for schema compatibility
+      if (overrides.stock !== undefined && overrides.quantity === undefined) {
+        overrides.quantity = overrides.stock;
+        delete overrides.stock;
+      }
     }
-    
+
     const baseData = {
       id: uuidv4(),
       title: `Test Product ${Date.now()}`,
@@ -60,7 +60,7 @@ class TestDataFactory {
       quantity: 50,
       manufacturer: 'Test Manufacturer',
     };
-    
+
     // Only set default IDs if not provided in overrides
     if (!overrides.categoryId) {
       baseData.categoryId = uuidv4();
@@ -68,7 +68,7 @@ class TestDataFactory {
     if (!overrides.merchantId) {
       baseData.merchantId = uuidv4();
     }
-    
+
     return {
       ...baseData,
       ...overrides,
@@ -148,12 +148,12 @@ class TestDatabaseHelper {
   static async createUser(userData = {}) {
     const prisma = getPrismaClient();
     const data = TestDataFactory.createUserData(userData);
-    
+
     // Hash password nếu có
     if (data.password) {
       data.password = await bcrypt.hash(data.password, 10);
     }
-    
+
     const user = await prisma.user.create({ data });
     return user;
   }
@@ -175,13 +175,13 @@ class TestDatabaseHelper {
    */
   static async createProduct(productData = {}) {
     const prisma = getPrismaClient();
-    
+
     // Auto-create category if not provided
     if (!productData.categoryId) {
       const category = await this.createCategory();
       productData = { ...productData, categoryId: category.id };
     }
-    
+
     // Ensure merchant exists: if merchantId provided but no merchant record, create one using provided id
     const prismaMerchant = getPrismaClient();
     if (!productData.merchantId) {
@@ -205,7 +205,7 @@ class TestDatabaseHelper {
         });
       }
     }
-    
+
     const data = TestDataFactory.createProductData(productData);
     const product = await prisma.product.create({ data });
     return product;
@@ -217,7 +217,7 @@ class TestDatabaseHelper {
   static async createProducts(count = 5) {
     const products = [];
     for (let i = 0; i < count; i++) {
-      const product = await this.createProduct({ 
+      const product = await this.createProduct({
         name: `Test Product ${i + 1}`,
         price: 100000 * (i + 1),
       });
@@ -232,7 +232,7 @@ class TestDatabaseHelper {
   static async createCategory(categoryData = {}) {
     const prisma = getPrismaClient();
     const data = TestDataFactory.createCategoryData(categoryData);
-    
+
     const category = await prisma.category.create({ data });
     return category;
   }
@@ -243,7 +243,7 @@ class TestDatabaseHelper {
   static async createMerchant(merchantData = {}) {
     const prisma = getPrismaClient();
     const data = TestDataFactory.createMerchantData(merchantData);
-    
+
     const merchant = await prisma.merchant.create({ data });
     return merchant;
   }
@@ -263,7 +263,7 @@ class TestDatabaseHelper {
   static async createOrder(orderData = {}) {
     const prisma = getPrismaClient();
     const data = TestDataFactory.createOrderData(orderData);
-    
+
     const order = await prisma.customer_order.create({ data });
     return order;
   }
@@ -273,7 +273,7 @@ class TestDatabaseHelper {
    */
   static async updateProduct(productId, updateData) {
     const prisma = getPrismaClient();
-    
+
     // Map 'name' to 'title' for backward compatibility
     if (updateData.name && !updateData.title) {
       updateData.title = updateData.name;
@@ -284,7 +284,7 @@ class TestDatabaseHelper {
       updateData.quantity = updateData.stock;
       delete updateData.stock;
     }
-    
+
     const product = await prisma.product.update({
       where: { id: productId },
       data: updateData,
@@ -309,7 +309,7 @@ class TestDatabaseHelper {
       isDefault: addressData.isDefault || false,
       ...addressData,
     };
-    
+
     // Note: Schema doesn't have Address model, return mock for now
     // Tests using this will need to be adjusted
     return data;
@@ -332,7 +332,7 @@ class TestDatabaseHelper {
       updatedAt: new Date(),
       ...notificationData,
     };
-    
+
     const notification = await prisma.notification.create({ data });
     return notification;
   }
@@ -344,7 +344,7 @@ class TestDatabaseHelper {
     if (!orderId) {
       throw new Error('orderId is required for updateOrder');
     }
-    
+
     const prisma = getPrismaClient();
     const data = { ...updateData };
     if (Object.prototype.hasOwnProperty.call(data, 'paymentStatus')) {
@@ -400,14 +400,14 @@ class TestJWTHelper {
     const userId = payload.id || payload.userId || '1';
     const email = payload.email || 'test@example.com';
     const role = payload.role || 'USER';
-    
+
     const defaultPayload = {
       id: userId,  // Use 'id' to match what controllers expect from req.user
       userId: userId,  // Keep userId for backward compatibility
       email: email,
       role: role,
     };
-    
+
     return jwt.sign(defaultPayload, process.env.JWT_SECRET, {
       expiresIn: '24h',
     });
@@ -423,7 +423,7 @@ class TestJWTHelper {
       email: 'test@example.com',
       ...payload,
     };
-    
+
     return jwt.sign(defaultPayload, process.env.JWT_SECRET, {
       expiresIn: '-1h', // Already expired
     });
@@ -533,7 +533,7 @@ class TestAssertionHelper {
   static assertErrorResponse(response, expectedStatus, expectedMessage = null) {
     expect(response.status).toBe(expectedStatus);
     expect(response.body).toHaveProperty('error');
-    
+
     if (expectedMessage) {
       expect(response.body.error).toContain(expectedMessage);
     }
@@ -552,7 +552,7 @@ function wait(ms) {
  */
 async function cleanupAfterTest(resources) {
   const prisma = getPrismaClient();
-  
+
   // Handle both array and object with Sets
   if (resources && typeof resources === 'object') {
     try {
@@ -560,95 +560,97 @@ async function cleanupAfterTest(resources) {
       if (resources.carts && resources.carts.size > 0) {
         for (const id of resources.carts) {
           try {
-            await prisma.cartitem.delete({ where: { id } }).catch(() => {});
+            await prisma.cartitem.delete({ where: { id } }).catch(() => { });
           } catch (error) {
             // Ignore
           }
         }
       }
-      
+
       // Clean up wishlists
       if (resources.wishlists && resources.wishlists.size > 0) {
         for (const id of resources.wishlists) {
           try {
-            await prisma.wishlist.delete({ where: { id } }).catch(() => {});
+            await prisma.wishlist.delete({ where: { id } }).catch(() => { });
           } catch (error) {
             // Ignore
           }
         }
       }
-      
+
       // Clean up notifications
       if (resources.notifications && resources.notifications.size > 0) {
         for (const id of resources.notifications) {
           try {
-            await prisma.notification.delete({ where: { id } }).catch(() => {});
+            await prisma.notification.delete({ where: { id } }).catch(() => { });
           } catch (error) {
             // Ignore
           }
         }
       }
-      
+
       // Clean up reviews
       if (resources.reviews && resources.reviews.size > 0) {
         for (const id of resources.reviews) {
           try {
-            await prisma.review.delete({ where: { id } }).catch(() => {});
+            await prisma.review.delete({ where: { id } }).catch(() => { });
           } catch (error) {
             // Ignore
           }
         }
       }
-      
+
+      // Clean up orders (Delete Order BEFORE Product)
+      if (resources.orders && resources.orders.size > 0) {
+        for (const id of resources.orders) {
+          try {
+            // First delete related CustomerOrderProduct items if possible/needed
+            // Usually handled by cascade, but good to be aware
+            await prisma.customer_order.delete({ where: { id } }).catch(() => { });
+          } catch (error) {
+            // Ignore
+          }
+        }
+      }
+
       // Clean up products
       if (resources.products && resources.products.size > 0) {
         for (const id of resources.products) {
           try {
-            await prisma.product.delete({ where: { id } }).catch(() => {});
+            await prisma.product.delete({ where: { id } }).catch(() => { });
           } catch (error) {
             // Ignore
           }
         }
       }
-      
-      // Clean up orders
-      if (resources.orders && resources.orders.size > 0) {
-        for (const id of resources.orders) {
-          try {
-            await prisma.customer_order.delete({ where: { id } }).catch(() => {});
-          } catch (error) {
-            // Ignore
-          }
-        }
-      }
-      
+
       // Clean up categories
       if (resources.categories && resources.categories.size > 0) {
         for (const id of resources.categories) {
           try {
-            await prisma.category.delete({ where: { id } }).catch(() => {});
+            await prisma.category.delete({ where: { id } }).catch(() => { });
           } catch (error) {
             // Ignore
           }
         }
       }
-      
+
       // Clean up merchants
       if (resources.merchants && resources.merchants.size > 0) {
         for (const id of resources.merchants) {
           try {
-            await prisma.merchant.delete({ where: { id } }).catch(() => {});
+            await prisma.merchant.delete({ where: { id } }).catch(() => { });
           } catch (error) {
             // Ignore
           }
         }
       }
-      
+
       // Clean up users (last since other things depend on them)
       if (resources.users && resources.users.size > 0) {
         for (const id of resources.users) {
           try {
-            await prisma.user.delete({ where: { id } }).catch(() => {});
+            await prisma.user.delete({ where: { id } }).catch(() => { });
           } catch (error) {
             // Ignore
           }

@@ -35,38 +35,43 @@ const PaymentResultPage: React.FC = () => {
         return;
       }
 
-      try {
-        // Check payment status from backend
-        const response = await fetch(`/api/payments/momo/status/${orderId}`);
-        const result = await response.json();
+      const amount = parseInt(searchParams.get('amount') || '0');
+      const isSuccess = resultCode === '0';
 
-        if (result.success) {
-          setPaymentResult({
-            success: result.data.status === 'SUCCESS',
-            orderId: result.data.orderId,
-            amount: result.data.amount,
-            transId: result.data.transId,
-            message: result.data.message,
-            resultCode: result.data.resultCode
-          });
-        } else {
-          // Fallback to URL parameters
-          setPaymentResult({
-            success: resultCode === '0',
-            orderId: orderId,
-            amount: 0,
-            transId: transId || undefined,
-            message: message || 'Payment status unknown',
-            resultCode: parseInt(resultCode || '99')
+      try {
+        // If payment was successful (resultCode=0), update order status via backend
+        if (isSuccess && transId) {
+          const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3002';
+
+          // Call backend to update payment status
+          await fetch(`${backendUrl}/api/payments/momo/update-status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderId: orderId,
+              resultCode: parseInt(resultCode || '0'),
+              transId: transId,
+              message: message || 'Success',
+              amount: amount
+            })
           });
         }
-      } catch (error) {
-        console.error('Error checking payment status:', error);
-        // Fallback to URL parameters
+
         setPaymentResult({
-          success: resultCode === '0',
+          success: isSuccess,
           orderId: orderId,
-          amount: 0,
+          amount: amount,
+          transId: transId || undefined,
+          message: message || (isSuccess ? 'Thanh toán thành công' : 'Thanh toán thất bại'),
+          resultCode: parseInt(resultCode || '99')
+        });
+      } catch (error) {
+        console.error('Error updating payment status:', error);
+        // Still show result based on URL parameters
+        setPaymentResult({
+          success: isSuccess,
+          orderId: orderId,
+          amount: amount,
           transId: transId || undefined,
           message: message || 'Payment status unknown',
           resultCode: parseInt(resultCode || '99')
@@ -77,7 +82,7 @@ const PaymentResultPage: React.FC = () => {
     };
 
     checkPaymentStatus();
-  }, [orderId, resultCode, message, transId]);
+  }, [orderId, resultCode, message, transId, searchParams]);
 
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -88,7 +93,7 @@ const PaymentResultPage: React.FC = () => {
 
   const getStatusIcon = () => {
     if (!paymentResult) return <Clock className="w-8 h-8 text-yellow-600" />;
-    
+
     if (paymentResult.success) {
       return <CheckCircle className="w-8 h-8 text-green-600" />;
     } else {
@@ -108,7 +113,7 @@ const PaymentResultPage: React.FC = () => {
 
   const getStatusMessage = () => {
     if (!paymentResult) return 'Please wait while we verify your payment...';
-    
+
     if (paymentResult.success) {
       return `Your payment has been processed successfully. Transaction ID: ${paymentResult.transId}`;
     } else {
@@ -156,21 +161,21 @@ const PaymentResultPage: React.FC = () => {
                 <span className="text-gray-600">Order ID:</span>
                 <span className="font-medium">#{paymentResult.orderId}</span>
               </div>
-              
+
               {paymentResult.amount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Amount:</span>
                   <span className="font-medium">{formatAmount(paymentResult.amount)}</span>
                 </div>
               )}
-              
+
               {paymentResult.transId && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Transaction ID:</span>
                   <span className="font-medium">{paymentResult.transId}</span>
                 </div>
               )}
-              
+
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Status Code:</span>
                 <span className="font-medium">{paymentResult.resultCode}</span>
@@ -199,15 +204,15 @@ const PaymentResultPage: React.FC = () => {
           <div className="flex flex-col gap-2">
             {paymentResult?.success ? (
               <>
-                <Button 
+                <Button
                   onClick={() => router.push('/my-orders')}
                   className="w-full"
                 >
                   View My Orders
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => router.push('/')}
                   className="w-full"
                 >
@@ -216,14 +221,14 @@ const PaymentResultPage: React.FC = () => {
               </>
             ) : (
               <>
-                <Button 
+                <Button
                   onClick={() => router.push(`/order/${paymentResult?.orderId}`)}
                   className="w-full"
                 >
                   Try Payment Again
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => router.push('/cart')}
                   className="w-full"
                 >
@@ -234,9 +239,9 @@ const PaymentResultPage: React.FC = () => {
           </div>
 
           <div className="text-center">
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => router.push('/')}
             >
               Return to Home

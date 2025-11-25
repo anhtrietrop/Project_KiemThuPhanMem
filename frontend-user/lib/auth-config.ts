@@ -1,9 +1,11 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import prisma from "@/utils/db";
+import { NextAuthOptions, User } from "next-auth";
+import { JWT } from "next-auth/jwt";
 
 // AuthOptions configuration for NextAuth
-export const authOptions: any = {
+export const authOptions: NextAuthOptions = {
   // Configure one or more authentication providers
   providers: [
     CredentialsProvider({
@@ -13,8 +15,11 @@ export const authOptions: any = {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials: any) {
+      async authorize(credentials) {
         try {
+          if (!credentials?.email || !credentials?.password) {
+             return null;
+          }
           const user = await prisma.user.findFirst({
             where: {
               email: credentials.email,
@@ -30,25 +35,25 @@ export const authOptions: any = {
                 id: user.id,
                 email: user.email,
                 role: user.role,
-              };
+              } as User;
             }
           }
-        } catch (err: any) {
-          throw new Error(err);
+        } catch (err) {
+          throw new Error(err instanceof Error ? err.message : String(err));
         }
         return null;
       },
     }),
   ],
   callbacks: {
-    async signIn({ user, account }: { user: any; account: any }) {
+    async signIn({ account }) {
       // Only allow credentials login
       if (account?.provider === "credentials") {
         return true;
       }
       return false;
     },
-    async jwt({ token, user }: any) {
+    async jwt({ token, user }: { token: JWT; user?: User }) {
       if (user) {
         token.role = user.role;
         token.id = user.id;
@@ -67,8 +72,8 @@ export const authOptions: any = {
       
       return token;
     },
-    async session({ session, token }: any) {
-      if (token) {
+    async session({ session, token }: { session: any; token: JWT }) {
+      if (token && session.user) {
         session.user.role = token.role as string;
         session.user.id = token.id as string;
       }

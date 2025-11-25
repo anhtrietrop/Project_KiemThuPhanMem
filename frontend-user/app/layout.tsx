@@ -25,8 +25,8 @@ export default async function RootLayout({
 }>) {
   const session = await getServerSession(authOptions);
   return (
-    <html lang="en" data-theme="light">
-      <body className={inter.className}>
+    <html lang="en" data-theme="light" suppressHydrationWarning={true}>
+      <body className={inter.className} suppressHydrationWarning={true}>
         <SessionProvider session={session}>
           <CartManager />
           <SessionTimeoutWrapper />

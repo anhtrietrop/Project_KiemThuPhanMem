@@ -1,5 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../utills/db");
 const { asyncHandler, AppError } = require("../utills/errorHandler");
 const { randomUUID } = require('crypto');
 
@@ -28,10 +27,8 @@ const getAllWishlistByUserId = asyncHandler(async (request, response) => {
       product: true, // Include product details
     },
   });
-  // Support both unit test format {items: [...]} and integration test format [...]
-  // Check if request expects array format (integration) or object format (unit)
-  const expectsArray = request.headers['x-test-format'] === 'array';
-  return response.json(expectsArray ? wishlist : { items: wishlist });
+  // Return array format for frontend compatibility
+  return response.json(wishlist);
 });
 
 const createWishItem = asyncHandler(async (request, response) => {
@@ -97,7 +94,7 @@ const deleteWishItem = asyncHandler(async (request, response) => {
   if (deletedItems.count === 0) {
     throw new AppError("Wishlist item not found", 404);
   }
-  
+
   return response.status(200).json({ message: 'Item removed from wishlist' });
 });
 
@@ -111,14 +108,14 @@ const getSingleProductFromWishlist = asyncHandler(async (request, response) => {
   if (!productId) {
     throw new AppError("Product ID is required", 400);
   }
-  
+
   const wishItem = await prisma.wishlist.findMany({
     where: {
       userId: userId,
       productId: productId,
     },
   });
-  
+
   return response.status(200).json(wishItem);
 });
 
@@ -128,13 +125,13 @@ const deleteAllWishItemByUserId = asyncHandler(async (request, response) => {
   if (!userId) {
     throw new AppError("User ID is required", 400);
   }
-  
+
   await prisma.wishlist.deleteMany({
     where: {
       userId: userId,
     },
   });
-  
+
   return response.status(204).send();
 });
 

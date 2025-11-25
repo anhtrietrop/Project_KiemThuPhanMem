@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import apiClient from "@/lib/api";
 import MomoPayment from "@/components/MomoPayment";
+import { ValidationTooltip, VALIDATION_RULES } from "@/components/ValidationTooltip";
 
 const CheckoutPage = () => {
   const { data: session, status } = useSession();
@@ -374,7 +375,7 @@ const CheckoutPage = () => {
             }}
             onError={(error) => {
               toast.error(`Payment failed: ${error}`);
-              setCheckoutStep("checkout");
+              setCheckoutStep("form");
             }}
           />
         </div>
@@ -463,9 +464,10 @@ const CheckoutPage = () => {
               <div className="mt-6">
                 <label
                   htmlFor="name-input"
-                  className="block text-sm font-medium text-gray-700"
+                  className="flex items-center text-sm font-medium text-gray-700"
                 >
-                  Name * (min 2 characters)
+                  Name *
+                  <ValidationTooltip rules={VALIDATION_RULES.name} />
                 </label>
                 <div className="mt-1">
                   <input
@@ -490,9 +492,10 @@ const CheckoutPage = () => {
               <div className="mt-6">
                 <label
                   htmlFor="lastname-input"
-                  className="block text-sm font-medium text-gray-700"
+                  className="flex items-center text-sm font-medium text-gray-700"
                 >
-                  Lastname * (min 2 characters)
+                  Lastname *
+                  <ValidationTooltip rules={VALIDATION_RULES.lastname} />
                 </label>
                 <div className="mt-1">
                   <input
@@ -517,9 +520,10 @@ const CheckoutPage = () => {
               <div className="mt-6">
                 <label
                   htmlFor="phone-input"
-                  className="block text-sm font-medium text-gray-700"
+                  className="flex items-center text-sm font-medium text-gray-700"
                 >
-                  Phone number * (min 10 digits)
+                  Phone number *
+                  <ValidationTooltip rules={VALIDATION_RULES.phone} />
                 </label>
                 <div className="mt-1">
                   <input
@@ -544,9 +548,10 @@ const CheckoutPage = () => {
               <div className="mt-6">
                 <label
                   htmlFor="email-address"
-                  className="block text-sm font-medium text-gray-700"
+                  className="flex items-center text-sm font-medium text-gray-700"
                 >
                   Email address *
+                  <ValidationTooltip rules={VALIDATION_RULES.email} />
                 </label>
                 <div className="mt-1">
                   <input
@@ -603,9 +608,10 @@ const CheckoutPage = () => {
                 <div className="sm:col-span-3">
                   <label
                     htmlFor="address"
-                    className="block text-sm font-medium text-gray-700"
+                    className="flex items-center text-sm font-medium text-gray-700"
                   >
                     Address *
+                    <ValidationTooltip rules={VALIDATION_RULES.address} />
                   </label>
                   <div className="mt-1">
                     <input
@@ -630,9 +636,10 @@ const CheckoutPage = () => {
                 <div className="sm:col-span-3">
                   <label
                     htmlFor="apartment"
-                    className="block text-sm font-medium text-gray-700"
+                    className="flex items-center text-sm font-medium text-gray-700"
                   >
                     Apartment, suite, etc. (optional)
+                    <ValidationTooltip rules={VALIDATION_RULES.apartment} />
                   </label>
                   <div className="mt-1">
                     <input
@@ -655,9 +662,10 @@ const CheckoutPage = () => {
                 <div>
                   <label
                     htmlFor="city"
-                    className="block text-sm font-medium text-gray-700"
+                    className="flex items-center text-sm font-medium text-gray-700"
                   >
                     City *
+                    <ValidationTooltip rules={VALIDATION_RULES.city} />
                   </label>
                   <div className="mt-1">
                     <input

@@ -6,12 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Alert, AlertDescription } from './ui/alert';
 import { Loader2, CreditCard, Smartphone, QrCode, ExternalLink } from 'lucide-react';
 import config from '@/lib/config';
+import Image from 'next/image';
 
 interface MomoPaymentProps {
   orderId: string;
   amount: number;
   orderInfo: string;
-  onSuccess?: (result: any) => void;
+  onSuccess?: (result: PaymentResponse['data']) => void;
   onError?: (error: any) => void;
   onCancel?: () => void;
 }
@@ -24,6 +25,7 @@ interface PaymentResponse {
     qrCodeUrl: string;
     resultCode: number;
     message: string;
+    status?: string;
   };
 }
 
@@ -91,7 +93,7 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
   };
 
   // Check payment status
-  const checkPaymentStatus = async () => {
+  const checkPaymentStatus = React.useCallback(async () => {
     try {
       const response = await fetch(`${config.apiBaseUrl}/api/payments/momo/status/${orderId}`);
       const result = await response.json();
@@ -110,7 +112,7 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
     } catch (err) {
       console.error('Error checking payment status:', err);
     }
-  };
+  }, [orderId, onSuccess, onError]);
 
   // Poll payment status when processing
   useEffect(() => {
@@ -118,7 +120,7 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
       const interval = setInterval(checkPaymentStatus, 3000);
       return () => clearInterval(interval);
     }
-  }, [paymentStatus, orderId]);
+  }, [paymentStatus, checkPaymentStatus]);
 
   // Handle payment method selection
   const handlePaymentMethod = (method: 'web' | 'app' | 'qr') => {
@@ -199,7 +201,7 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <img src="/momo-logo.png" alt="MoMo" className="w-8 h-8" />
+          <Image src="/momo-logo.png" alt="MoMo" width={32} height={32} className="w-8 h-8" />
           MoMo Payment
         </CardTitle>
         <CardDescription>

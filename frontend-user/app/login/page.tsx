@@ -19,7 +19,7 @@ const LoginPage = () => {
       setError("Your session has expired. Please log in again.");
       toast.error("Your session has expired. Please log in again.");
     }
-    
+
     // if user has already logged in redirect to callbackUrl or home page
     if (sessionStatus === "authenticated") {
       const callbackUrl = searchParams.get('callbackUrl') || '/';
@@ -27,10 +27,14 @@ const LoginPage = () => {
     }
   }, [sessionStatus, router, searchParams]);
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const email = e.target[0].value;
-    const password = e.target[1].value;
+    const target = e.currentTarget;
+    const emailInput = target.elements.namedItem('email') as HTMLInputElement;
+    const passwordInput = target.elements.namedItem('password') as HTMLInputElement;
+
+    const email = emailInput.value;
+    const password = passwordInput.value;
 
     if (!isValidEmailAddressFormat(email)) {
       setError("Email is invalid");

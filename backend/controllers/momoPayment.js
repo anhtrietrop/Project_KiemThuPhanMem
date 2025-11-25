@@ -1,10 +1,9 @@
 const crypto = require('crypto');
 const axios = require('axios');
-const { PrismaClient } = require('@prisma/client');
+const { randomUUID } = require('crypto');
+const prisma = require('../utills/db');
 const { validatePaymentRequest } = require('../utills/momoValidation');
 const { createPaymentNotification } = require('../utills/notificationHelpers');
-
-const prisma = new PrismaClient();
 
 // ================= CONFIG =================
 const MOMO_CONFIG = {
@@ -156,14 +155,15 @@ async function createPaymentRequest(req, res) {
     console.log(JSON.stringify(requestBody, null, 2));
 
     // Create payment record in database (resultCode defaults to -1 = not yet processed)
-    const momoPayment = await prisma.momoPayment.create({
+    const momoPayment = await prisma.momopayment.create({
       data: {
+        id: randomUUID(),
         orderId: orderId,
         requestId: requestId,
         amount: amountInVND,
         orderInfo: orderInfo,
-        extraData: extraDataString || ''
-        // resultCode will default to -1 (PENDING)
+        extraData: extraDataString || '',
+        updatedAt: new Date()
       }
     });
 
@@ -171,7 +171,10 @@ async function createPaymentRequest(req, res) {
     console.log('ID:', momoPayment.id);
 
     // Send request to MoMo
-    const momoEndpoint = `${MOMO_CONFIG.ENDPOINT}/v2/gateway/api/create`;
+    // Check if ENDPOINT already includes the path (to avoid duplication)
+    const momoEndpoint = MOMO_CONFIG.ENDPOINT.includes('/v2/gateway/api/create')
+      ? MOMO_CONFIG.ENDPOINT
+      : `${MOMO_CONFIG.ENDPOINT}/v2/gateway/api/create`;
     console.log('\n--- Sending to MoMo ---');
     console.log('Endpoint:', momoEndpoint);
 
@@ -189,7 +192,7 @@ async function createPaymentRequest(req, res) {
 
       // Update payment record with MoMo response
       // No need to set 'status' - we use resultCode directly
-      await prisma.momoPayment.update({
+      await prisma.momopayment.update({
         where: { id: momoPayment.id },
         data: {
           payUrl: payUrl || null,
@@ -230,7 +233,7 @@ async function createPaymentRequest(req, res) {
       console.error(axiosError.response?.data || axiosError.message);
 
       // Update payment record with error info
-      await prisma.momoPayment.update({
+      await prisma.momopayment.update({
         where: { id: momoPayment.id },
         data: {
           message: axiosError.response?.data?.message || axiosError.message,
@@ -321,7 +324,7 @@ async function handlePaymentCallback(req, res) {
     }
 
     // Find payment record
-    const payment = await prisma.momoPayment.findFirst({
+    const payment = await prisma.momopayment.findFirst({
       where: { requestId: requestId }
     });
 
@@ -337,7 +340,7 @@ async function handlePaymentCallback(req, res) {
     const { status, orderPaymentStatus } = getStatusFromResultCode(resultCode);
 
     // Update payment record (only resultCode matters, status is derived from it)
-    await prisma.momoPayment.update({
+    await prisma.momopayment.update({
       where: { id: payment.id },
       data: {
         transId: transId || null,
@@ -402,7 +405,7 @@ async function queryPaymentStatus(req, res) {
   try {
     const { orderId } = req.params;
 
-    const payment = await prisma.momoPayment.findFirst({
+    const payment = await prisma.momopayment.findFirst({
       where: { orderId: orderId },
       orderBy: { createdAt: 'desc' }
     });
@@ -451,7 +454,7 @@ async function refundPayment(req, res) {
     const { orderId, amount, description } = req.body;
 
     // Find original payment
-    const payment = await prisma.momoPayment.findFirst({
+    const payment = await prisma.momopayment.findFirst({
       where: {
         orderId: orderId,
         status: 'SUCCESS'
@@ -534,7 +537,7 @@ async function testCallback(req, res) {
     console.log('Result Code:', resultCode);
 
     // Find payment record
-    const payment = await prisma.momoPayment.findFirst({
+    const payment = await prisma.momopayment.findFirst({
       where: { requestId: requestId }
     });
 
@@ -549,7 +552,7 @@ async function testCallback(req, res) {
     const { status, orderPaymentStatus, description } = getStatusFromResultCode(resultCode);
 
     // Update payment record
-    await prisma.momoPayment.update({
+    await prisma.momopayment.update({
       where: { id: payment.id },
       data: {
         transId: `TEST_${Date.now()}`,

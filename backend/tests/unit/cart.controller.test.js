@@ -42,7 +42,7 @@ const mockResponse = () => {
 };
 
 // Fix tên model cho đúng với code của bạn (trong code bạn dùng 'cartitem' viết thường)
-const db = prisma; 
+const db = prisma;
 // Trong code controller bạn dùng: prisma.cartitem (lowercase)
 // Nên ta sẽ spy vào db.cartitem
 
@@ -64,9 +64,9 @@ describe('Cart Controller Unit Tests', () => {
         id: 'cart-1',
         userId: 'user-123',
         cartitem: [
-          { 
-            quantity: 2, 
-            product: { price: 100000, title: 'Product A', id: 'p1' } 
+          {
+            quantity: 2,
+            product: { price: 100000, title: 'Product A', id: 'p1' }
           }
         ]
       };
@@ -178,10 +178,10 @@ describe('Cart Controller Unit Tests', () => {
 
       db.product.findUnique.mockResolvedValue({ id: 'p1', quantity: 10 });
       db.cart.findUnique.mockResolvedValue({ id: 'c1' });
-      
+
       // Item đã có 1 cái
       db.cartitem.findUnique.mockResolvedValue({ id: 'item-1', quantity: 1 });
-      
+
       // Mock Update
       db.cartitem.update.mockResolvedValue({
         id: 'item-1',
@@ -237,7 +237,7 @@ describe('Cart Controller Unit Tests', () => {
     it('should return 400 if not enough stock during update', async () => {
       const req = mockRequest({ userId: 'u1' }, { quantity: 100 });
       const res = mockResponse();
-      
+
       db.cart.findUnique.mockResolvedValue({ id: 'c1' });
       db.cartitem.findUnique.mockResolvedValue({
         product: { quantity: 50 } // Stock 50 < Request 100
@@ -250,7 +250,7 @@ describe('Cart Controller Unit Tests', () => {
     it('should update successfully', async () => {
       const req = mockRequest({ userId: 'u1' }, { quantity: 5 });
       const res = mockResponse();
-      
+
       db.cart.findUnique.mockResolvedValue({ id: 'c1' });
       db.cartitem.findUnique.mockResolvedValue({
         id: 'item-1',
@@ -311,15 +311,15 @@ describe('Cart Controller Unit Tests', () => {
       db.cart.findUnique
         .mockResolvedValueOnce({ id: 'c1' }) // Lần gọi đầu tìm cart
         .mockResolvedValueOnce({ // Lần gọi cuối return kết quả
-          id: 'c1', 
-          cartitem: [{ quantity: 2, product: { price: 100, quantity: 10 } }] 
+          id: 'c1',
+          cartitem: [{ quantity: 2, product: { price: 100, quantity: 10 } }]
         });
 
       // Mock Product exists
       db.product.findUnique.mockResolvedValue({ id: 'p1', quantity: 10 });
       // Mock Item not in db yet
-      db.cartitem.findUnique.mockResolvedValue(null); 
-      
+      db.cartitem.findUnique.mockResolvedValue(null);
+
       await cartController.syncCart(req, res);
 
       expect(db.cartitem.create).toHaveBeenCalled();
@@ -333,6 +333,36 @@ describe('Cart Controller Unit Tests', () => {
       const res = mockResponse();
       await cartController.syncCart(req, res);
       expect(res.status).toHaveBeenCalledWith(400);
+    });
+
+    it('should skip items if product not found during sync', async () => {
+      const req = mockRequest(
+        { userId: 'u1' },
+        { localCartItems: [{ id: 'p-missing', amount: 1 }] }
+      );
+      const res = mockResponse();
+
+      // Mock Cart (find twice)
+      db.cart.findUnique
+        .mockResolvedValueOnce({ id: 'c1' })
+        .mockResolvedValueOnce({
+          id: 'c1',
+          cartitem: []
+        });
+
+      // Mock Product NOT found
+      db.product.findUnique.mockResolvedValue(null);
+
+      await cartController.syncCart(req, res);
+
+      // Expect cartitem.create/update NOT called
+      expect(db.cartitem.create).not.toHaveBeenCalled();
+      expect(db.cartitem.update).not.toHaveBeenCalled();
+
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        success: true,
+        message: 'Đồng bộ giỏ hàng thành công'
+      }));
     });
   });
 });

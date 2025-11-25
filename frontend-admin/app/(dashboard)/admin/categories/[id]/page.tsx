@@ -16,7 +16,7 @@ const DashboardSingleCategory = ({
 }: DashboardSingleCategoryProps) => {
   const resolvedParams = use(params);
   const id = resolvedParams.id;
-  
+
   const [categoryInput, setCategoryInput] = useState<{ name: string }>({
     name: "",
   });
@@ -36,7 +36,7 @@ const DashboardSingleCategory = ({
           throw Error("There was an error deleting a category");
         }
       })
-      .catch((error) => {
+      .catch((_error) => {
         toast.error("There was an error deleting category");
       });
   };
@@ -59,8 +59,8 @@ const DashboardSingleCategory = ({
             throw Error("Error updating a category");
           }
         })
-        .then((data) => toast.success("Category successfully updated"))
-        .catch((error) => {
+        .then((_data) => toast.success("Category successfully updated"))
+        .catch((_error) => {
           toast.error("There was an error while updating a category");
         });
     } else {

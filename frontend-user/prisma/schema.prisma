@@ -30,12 +30,16 @@ model Product {
 
   merchantId     String
   merchant       Merchant @relation(fields: [merchantId], references: [id])
+
+  @@map("product")
 }
 
 model Image {
   imageID   String @id @default(uuid())
   productID String
   image     String
+
+  @@map("image")
 }
 
 model User {
@@ -45,6 +49,8 @@ model User {
   role          String?        @default("user")
   Wishlist      Wishlist[]
   notifications Notification[]
+
+  @@map("user")
 }
 
 model Customer_order {
@@ -64,6 +70,8 @@ model Customer_order {
   orderNotice String?
   total       Int
   products    customer_order_product[]
+
+  @@map("customer_order")
 }
 
 model customer_order_product {
@@ -73,12 +81,16 @@ model customer_order_product {
   product         Product        @relation(fields: [productId], references: [id])
   productId       String
   quantity        Int
+
+  @@map("customer_order_product")
 }
 
 model Category {
   id       String    @id @default(uuid())
   name     String    @unique
   products Product[] // Define a one-to-many relationship
+
+  @@map("category")
 }
 
 model Wishlist {
@@ -87,6 +99,8 @@ model Wishlist {
   productId String
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
+
+  @@map("wishlist")
 }
 
 enum NotificationType {
@@ -120,7 +134,10 @@ model Notification {
   @@index([userId, isRead])
   @@index([userId, type])
   @@index([createdAt])
+
+  @@map("notification")
 }
+
 model Merchant {
   id          String   @id @default(uuid())
   name        String
@@ -134,4 +151,6 @@ model Merchant {
 
   // relasi
   products Product[]
+
+  @@map("merchant")
 }

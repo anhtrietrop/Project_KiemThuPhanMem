@@ -42,7 +42,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className = "" }) =
         aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
       >
         <FaBell className="w-6 h-6" />
-        
+
         {/* Unread Count Badge */}
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full animate-pulse">
@@ -74,7 +74,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className = "" }) =
               >
                 View All
               </Link>
-              
+
               {unreadCount > 0 && (
                 <button
                   className="flex-1 px-3 py-2 text-sm font-medium text-center text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-1 transition-colors"
@@ -95,7 +95,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className = "" }) =
               <div className="p-6 text-center">
                 <FaBell className="w-12 h-12 mx-auto text-gray-300 mb-3" />
                 <p className="text-gray-500 text-sm">No new notifications</p>
-                <p className="text-gray-400 text-xs mt-1">You're all caught up!</p>
+                <p className="text-gray-400 text-xs mt-1">You&apos;re all caught up!</p>
               </div>
             ) : (
               <div className="p-4 space-y-3">

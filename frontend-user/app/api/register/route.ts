@@ -1,6 +1,6 @@
 import prisma from "@/utils/db";
 import bcrypt from "bcryptjs";
-import { nanoid } from "nanoid";
+import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { registrationSchema } from "@/utils/schema";
 import { sanitizeInput, commonValidations } from "@/utils/validation";
@@ -9,9 +9,9 @@ import { handleApiError, AppError } from "@/utils/errorHandler";
 export const POST = async (request: Request) => {
   try {
     // Get client IP for rate limiting
-    const clientIP = request.headers.get("x-forwarded-for") || 
-                    request.headers.get("x-real-ip") || 
-                    "unknown";
+    const clientIP = request.headers.get("x-forwarded-for") ||
+      request.headers.get("x-real-ip") ||
+      "unknown";
 
     // Check rate limit
     if (!commonValidations.checkRateLimit(clientIP, 5, 15 * 60 * 1000)) {
@@ -21,15 +21,15 @@ export const POST = async (request: Request) => {
     const body = await sanitizeInput.validateJsonInput(request);
 
     const validationResult = registrationSchema.safeParse(body);
-    
+
     if (!validationResult.success) {
       throw validationResult.error;
     }
 
     const { email, password } = validationResult.data;
 
-    const existingUser = await prisma.user.findFirst({ 
-      where: { email } 
+    const existingUser = await prisma.user.findFirst({
+      where: { email }
     });
 
     if (existingUser) {
@@ -41,7 +41,7 @@ export const POST = async (request: Request) => {
     // Create user with proper error handling
     const newUser = await prisma.user.create({
       data: {
-        id: nanoid(),
+        id: randomUUID(),
         email,
         password: hashedPassword,
         role: "user",
@@ -50,17 +50,18 @@ export const POST = async (request: Request) => {
 
     // Return success response without sensitive data
     return new NextResponse(
-      JSON.stringify({ 
+      JSON.stringify({
         message: "User registered successfully",
-        userId: newUser.id 
+        userId: newUser.id
       }),
-      { 
+      {
         status: 200,
         headers: { "Content-Type": "application/json" }
       }
     );
 
   } catch (error) {
+    console.error("Detailed Registration Error:", error); // Log explicit error for debugging
     return handleApiError(error);
   }
 };

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { cartService, type ProductInCart as APIProductInCart } from "../_services/cartService";
+import { cartService } from "../_services/cartService";
 
 export type ProductInCart = {
   id: string;

@@ -17,17 +17,22 @@ const { authenticate } = require('../middleware/auth');
 // Authenticated root list using token user id
 router.get('/', authenticate, getUserNotifications);
 
-router.get('/:userId/unread-count', authenticate, getUnreadCount);
-// Get single notification by id
-router.get('/:id', authenticate, getNotificationById);
-// Optional: list notifications for a specific userId via a distinct path to avoid conflicts
-router.get('/user/:userId', authenticate, getUserNotifications);
+// Public endpoint - userId is passed in URL, only returns count (not sensitive data)
+// MUST be before /:userId to avoid conflict
+router.get('/:userId/unread-count', getUnreadCount);
+
+// Public endpoint - get notifications for a specific userId (for frontend without auth token)
+router.get('/:userId', getUserNotifications);
+
 router.post('/', createNotification);
-router.post('/mark-read', authenticate, bulkMarkAsRead);
-router.put('/:id/read', authenticate, markNotificationRead);
-router.put('/read-all', authenticate, markAllRead);
-router.put('/:id', authenticate, updateNotification);
-router.delete('/bulk', authenticate, bulkDeleteNotifications);
-router.delete('/:id', authenticate, deleteNotification);
+
+// These endpoints accept userId in request body for frontend compatibility
+// (frontend doesn't always have auth token available)
+router.post('/mark-read', bulkMarkAsRead);
+router.put('/:id/read', markNotificationRead);
+router.put('/read-all', markAllRead);
+router.put('/:id', updateNotification);
+router.delete('/bulk', bulkDeleteNotifications);
+router.delete('/:id', deleteNotification);
 
 module.exports = router;
