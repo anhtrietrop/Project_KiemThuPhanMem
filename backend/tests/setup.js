@@ -67,13 +67,72 @@ jest.mock('../services/emailService', () => ({
 let prisma;
 let isDbInitialized = false;
 
+// Create mock Prisma client for unit tests without DB
+function createMockPrismaClient() {
+  const crypto = require('crypto');
+
+  const createMockMethods = () => ({
+    findMany: jest.fn().mockResolvedValue([]),
+    findFirst: jest.fn().mockResolvedValue(null),
+    findUnique: jest.fn().mockResolvedValue(null),
+    create: jest.fn().mockImplementation(({ data }) => {
+      const result = {
+        id: data.id || crypto.randomUUID(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        ...data
+      };
+      return Promise.resolve(result);
+    }),
+    update: jest.fn().mockImplementation(({ where, data }) => {
+      return Promise.resolve({ id: where.id, ...data, updatedAt: new Date() });
+    }),
+    delete: jest.fn().mockImplementation(({ where }) => {
+      return Promise.resolve({ id: where.id });
+    }),
+    deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
+    count: jest.fn().mockResolvedValue(0),
+    upsert: jest.fn().mockImplementation(({ create, update, where }) => {
+      return Promise.resolve({ id: where.id || crypto.randomUUID(), ...create });
+    }),
+    aggregate: jest.fn().mockResolvedValue({ _sum: { quantity: 0 }, _count: 0 }),
+    groupBy: jest.fn().mockResolvedValue([]),
+  });
+
+  const models = ['user', 'product', 'category', 'merchant', 'customer_order', 'cartitem', 'cart',
+    'wishlist', 'notification', 'momopayment', 'customer_order_product', 'image', 'review'];
+
+  const mockPrisma = {
+    $connect: jest.fn().mockResolvedValue(undefined),
+    $disconnect: jest.fn().mockResolvedValue(undefined),
+    $transaction: jest.fn().mockImplementation(async (fn) => {
+      if (typeof fn === 'function') {
+        return fn(mockPrisma);
+      }
+      // Handle array of operations
+      return Promise.all(fn);
+    }),
+    $queryRaw: jest.fn().mockResolvedValue([]),
+    $executeRaw: jest.fn().mockResolvedValue(0),
+  };
+
+  models.forEach(model => {
+    mockPrisma[model] = createMockMethods();
+  });
+
+  return mockPrisma;
+}
+
 async function initializeTestDatabase() {
   if (process.env.SKIP_DB === 'true') {
     console.log('⏩ Skipping Database Connection (Unit Test Mode)');
+    // Create mock Prisma client for unit tests
+    prisma = createMockPrismaClient();
+    isDbInitialized = true;
     return;
   }
   if (isDbInitialized) return;
-  
+
   try {
     // Lazy load Prisma Client
     const { PrismaClient } = require('@prisma/client');
@@ -88,11 +147,11 @@ async function initializeTestDatabase() {
 
     // Track connection
     activeConnections.add(prisma);
-    
+
     // Test connection
     await prisma.$connect();
     console.log('✅ Connected to test database');
-    
+
     isDbInitialized = true;
   } catch (error) {
     console.error('❌ Failed to connect to test database:', error.message);
@@ -105,10 +164,10 @@ async function initializeTestDatabase() {
 }
 
 async function cleanTestDatabase() {
-if (process.env.SKIP_DB === 'true') return;
+  if (process.env.SKIP_DB === 'true') return;
 
   if (!prisma) return;
-  
+
   try {
     // Delete in correct order to respect foreign key constraints
     // Only use tables that actually exist in schema.prisma
@@ -139,7 +198,7 @@ if (process.env.SKIP_DB === 'true') return;
         }
       }
     }
-    
+
     console.log('🧹 Test database cleaned');
   } catch (error) {
     console.error('❌ Failed to clean test database:', error.message);
@@ -148,10 +207,10 @@ if (process.env.SKIP_DB === 'true') return;
 }
 
 async function disconnectTestDatabase() {
-if (process.env.SKIP_DB === 'true') return;
+  if (process.env.SKIP_DB === 'true') return;
 
   if (!prisma) return;
-  
+
   try {
     await prisma.$disconnect();
     activeConnections.delete(prisma);
@@ -171,14 +230,14 @@ beforeAll(async () => {
   console.log('🗄️  Database:', process.env.DATABASE_URL?.replace(/:[^:@]+@/, ':****@'));
   console.log('🔐 JWT Secret:', process.env.JWT_SECRET ? '✓ Set' : '✗ Not Set');
   console.log('🚫 External Calls:', process.env.DISABLE_EXTERNAL_CALLS === 'true' ? 'Disabled' : 'Enabled');
-  
+
   try {
     // Initialize database connection
     await initializeTestDatabase();
-    
+
     // Clean database before tests
     await cleanTestDatabase();
-    
+
     console.log('✅ Test environment ready');
     console.log('');
   } catch (error) {
@@ -193,14 +252,14 @@ afterAll(async () => {
   console.log('🧹 ============================================');
   console.log('🧹 Cleaning Up Test Environment');
   console.log('🧹 ============================================');
-  
+
   try {
     // Clean test data
     await cleanTestDatabase();
-    
+
     // Disconnect from database
     await disconnectTestDatabase();
-    
+
     // Clean up any remaining connections
     for (const connection of activeConnections) {
       try {
@@ -212,7 +271,7 @@ afterAll(async () => {
       }
     }
     activeConnections.clear();
-    
+
     // Clean up created resources
     for (const resource of createdResources) {
       try {
@@ -225,7 +284,7 @@ afterAll(async () => {
       }
     }
     createdResources.clear();
-    
+
     console.log('✅ Test environment cleaned up');
     console.log('');
   } catch (error) {
@@ -238,7 +297,7 @@ beforeEach(() => {
   // Clear all mocks before each test
   jest.clearAllMocks();
   jest.restoreAllMocks();
-  
+
   // Reset mock implementation counts
   if (process.env.DEBUG_TESTS) {
     console.log('🔄 Resetting mocks for next test');
@@ -248,11 +307,11 @@ beforeEach(() => {
 afterEach(async () => {
   // Additional cleanup if needed
   // Clean up any test-specific data created in the test
-  
+
   // Note: Không clean toàn bộ database sau mỗi test
   // vì nó sẽ làm chậm test suite. Thay vào đó, mỗi test
   // nên tự clean up data của nó nếu cần thiết.
-  
+
   if (process.env.DEBUG_TESTS) {
     console.log('✓ Test completed');
   }

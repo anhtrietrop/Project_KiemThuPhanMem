@@ -15,7 +15,7 @@ const DashboardSingleUserPage = ({
 }: DashboardUserDetailsProps) => {
   const resolvedParams = use(params);
   const id = resolvedParams.id;
-  
+
   const [userInput, setUserInput] = useState<{
     email: string;
     newPassword: string;
@@ -27,22 +27,43 @@ const DashboardSingleUserPage = ({
   });
   const router = useRouter();
 
+  const [userStatus, setUserStatus] = useState<string>('active');
+
   const deleteUser = async () => {
-    const requestOptions = {
-      method: "DELETE",
-    };
-    apiClient.delete(`/api/users/${id}`, requestOptions)
-      .then((response) => {
-        if (response.status === 204) {
-          toast.success("User deleted successfully");
-          router.push("/admin/users");
-        } else {
-          throw Error("There was an error while deleting user");
-        }
-      })
-      .catch((error) => {
-        toast.error("There was an error while deleting user");
-      });
+    if (!confirm("Bạn có chắc chắn muốn xóa user này?")) return;
+
+    try {
+      const response = await apiClient.delete(`/api/users/${id}`);
+      if (response.ok) {
+        toast.success("User deleted successfully");
+        router.push("/admin/users");
+      } else {
+        const data = await response.json();
+        throw Error(data.error || "There was an error while deleting user");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "There was an error while deleting user");
+    }
+  };
+
+  const toggleBlockUser = async () => {
+    const newStatus = userStatus === 'active' ? 'blocked' : 'active';
+    const action = newStatus === 'blocked' ? 'chặn' : 'mở chặn';
+
+    if (!confirm(`Bạn có chắc chắn muốn ${action} user này?`)) return;
+
+    try {
+      const response = await apiClient.put(`/api/users/${id}`, { status: newStatus });
+      if (response.ok) {
+        setUserStatus(newStatus);
+        toast.success(`Đã ${action} user thành công`);
+      } else {
+        const data = await response.json();
+        throw Error(data.error || `Có lỗi khi ${action} user`);
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Có lỗi xảy ra");
+    }
   };
 
   const updateUser = async () => {
@@ -100,6 +121,7 @@ const DashboardSingleUserPage = ({
           newPassword: "",
           role: data?.role,
         });
+        setUserStatus(data?.status || 'active');
       });
   }, [id]);
 
@@ -157,17 +179,40 @@ const DashboardSingleUserPage = ({
             </select>
           </label>
         </div>
-        <div className="flex gap-x-2 max-sm:flex-col">
+        {/* User Status Badge */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">Trạng thái:</span>
+          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${userStatus === 'blocked'
+              ? 'bg-red-100 text-red-800'
+              : userStatus === 'DELETED'
+                ? 'bg-gray-100 text-gray-800'
+                : 'bg-green-100 text-green-800'
+            }`}>
+            {userStatus === 'blocked' ? '🚫 Đã chặn' : userStatus === 'DELETED' ? '🗑️ Đã xóa' : '✓ Hoạt động'}
+          </span>
+        </div>
+
+        <div className="flex gap-x-2 max-sm:flex-col flex-wrap">
           <button
             type="button"
-            className="uppercase bg-blue-500 px-10 py-5 text-lg border border-black border-gray-300 font-bold text-white shadow-sm hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2"
+            className="uppercase bg-blue-500 px-10 py-5 text-lg border border-gray-300 font-bold text-white shadow-sm hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2"
             onClick={updateUser}
           >
             Update user
           </button>
           <button
             type="button"
-            className="uppercase bg-red-600 px-10 py-5 text-lg border border-black border-gray-300 font-bold text-white shadow-sm hover:bg-red-700 hover:text-white focus:outline-none focus:ring-2"
+            className={`uppercase px-10 py-5 text-lg border border-gray-300 font-bold text-white shadow-sm focus:outline-none focus:ring-2 ${userStatus === 'blocked'
+                ? 'bg-green-600 hover:bg-green-700'
+                : 'bg-yellow-600 hover:bg-yellow-700'
+              }`}
+            onClick={toggleBlockUser}
+          >
+            {userStatus === 'blocked' ? 'Mở chặn user' : 'Chặn user'}
+          </button>
+          <button
+            type="button"
+            className="uppercase bg-red-600 px-10 py-5 text-lg border border-gray-300 font-bold text-white shadow-sm hover:bg-red-700 hover:text-white focus:outline-none focus:ring-2"
             onClick={deleteUser}
           >
             Delete user

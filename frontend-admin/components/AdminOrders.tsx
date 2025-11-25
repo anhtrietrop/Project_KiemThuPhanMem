@@ -15,11 +15,25 @@ import Link from "next/link";
 import apiClient from "@/lib/api";
 import toast from "react-hot-toast";
 
+const CANCEL_REASONS = [
+  'Không đủ hàng tồn kho',
+  'Lỗi xử lý hệ thống',
+  'Khách hàng yêu cầu hủy',
+  'Lỗi thông tin đơn hàng',
+  'Giao hàng thất bại - Khách hàng không nhận hàng',
+  'Giao hàng thất bại - Lỗi giao hàng',
+  'Giao hàng thất bại - Địa chỉ không chính xác',
+  'Khác'
+];
+
 const AdminOrders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [cancelModal, setCancelModal] = useState<{ orderId: string; isOpen: boolean } | null>(null);
+  const [selectedReason, setSelectedReason] = useState<string>('');
+  const [customReason, setCustomReason] = useState<string>('');
 
   const fetchOrders = async () => {
     try {
@@ -66,55 +80,11 @@ const AdminOrders = () => {
       return;
     }
 
-    // Special handling for cancellation
+    // Special handling for cancellation - open modal
     if (newStatus === 'cancelled') {
-      const cancelReasons = [
-        'Không đủ hàng tồn kho',
-        'Lỗi xử lý hệ thống',
-        'Khách hàng yêu cầu hủy',
-        'Lỗi thông tin đơn hàng',
-        'Giao hàng thất bại - Khách hàng không nhận hàng',
-        'Giao hàng thất bại - Lỗi giao hàng',
-        'Giao hàng thất bại - Địa chỉ không chính xác'
-      ];
-
-      const reasonText = cancelReasons.join(', ');
-      const cancelReason = prompt(`Vui lòng chọn lý do hủy đơn:\n\n${reasonText}\n\nHoặc nhập lý do khác:`);
-
-      if (!cancelReason) {
-        toast.error('Lý do hủy đơn là bắt buộc');
-        return;
-      }
-
-      try {
-        setUpdatingStatus(orderId);
-        const response = await apiClient.put(`/api/orders/${orderId}/status`, {
-          status: newStatus,
-          cancelReason: cancelReason
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          toast.success(data.message || "Order cancelled successfully");
-
-          setOrders(prevOrders =>
-            prevOrders.map(order =>
-              order.id === orderId
-                ? { ...order, status: newStatus }
-                : order
-            )
-          );
-        } else {
-          const errorData = await response.json();
-          console.error('Status update error:', errorData);
-          toast.error(errorData.error || "There was an error while cancelling order");
-        }
-      } catch (error) {
-        console.error('Status update failed:', error);
-        toast.error("There was an error while cancelling order");
-      } finally {
-        setUpdatingStatus(null);
-      }
+      setCancelModal({ orderId, isOpen: true });
+      setSelectedReason('');
+      setCustomReason('');
       return;
     }
 
@@ -144,6 +114,47 @@ const AdminOrders = () => {
     } catch (error) {
       console.error('Status update failed:', error);
       toast.error("There was an error while updating order status");
+    } finally {
+      setUpdatingStatus(null);
+    }
+  };
+
+  const handleConfirmCancel = async () => {
+    if (!cancelModal) return;
+
+    const reason = selectedReason === 'Khác' ? customReason : selectedReason;
+
+    if (!reason.trim()) {
+      toast.error('Vui lòng chọn hoặc nhập lý do hủy đơn');
+      return;
+    }
+
+    try {
+      setUpdatingStatus(cancelModal.orderId);
+      const response = await apiClient.put(`/api/orders/${cancelModal.orderId}/status`, {
+        status: 'cancelled',
+        cancelReason: reason
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        toast.success(data.message || "Đã hủy đơn hàng thành công");
+
+        setOrders(prevOrders =>
+          prevOrders.map(order =>
+            order.id === cancelModal.orderId
+              ? { ...order, status: 'cancelled', cancelReason: reason }
+              : order
+          )
+        );
+        setCancelModal(null);
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || "Có lỗi khi hủy đơn hàng");
+      }
+    } catch (error) {
+      console.error('Cancel order failed:', error);
+      toast.error("Có lỗi khi hủy đơn hàng");
     } finally {
       setUpdatingStatus(null);
     }
@@ -200,7 +211,7 @@ const AdminOrders = () => {
                 <tr key={order?.id}>
                   <th>
                     <label>
-                      <input type="checkbox" className="checkbox"  aria-label="Select order"/>
+                      <input type="checkbox" className="checkbox" aria-label="Select order" />
                     </label>
                   </th>
 
@@ -277,6 +288,65 @@ const AdminOrders = () => {
           </tfoot>
         </table>
       </div>
+
+      {/* Cancel Order Modal */}
+      {cancelModal?.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-bold mb-4">Hủy đơn hàng</h3>
+            <p className="text-gray-600 mb-4">Vui lòng chọn lý do hủy đơn hàng:</p>
+
+            <div className="space-y-2 mb-4">
+              {CANCEL_REASONS.map((reason) => (
+                <label key={reason} className="flex items-center gap-2 cursor-pointer p-2 hover:bg-gray-100 rounded">
+                  <input
+                    type="radio"
+                    name="cancelReason"
+                    value={reason}
+                    checked={selectedReason === reason}
+                    onChange={(e) => setSelectedReason(e.target.value)}
+                    className="radio radio-error"
+                  />
+                  <span>{reason}</span>
+                </label>
+              ))}
+            </div>
+
+            {selectedReason === 'Khác' && (
+              <div className="mb-4">
+                <textarea
+                  className="textarea textarea-bordered w-full"
+                  placeholder="Nhập lý do hủy đơn..."
+                  value={customReason}
+                  onChange={(e) => setCustomReason(e.target.value)}
+                  rows={3}
+                />
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2">
+              <button
+                className="btn btn-ghost"
+                onClick={() => setCancelModal(null)}
+                disabled={updatingStatus === cancelModal.orderId}
+              >
+                Hủy bỏ
+              </button>
+              <button
+                className="btn btn-error"
+                onClick={handleConfirmCancel}
+                disabled={updatingStatus === cancelModal.orderId || !selectedReason}
+              >
+                {updatingStatus === cancelModal.orderId ? (
+                  <span className="loading loading-spinner loading-sm"></span>
+                ) : (
+                  'Xác nhận hủy'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

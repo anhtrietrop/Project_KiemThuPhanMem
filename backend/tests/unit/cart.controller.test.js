@@ -1,9 +1,9 @@
 const cartController = require('../../controllers/cart');
-const prisma = require('../../prisma/prismaClient');
+const prisma = require('../../utills/db');
 const { randomUUID } = require('crypto');
 
 // Mock toàn bộ prisma client
-jest.mock('../../prisma/prismaClient', () => ({
+jest.mock('../../utills/db', () => ({
   cart: {
     findUnique: jest.fn(),
     create: jest.fn(),
@@ -75,11 +75,14 @@ describe('Cart Controller Unit Tests', () => {
 
       await cartController.getCart(req, res);
 
-      // Assert logic tính toán
-      expect(res.json).toHaveBeenCalledWith({
-        items: mockCart.cartitem,
-        total: 200000 // 2 * 100000
-      });
+      // Assert logic tính toán - controller returns { success, data: { cart, items, total, allQuantity } }
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        success: true,
+        data: expect.objectContaining({
+          total: 200000, // 2 * 100000
+          allQuantity: 2
+        })
+      }));
     });
 
     it('should create new cart if not found', async () => {
@@ -96,10 +99,13 @@ describe('Cart Controller Unit Tests', () => {
       await cartController.getCart(req, res);
 
       expect(db.cart.create).toHaveBeenCalled();
-      expect(res.json).toHaveBeenCalledWith({
-        items: [],
-        total: 0
-      });
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        success: true,
+        data: expect.objectContaining({
+          total: 0,
+          allQuantity: 0
+        })
+      }));
     });
 
     it('should handle errors (500)', async () => {

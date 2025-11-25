@@ -4,9 +4,9 @@ const axios = require('axios');
 // Mock axios
 jest.mock('axios');
 
-// Mock Prisma
+// Mock Prisma - must match the path used in controllers
 const mockPrisma = {
-    momoPayment: {
+    momopayment: {
         create: jest.fn(),
         update: jest.fn(),
         findFirst: jest.fn(),
@@ -18,9 +18,7 @@ const mockPrisma = {
     }
 };
 
-jest.mock('@prisma/client', () => ({
-    PrismaClient: jest.fn(() => mockPrisma)
-}));
+jest.mock('../../utills/db', () => mockPrisma);
 
 // Import app after mocking
 const app = require('../../app');
@@ -49,9 +47,9 @@ describe('Momo Payment Controller Unit Tests', () => {
         it('should create payment request successfully', async () => {
             // Mock DB responses
             mockPrisma.customer_order.findUnique.mockResolvedValue(testOrder);
-            mockPrisma.momoPayment.findFirst.mockResolvedValue(null); // No existing payment
-            mockPrisma.momoPayment.create.mockResolvedValue(testPayment);
-            mockPrisma.momoPayment.update.mockResolvedValue({ ...testPayment, payUrl: 'http://momo.url' });
+            mockPrisma.momopayment.findFirst.mockResolvedValue(null); // No existing payment
+            mockPrisma.momopayment.create.mockResolvedValue(testPayment);
+            mockPrisma.momopayment.update.mockResolvedValue({ ...testPayment, payUrl: 'http://momo.url' });
 
             // Mock Axios response
             axios.post.mockResolvedValue({
@@ -75,7 +73,7 @@ describe('Momo Payment Controller Unit Tests', () => {
             expect(res.status).toBe(200);
             expect(res.body.success).toBe(true);
             expect(res.body.data.payUrl).toBe('http://momo.url');
-            expect(mockPrisma.momoPayment.create).toHaveBeenCalled();
+            expect(mockPrisma.momopayment.create).toHaveBeenCalled();
         });
 
         it('should return 404 if order not found', async () => {
@@ -95,7 +93,7 @@ describe('Momo Payment Controller Unit Tests', () => {
 
     describe('GET /api/payments/momo/status/:orderId', () => {
         it('should return payment status from local DB', async () => {
-            mockPrisma.momoPayment.findFirst.mockResolvedValue({
+            mockPrisma.momopayment.findFirst.mockResolvedValue({
                 ...testPayment,
                 resultCode: 0,
                 message: 'Success',
@@ -111,7 +109,7 @@ describe('Momo Payment Controller Unit Tests', () => {
         });
 
         it('should return 404 if payment not found', async () => {
-            mockPrisma.momoPayment.findFirst.mockResolvedValue(null);
+            mockPrisma.momopayment.findFirst.mockResolvedValue(null);
 
             const res = await request(app)
                 .get('/api/payments/momo/status/order-123');
