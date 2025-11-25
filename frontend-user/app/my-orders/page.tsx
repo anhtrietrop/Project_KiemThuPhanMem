@@ -58,7 +58,7 @@ const MyOrdersPage = () => {
             const data = await response.json();
             // Filter orders by current user's email
             const userOrders = data?.orders?.filter((order: Order) =>
-                order.email === session.user.email
+                order.email === session.user?.email
             ) || [];
 
             setOrders(userOrders);

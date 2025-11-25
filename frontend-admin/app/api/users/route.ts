@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import bcrypt from "bcryptjs";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-config";
+import { Session } from "next-auth";
 
 // GET all users
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
+        const session = await getServerSession(authOptions) as Session | null;
 
         if (!session || session.user?.role !== "admin") {
             return NextResponse.json(
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
 // POST create new user
 export async function POST(request: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
+        const session = await getServerSession(authOptions) as Session | null;
 
         if (!session || session.user?.role !== "admin") {
             return NextResponse.json(

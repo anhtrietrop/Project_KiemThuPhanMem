@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/db";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-config";
+import { Session } from "next-auth";
 
 // GET single user
 export async function GET(
@@ -9,7 +10,7 @@ export async function GET(
     { params }: { params: { id: string } }
 ) {
     try {
-        const session = await getServerSession(authOptions);
+        const session = await getServerSession(authOptions) as Session | null;
 
         if (!session || session.user?.role !== "admin") {
             return NextResponse.json(
@@ -50,7 +51,7 @@ export async function PUT(
     { params }: { params: { id: string } }
 ) {
     try {
-        const session = await getServerSession(authOptions);
+        const session = await getServerSession(authOptions) as Session | null;
 
         if (!session || session.user?.role !== "admin") {
             return NextResponse.json(
@@ -70,7 +71,7 @@ export async function PUT(
             );
         }
 
-        const updateData: any = {};
+        const updateData: Record<string, string> = {};
 
         if (role !== undefined) {
             updateData.role = role;
@@ -87,7 +88,6 @@ export async function PUT(
                 id: true,
                 email: true,
                 role: true,
-                status: true,
             },
         });
 
@@ -107,7 +107,7 @@ export async function DELETE(
     { params }: { params: { id: string } }
 ) {
     try {
-        const session = await getServerSession(authOptions);
+        const session = await getServerSession(authOptions) as Session | null;
 
         if (!session || session.user?.role !== "admin") {
             return NextResponse.json(
