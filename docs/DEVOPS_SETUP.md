@@ -51,6 +51,7 @@ This document provides a comprehensive guide to the CI/CD pipeline setup for the
 ### Workflow Files
 
 - **`.github/workflows/ci.yml`**: Continuous Integration Pipeline
+
   - Runs on: `push` to `feature/**`, `hotfix/**` branches
   - Runs on: `pull_request` to `main` branch
   - Purpose: Test, lint, type-check, verify builds, enforce coverage
@@ -69,9 +70,9 @@ This document provides a comprehensive guide to the CI/CD pipeline setup for the
 on:
   push:
     branches:
-      - 'feature/**'
-      - 'hotfix/**'
-  
+      - "feature/**"
+      - "hotfix/**"
+
   pull_request:
     branches:
       - main
@@ -84,6 +85,7 @@ on:
 **Purpose:** Run unit and integration tests with coverage enforcement
 
 **Steps:**
+
 1. Checkout code
 2. Setup Node.js 18.x
 3. Install backend dependencies (`npm ci`)
@@ -98,6 +100,7 @@ on:
 12. Comment coverage report on PR
 
 **Service Container:**
+
 ```yaml
 mysql:
   image: mysql:8.0
@@ -109,6 +112,7 @@ mysql:
 ```
 
 **Coverage Thresholds:**
+
 - Lines: **≥ 80%**
 - Statements: **≥ 80%**
 - Functions: **≥ 70%**
@@ -121,6 +125,7 @@ mysql:
 **Purpose:** Lint, type-check, and verify build success
 
 **Steps:**
+
 1. Checkout code
 2. Setup Node.js 18.x
 3. Install dependencies (`npm ci`)
@@ -129,6 +134,7 @@ mysql:
 6. Build Next.js application (`npm run build`)
 
 **Environment Variables Required:**
+
 - `NEXTAUTH_SECRET` (from GitHub Secrets)
 - `DATABASE_URL` (mock for build only)
 - `NEXTAUTH_URL` (set to http://localhost:3001)
@@ -139,6 +145,7 @@ mysql:
 **Purpose:** Lint, type-check, and verify build success
 
 **Steps:**
+
 1. Checkout code
 2. Setup Node.js 18.x
 3. Install dependencies (`npm ci`)
@@ -147,6 +154,7 @@ mysql:
 6. Build Next.js application (`npm run build`)
 
 **Environment Variables Required:**
+
 - `NEXTAUTH_SECRET` (from GitHub Secrets)
 - `DATABASE_URL` (mock for build only)
 - `NEXTAUTH_URL` (set to http://localhost:3000)
@@ -157,19 +165,21 @@ mysql:
 **Purpose:** Aggregate all job results and block merge if any failed
 
 **Steps:**
+
 1. Check results of all previous jobs
 2. Exit with error code if any job failed
 3. Post summary comment on PR with status table
 
 **Example PR Comment:**
+
 ```markdown
 ## 🚀 CI Pipeline Results
 
-| Component | Status | Result |
-|-----------|--------|--------|
-| **Backend Tests** | ✅ | success |
-| **Frontend Admin** | ✅ | success |
-| **Frontend User** | ✅ | success |
+| Component          | Status | Result  |
+| ------------------ | ------ | ------- |
+| **Backend Tests**  | ✅     | success |
+| **Frontend Admin** | ✅     | success |
+| **Frontend User**  | ✅     | success |
 
 ✅ **All checks passed!** This PR is ready to merge.
 
@@ -201,12 +211,14 @@ on:
 **Purpose:** Build Docker images for all services and push to GitHub Container Registry
 
 **Matrix Strategy:**
+
 ```yaml
 matrix:
   service: [backend, frontend-user, frontend-admin]
 ```
 
 **Steps:**
+
 1. Checkout code
 2. Setup Docker Buildx
 3. Login to GitHub Container Registry (`ghcr.io`)
@@ -216,10 +228,12 @@ matrix:
 7. Also tag with commit SHA: `ghcr.io/<your-github-username>/<service>:<date>-<sha>`
 
 **Image Tags:**
+
 - `latest` (always points to most recent main branch build)
 - `<YYYYMMDD>-<short-sha>` (e.g., `20231215-a1b2c3d`)
 
 **Registry:**
+
 - **GitHub Container Registry:** `ghcr.io`
 - **Authentication:** Uses GitHub Actions built-in `GITHUB_TOKEN`
 
@@ -230,6 +244,7 @@ matrix:
 **⚠️ Note:** This job currently only logs deployment information. Uncomment and configure the deployment steps based on your infrastructure:
 
 **Option A: Deploy to Docker Server via SSH**
+
 ```yaml
 - name: Deploy to Production Server
   uses: appleboy/ssh-action@v1.0.0
@@ -246,6 +261,7 @@ matrix:
 ```
 
 **Option B: Deploy to Kubernetes**
+
 ```yaml
 - name: Deploy to Kubernetes
   uses: azure/k8s-deploy@v4
@@ -264,6 +280,7 @@ matrix:
 **Purpose:** Send deployment status notifications
 
 **Optional Integrations:**
+
 - Slack webhook
 - Email notifications
 - Discord webhook
@@ -277,27 +294,28 @@ To set up secrets, go to **Repository Settings → Secrets and variables → Act
 
 ### Essential Secrets
 
-| Secret Name | Description | Example | Used In |
-|-------------|-------------|---------|---------|
-| `JWT_SECRET` | JWT signing secret for authentication | `super-secret-jwt-key-change-in-production` | CI, CD |
-| `NEXTAUTH_SECRET` | NextAuth.js secret for session encryption | `openssl rand -base64 32` | CI, CD |
-| `MOMO_ACCESS_KEY` | MoMo Payment API access key | `F8BBA842ECF85` | CI (tests) |
-| `MOMO_SECRET_KEY` | MoMo Payment API secret key | `K951B6PE1waDMi640xX08PD3vg6EkVlz` | CI (tests) |
-| `MOMO_PARTNER_CODE` | MoMo Partner Code | `MOMO` | CI (tests) |
+| Secret Name         | Description                               | Example                                     | Used In    |
+| ------------------- | ----------------------------------------- | ------------------------------------------- | ---------- |
+| `JWT_SECRET`        | JWT signing secret for authentication     | `super-secret-jwt-key-change-in-production` | CI, CD     |
+| `NEXTAUTH_SECRET`   | NextAuth.js secret for session encryption | `openssl rand -base64 32`                   | CI, CD     |
+| `MOMO_ACCESS_KEY`   | MoMo Payment API access key               | `F8BBA842ECF85`                             | CI (tests) |
+| `MOMO_SECRET_KEY`   | MoMo Payment API secret key               | `K951B6PE1waDMi640xX08PD3vg6EkVlz`          | CI (tests) |
+| `MOMO_PARTNER_CODE` | MoMo Partner Code                         | `MOMO`                                      | CI (tests) |
 
 ### Optional Deployment Secrets
 
-| Secret Name | Description | Example | Used In |
-|-------------|-------------|---------|---------|
-| `DEPLOY_HOST` | Production server SSH host | `123.45.67.89` | CD |
-| `DEPLOY_USER` | Production server SSH username | `deployer` | CD |
-| `DEPLOY_SSH_KEY` | Production server SSH private key | `-----BEGIN RSA PRIVATE KEY-----...` | CD |
-| `DEPLOY_PORT` | Production server SSH port | `22` | CD |
-| `SLACK_WEBHOOK_URL` | Slack webhook for notifications | `https://hooks.slack.com/services/...` | CD |
+| Secret Name         | Description                       | Example                                | Used In |
+| ------------------- | --------------------------------- | -------------------------------------- | ------- |
+| `DEPLOY_HOST`       | Production server SSH host        | `123.45.67.89`                         | CD      |
+| `DEPLOY_USER`       | Production server SSH username    | `deployer`                             | CD      |
+| `DEPLOY_SSH_KEY`    | Production server SSH private key | `-----BEGIN RSA PRIVATE KEY-----...`   | CD      |
+| `DEPLOY_PORT`       | Production server SSH port        | `22`                                   | CD      |
+| `SLACK_WEBHOOK_URL` | Slack webhook for notifications   | `https://hooks.slack.com/services/...` | CD      |
 
 ### How to Create Secrets
 
 **Step 1:** Navigate to Repository Settings
+
 ```
 GitHub Repository → Settings → Secrets and variables → Actions
 ```
@@ -305,6 +323,7 @@ GitHub Repository → Settings → Secrets and variables → Actions
 **Step 2:** Click "New repository secret"
 
 **Step 3:** Add each secret:
+
 - **Name:** `JWT_SECRET`
 - **Value:** Your actual secret value
 - Click **Add secret**
@@ -320,6 +339,7 @@ To enforce CI checks before merging, configure Branch Protection Rules.
 ### Setup Instructions
 
 **Step 1:** Navigate to Branch Protection
+
 ```
 Repository Settings → Branches → Add branch protection rule
 ```
@@ -327,6 +347,7 @@ Repository Settings → Branches → Add branch protection rule
 **Step 2:** Configure Protection for `main` Branch
 
 **Branch name pattern:**
+
 ```
 main
 ```
@@ -334,11 +355,13 @@ main
 **Settings to Enable:**
 
 ✅ **Require a pull request before merging**
+
 - ✅ Require approvals: **1** (or more)
 - ✅ Dismiss stale pull request approvals when new commits are pushed
 - ✅ Require review from Code Owners (optional)
 
 ✅ **Require status checks to pass before merging**
+
 - ✅ Require branches to be up to date before merging
 - **Required status checks:**
   - `CI Status Check` (from `.github/workflows/ci.yml`)
@@ -349,6 +372,7 @@ main
 ✅ **Require conversation resolution before merging**
 
 ✅ **Do not allow bypassing the above settings**
+
 - This ensures even admins must pass CI checks
 
 **Step 3:** Save Changes
@@ -356,6 +380,7 @@ main
 ### Visual Verification
 
 After setup, when creating a PR:
+
 1. All CI checks will run automatically
 2. PR will show status: "Some checks haven't completed yet" → "All checks have passed"
 3. **Merge button will be disabled** until all checks pass
@@ -416,6 +441,7 @@ docker rm test-mysql
 ### Run Frontend Linting & Build Locally
 
 **Frontend User:**
+
 ```bash
 cd frontend-user
 npm ci
@@ -432,6 +458,7 @@ npm run build
 ```
 
 **Frontend Admin:**
+
 ```bash
 cd frontend-admin
 npm ci
@@ -458,6 +485,7 @@ npm run build
 **Problem:** MySQL service container not ready
 
 **Solution:** Wait for health check
+
 ```yaml
 - name: Wait for MySQL
   run: |
@@ -476,6 +504,7 @@ npm run build
 **Problem:** GitHub Secret not configured
 
 **Solution:**
+
 1. Go to **Repository Settings → Secrets and variables → Actions**
 2. Add `JWT_SECRET` secret
 3. Re-run workflow
@@ -485,6 +514,7 @@ npm run build
 **Problem:** Environment variable not passed to build step
 
 **Solution:** Add to workflow file:
+
 ```yaml
 - name: Build frontend-user
   working-directory: ./frontend-user
@@ -498,6 +528,7 @@ npm run build
 **Problem:** Test coverage is below required thresholds
 
 **Solution:**
+
 - Write more tests to cover untested code
 - Check `backend/coverage/lcov-report/index.html` for coverage details
 - Current thresholds: Lines/Statements ≥ 80%, Functions/Branches ≥ 70%
@@ -507,6 +538,7 @@ npm run build
 **Problem:** Dockerfile error or missing dependencies
 
 **Solution:**
+
 1. Test Docker build locally:
    ```bash
    cd backend
@@ -518,17 +550,20 @@ npm run build
 ### Debugging Workflows
 
 **View Workflow Logs:**
+
 ```
 GitHub Repository → Actions → Click on workflow run → Click on job → Expand steps
 ```
 
 **Re-run Failed Jobs:**
+
 ```
 GitHub Actions → Workflow run → Re-run failed jobs
 ```
 
 **Debug with `tmate` (SSH into runner):**
 Add this step to workflow:
+
 ```yaml
 - name: Setup tmate session
   uses: mxschmitt/action-tmate@v3

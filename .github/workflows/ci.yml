@@ -4,9 +4,9 @@ on:
   # Trigger on push to feature/hotfix branches
   push:
     branches:
-      - 'feature/**'
-      - 'hotfix/**'
-  
+      - "feature/**"
+      - "hotfix/**"
+
   # Trigger on pull requests to main
   pull_request:
     branches:
@@ -180,7 +180,7 @@ jobs:
           script: |
             const fs = require('fs');
             const coveragePath = './backend/coverage/coverage-summary.json';
-            
+
             if (fs.existsSync(coveragePath)) {
               const coverage = JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
               const total = coverage.total;
@@ -330,29 +330,29 @@ jobs:
             const backendStatus = '${{ needs.test-backend.result }}';
             const adminStatus = '${{ needs.test-frontend-admin.result }}';
             const userStatus = '${{ needs.test-frontend-user.result }}';
-            
+
             const statusIcon = (status) => status === 'success' ? '✅' : status === 'failure' ? '❌' : '⚠️';
-            
+
             const allPassed = backendStatus === 'success' && adminStatus === 'success' && userStatus === 'success';
-            
+
             const comment = `## 🚀 CI Pipeline Results
-            
+
             | Component | Status | Result |
             |-----------|--------|--------|
             | **Backend Tests** | ${statusIcon(backendStatus)} | ${backendStatus} |
             | **Frontend Admin** | ${statusIcon(adminStatus)} | ${adminStatus} |
             | **Frontend User** | ${statusIcon(userStatus)} | ${userStatus} |
-            
+
             ${allPassed 
               ? '✅ **All checks passed!** This PR is ready to merge.' 
               : '❌ **Some checks failed.** Please fix all errors before merging.'}
-            
+
             ---
-            
+
             **Backend Tests:** Unit + Integration tests with MySQL, coverage thresholds enforced
             **Frontend Checks:** Linting, Type-checking, Build verification
             `;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
