@@ -51,6 +51,10 @@ let prisma;
 let isDbInitialized = false;
 
 async function initializeTestDatabase() {
+  if (process.env.SKIP_DB === 'true') {
+    console.log('⏩ Skipping Database Connection (Unit Test Mode)');
+    return;
+  }
   if (isDbInitialized) return;
   
   try {
@@ -84,6 +88,8 @@ async function initializeTestDatabase() {
 }
 
 async function cleanTestDatabase() {
+if (process.env.SKIP_DB === 'true') return;
+
   if (!prisma) return;
   
   try {
@@ -125,6 +131,8 @@ async function cleanTestDatabase() {
 }
 
 async function disconnectTestDatabase() {
+if (process.env.SKIP_DB === 'true') return;
+
   if (!prisma) return;
   
   try {
