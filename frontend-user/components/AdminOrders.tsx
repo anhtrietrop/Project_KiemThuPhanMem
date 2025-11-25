@@ -21,7 +21,7 @@ const AdminOrders = () => {
     const fetchOrders = async () => {
       const response = await apiClient.get("/api/orders");
       const data = await response.json();
-      
+
       setOrders(data?.orders);
     };
     fetchOrders();
@@ -69,7 +69,7 @@ const AdminOrders = () => {
                     <div className="flex items-center gap-5">
                       <div>
                         <div className="font-bold">{order?.name}</div>
-                        <div className="text-sm opacity-50">{order?.country}</div>
+                        <div className="text-sm opacity-50">{order?.city}</div>
                       </div>
                     </div>
                   </td>
@@ -84,7 +84,7 @@ const AdminOrders = () => {
                     <p>${order?.total}</p>
                   </td>
 
-                  <td>{ new Date(Date.parse(order?.dateTime)).toDateString() }</td>
+                  <td>{new Date(Date.parse(order?.dateTime)).toDateString()}</td>
                   <th>
                     <Link
                       href={`/admin/orders/${order?.id}`}
