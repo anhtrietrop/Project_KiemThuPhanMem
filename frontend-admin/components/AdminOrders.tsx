@@ -198,7 +198,8 @@ const AdminOrders = () => {
               </th>
               <th>Order ID</th>
               <th>Name and country</th>
-              <th>Status</th>
+              <th className="min-w-[160px]">Order Status</th>
+              <th className="min-w-[150px]">Payment Status</th>
               <th>Subtotal</th>
               <th>Date</th>
               <th></th>
@@ -229,34 +230,62 @@ const AdminOrders = () => {
                       </div>
                     </div>
                   </td>
-
                   <td>
-                    <div className="flex items-center gap-2">
-                      <select
-                        className="select  bg-white text-black border border-gray-300"
-                        value={order?.status}
-                        title="Order Status"
-                        onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                        disabled={updatingStatus === order.id}
-                        style={{
-                          backgroundColor: order?.status === 'processing' ? '#fbbf24' :
-                            order?.status === 'shipped' ? '#3b82f6' :
-                              order?.status === 'delivered' ? '#10b981' :
+                  <div className="flex items-center">
+                    {/* Thêm w-full và max-w-full để select tận dụng hết khoảng trống của cột */}
+                    <select
+                      className="select select-sm select-bordered w-full font-medium" 
+                      value={order?.status}
+                      title="Order Status"
+                      onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                      disabled={updatingStatus === order.id}
+                      style={{
+                        // Giữ logic màu cũ của bạn
+                        backgroundColor: order?.status === 'processing' ? '#fbbf24' :
+                          order?.status === 'shipped' ? '#3b82f6' :
+                            order?.status === 'delivered' ? '#10b981' :
+                              order?.status === 'success' ? '#22c55e' :
                                 order?.status === 'cancelled' ? '#ef4444' : '#ffffff',
-                          color: '#000000'
-                        }}
-                      >
-                        <option value="processing">Đang xử lý</option>
-                        <option value="shipped">Đang giao hàng</option>
-                        <option value="delivered">Đã giao hàng</option>
-                        <option value="success">Hoàn thành</option>
-                        <option value="cancelled">Đã hủy</option>
-                      </select>
-                      {updatingStatus === order.id && (
-                        <span className="loading loading-spinner loading-xs"></span>
-                      )}
-                    </div>
-                  </td>
+                        color: order?.status === 'cancelled' || order?.status === 'shipped' || order?.status === 'delivered' || order?.status === 'success' ? '#ffffff' : '#000000',
+                        // Thêm background image none nếu muốn bỏ mũi tên mặc định để tiết kiệm chỗ (tuỳ chọn)
+                      }}
+                    >
+                      <option value="processing">Đang xử lý</option>
+                      <option value="shipped">Đang giao hàng</option>
+                      <option value="delivered">Đã giao hàng</option>
+                      <option value="success">Hoàn thành</option>
+                      <option value="cancelled">Đã hủy</option>
+                    </select>
+                    {updatingStatus === order.id && (
+                      <span className="loading loading-spinner loading-xs ml-2"></span>
+                    )}
+                  </div>
+                </td>
+
+                 <td>
+  {order?.payment_status ? (
+    <div 
+      // whitespace-nowrap: Chống xuống dòng
+      // h-auto & py-1: Đảm bảo badge tự giãn chiều cao nếu cần thiết mà không bị cắt chữ
+      className="badge badge-sm text-white font-semibold whitespace-nowrap h-auto py-1 px-3"
+      style={{
+        backgroundColor: order?.payment_status === 'PAID' ? '#10b981' :
+          order?.payment_status === 'PENDING' ? '#f59e0b' :
+            order?.payment_status === 'FAILED' ? '#ef4444' : '#6b7280',
+        border: 'none'
+      }}
+    >
+      {/* Thêm gap để icon và text không dính nhau */}
+      <span className="flex items-center gap-1">
+        {order?.payment_status === 'PAID' ? '✅ Đã thanh toán' :
+          order?.payment_status === 'PENDING' ? '⏳ Chờ thanh toán' :
+            order?.payment_status === 'FAILED' ? '❌ Thất bại' : order?.payment_status}
+      </span>
+    </div>
+  ) : (
+    <span className="text-gray-400 text-xs italic">Chưa có thông tin</span>
+  )}
+</td>
 
                   <td>
                     <p>${order?.total}</p>
@@ -280,7 +309,8 @@ const AdminOrders = () => {
               <th></th>
               <th>Order ID</th>
               <th>Name and country</th>
-              <th>Status</th>
+              <th>Order Status</th>
+              <th>Payment Status</th>
               <th>Subtotal</th>
               <th>Date</th>
               <th></th>

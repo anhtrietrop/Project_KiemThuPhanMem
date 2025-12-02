@@ -67,10 +67,13 @@ interface Order {
   lastname: string;
   name: string;
   phone: string;
-  status: "processing" | "shipped" | "delivered" | "cancelled";
+  status: "processing" | "shipped" | "delivered" | "success" | "cancelled";
   city: string;
   orderNotice?: string;
   total: number;
+  payment_status?: string;
+  payment_method?: string;
+  payment_transaction_id?: string;
 }
 
 interface SingleProductBtnProps {

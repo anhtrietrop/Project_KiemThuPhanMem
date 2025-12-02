@@ -428,6 +428,7 @@ router.post('/update-status', async (req, res) => {
             payment_status: 'PAID',
             payment_method: 'MOMO',
             payment_transaction_id: transId || orderId,
+            status: 'success', // Auto-update status to success after payment
             updated_at: new Date()
           }
         });

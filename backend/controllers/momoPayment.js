@@ -358,13 +358,24 @@ async function handlePaymentCallback(req, res) {
     });
 
     if (order) {
+      // Auto-update order status based on payment result
+      let newOrderStatus = order.status;
+      if (resultCode === 0) {
+        // Payment successful - set to 'success' (paid and confirmed)
+        newOrderStatus = 'success';
+      } else if (status === 'FAILED') {
+        // Payment failed - keep order in pending or cancel it
+        // Don't change status if user wants to retry payment
+        newOrderStatus = order.status;
+      }
+
       await prisma.customer_order.update({
         where: { id: payment.orderId },
         data: {
           payment_status: orderPaymentStatus,
           payment_method: 'MOMO',
           payment_transaction_id: transId || null,
-          status: resultCode === 0 ? 'processing' : order.status,
+          status: newOrderStatus,
           updated_at: new Date()
         }
       });
@@ -380,7 +391,7 @@ async function handlePaymentCallback(req, res) {
         });
       }
 
-      console.log(`✅ Order ${order.id} updated to payment_status: ${orderPaymentStatus} (resultCode: ${resultCode})`);
+      console.log(`✅ Order ${order.id} updated to status: ${newOrderStatus}, payment_status: ${orderPaymentStatus} (resultCode: ${resultCode})`);
     }
 
     return res.status(200).json({

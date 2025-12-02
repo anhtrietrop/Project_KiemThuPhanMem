@@ -56,11 +56,15 @@ const MyOrdersPage = () => {
             }
 
             const data = await response.json();
+            console.log('📦 Orders data from API:', data);
+            console.log('📦 Sample order:', data?.orders?.[0]);
+            
             // Filter orders by current user's email
             const userOrders = data?.orders?.filter((order: Order) =>
                 order.email === session.user?.email
             ) || [];
 
+            console.log('📦 User orders:', userOrders);
             setOrders(userOrders);
             setError(null);
         } catch (err) {
@@ -157,7 +161,7 @@ const MyOrdersPage = () => {
             case 'PAID': return '✓ Đã thanh toán';
             case 'PENDING': return '⏳ Chờ thanh toán';
             case 'FAILED': return '✗ Thanh toán thất bại';
-            default: return '⏳ Chờ thanh toán';
+            default: return '⏳ Chờ thanh toán'; // Default to PENDING for old orders
         }
     };
 

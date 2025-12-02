@@ -517,6 +517,26 @@ async function getAllOrders(request, response) {
         take: limit,
         orderBy: {
           dateTime: 'desc'
+        },
+        select: {
+          id: true,
+          userId: true,
+          name: true,
+          lastname: true,
+          phone: true,
+          email: true,
+          adress: true,
+          apartment: true,
+          dateTime: true,
+          status: true,
+          city: true,
+          orderNotice: true,
+          cancelReason: true,
+          total: true,
+          payment_status: true,
+          payment_method: true,
+          payment_transaction_id: true,
+          updated_at: true
         }
       }),
       prisma.customer_order.count()
