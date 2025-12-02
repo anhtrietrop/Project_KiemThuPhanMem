@@ -1,0 +1,79 @@
+﻿services:
+  db:
+    image: mysql:8.0
+    container_name: singitronic_db_prod
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: singitronic_backend_prod
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NODE_ENV: production
+      PORT: 3002
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3002:3002"
+    command: sh -c "npx prisma migrate deploy && npm start"
+
+  frontend-user:
+    build:
+      context: ./frontend-user
+      dockerfile: Dockerfile
+    container_name: singitronic_frontend_user_prod
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:3002
+      API_INTERNAL_URL: http://backend:3002
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    command: sh -c "npm run build && npm run start"
+
+  frontend-admin:
+    build:
+      context: ./frontend-admin
+      dockerfile: Dockerfile
+    container_name: singitronic_frontend_admin_prod
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:3002
+      API_INTERNAL_URL: http://backend:3002
+    depends_on:
+      - backend
+    ports:
+      - "3101:3001"
+    command: sh -c "npm run build && npm run start"
+
+networks:
+  default:
+    name: singitronic_prod_network
+
