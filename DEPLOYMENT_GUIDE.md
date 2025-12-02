@@ -46,6 +46,7 @@ MOMO_ENVIRONMENT=sandbox
 ```
 
 **Generate JWT_SECRET & NEXTAUTH_SECRET:**
+
 ```bash
 # Windows PowerShell
 [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes((New-Guid).ToString()))
@@ -144,17 +145,19 @@ DATABASE_URL=mysql://root:IiqZKswybcdsWzVAlDuzCZXBMfVjOjuH@hinkansen.proxy.rlwy.
 Sửa file `backend/app.js`:
 
 ```javascript
-const cors = require('cors');
+const cors = require("cors");
 
-app.use(cors({
-  origin: [
-    'https://your-app-user.vercel.app',
-    'https://your-app-admin.vercel.app',
-    'http://localhost:3000',
-    'http://localhost:3001'
-  ],
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: [
+      "https://your-app-user.vercel.app",
+      "https://your-app-admin.vercel.app",
+      "http://localhost:3000",
+      "http://localhost:3001",
+    ],
+    credentials: true,
+  })
+);
 ```
 
 ### 4.2. Update Railway Environment
@@ -242,6 +245,7 @@ npx prisma studio
 ### Lỗi: "Cannot connect to database"
 
 **Giải pháp:**
+
 ```bash
 # Kiểm tra DATABASE_URL
 echo $DATABASE_URL
@@ -257,6 +261,7 @@ npx prisma db pull
 ### Lỗi: "Build failed on Vercel"
 
 **Giải pháp:**
+
 1. Check logs trên Vercel dashboard
 2. Đảm bảo `package.json` có đầy đủ dependencies
 3. Thử build local: `npm run build`
@@ -264,6 +269,7 @@ npx prisma db pull
 ### Lỗi: "Prisma Client not generated"
 
 **Giải pháp:**
+
 ```bash
 # Railway Settings → Build Command
 npm install && npx prisma generate && npx prisma migrate deploy
@@ -305,6 +311,7 @@ Dashboard → Project → Deployments → View Function Logs
 ## 🔐 Security Notes
 
 **QUAN TRỌNG:**
+
 - ❌ KHÔNG commit file `.env` lên Git
 - ✅ Sử dụng Railway/Vercel Environment Variables
 - ✅ Generate JWT_SECRET mạnh (32+ characters)
@@ -316,6 +323,7 @@ Dashboard → Project → Deployments → View Function Logs
 ## 📞 Support
 
 Nếu gặp lỗi, check:
+
 1. Railway deployment logs
 2. Vercel function logs
 3. Browser console (F12)
@@ -326,6 +334,7 @@ Nếu gặp lỗi, check:
 **Completed! 🎉**
 
 URLs sau khi deploy:
+
 - Backend: `https://your-backend.up.railway.app`
 - Frontend User: `https://your-app-user.vercel.app`
 - Frontend Admin: `https://your-app-admin.vercel.app`
