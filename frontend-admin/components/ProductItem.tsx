@@ -13,6 +13,7 @@ import React from "react";
 import Link from "next/link";
 import ProductItemRating from "./ProductItemRating";
 import { sanitize } from "@/lib/sanitize";
+import { formatCurrencyVND } from "@/utils/currency";
 
 const ProductItem = ({
   product,
@@ -54,7 +55,7 @@ const ProductItem = ({
             : "text-lg text-white font-semibold"
         }
       >
-        ${product.price}
+        {formatCurrencyVND(product.price)}
       </p>
 
       <ProductItemRating productRating={product?.rating} />

@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import apiClient from "@/lib/api";
 import MomoPayment from "@/components/MomoPayment";
 import { ValidationTooltip, VALIDATION_RULES } from "@/components/ValidationTooltip";
+import { formatCurrencyVND } from "@/utils/currency";
 
 const CheckoutPage = () => {
   const { data: session, status } = useSession();
@@ -421,7 +422,7 @@ const CheckoutPage = () => {
                     <p className="text-gray-500">x{product?.amount}</p>
                   </div>
                   <p className="flex-none text-base font-medium">
-                    ${product?.price}
+                    {formatCurrencyVND(product?.price)}
                   </p>
                 </li>
               ))}
@@ -429,21 +430,21 @@ const CheckoutPage = () => {
 
             <dl className="hidden space-y-6 border-t border-gray-200 pt-6 text-sm font-medium text-gray-900 lg:block">
               <div className="flex items-center justify-between">
-                <dt className="text-gray-600">Subtotal</dt>
-                <dd>${total}</dd>
+                <dt className="text-gray-600">Tạm tính</dt>
+                <dd>{formatCurrencyVND(total)}</dd>
               </div>
               <div className="flex items-center justify-between">
-                <dt className="text-gray-600">Shipping</dt>
-                <dd>$5</dd>
+                <dt className="text-gray-600">Phí vận chuyển</dt>
+                <dd>{formatCurrencyVND(5000)}</dd>
               </div>
               <div className="flex items-center justify-between">
-                <dt className="text-gray-600">Taxes</dt>
-                <dd>${total / 5}</dd>
+                <dt className="text-gray-600">Thuế</dt>
+                <dd>{formatCurrencyVND(total / 5)}</dd>
               </div>
               <div className="flex items-center justify-between border-t border-gray-200 pt-6">
-                <dt className="text-base">Total</dt>
+                <dt className="text-base">Tổng cộng</dt>
                 <dd className="text-base">
-                  ${total === 0 ? 0 : Math.round(total + total / 5 + 5)}
+                  {formatCurrencyVND(total === 0 ? 0 : Math.round(total + total / 5 + 5000))}
                 </dd>
               </div>
             </dl>

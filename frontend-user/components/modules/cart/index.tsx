@@ -10,6 +10,7 @@ import { sanitize } from "@/lib/sanitize";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { formatCurrencyVND } from "@/utils/currency";
 
 export const CartModule = () => {
   const { data: session, status } = useSession();
@@ -94,7 +95,7 @@ export const CartModule = () => {
                         ) : null}
                       </div> */}
                     <p className="mt-1 text-sm font-medium text-gray-900">
-                      ${product.price}
+                      {formatCurrencyVND(product.price)}
                     </p>
                   </div>
 
@@ -149,14 +150,12 @@ export const CartModule = () => {
 
         <dl className="mt-6 space-y-4">
           <div className="flex items-center justify-between">
-            <dt className="text-sm text-gray-600">Subtotal</dt>
-            <dd className="text-sm font-medium text-gray-900">
-              ${total}
-            </dd>
+            <dt className="text-sm text-gray-600">Tạm tính</dt>
+            <dd className="text-sm font-medium text-gray-900">{formatCurrencyVND(total)}</dd>
           </div>
           <div className="flex items-center justify-between border-t border-gray-200 pt-4">
             <dt className="flex items-center text-sm text-gray-600">
-              <span>Shipping estimate</span>
+              <span>Phí vận chuyển (ước tính)</span>
               <a
                 href="#"
                 className="ml-2 flex-shrink-0 text-gray-400 hover:text-gray-500"
@@ -170,11 +169,11 @@ export const CartModule = () => {
                 />
               </a>
             </dt>
-            <dd className="text-sm font-medium text-gray-900">$5.00</dd>
+            <dd className="text-sm font-medium text-gray-900">{formatCurrencyVND(5000)}</dd>
           </div>
           <div className="flex items-center justify-between border-t border-gray-200 pt-4">
             <dt className="flex text-sm text-gray-600">
-              <span>Tax estimate</span>
+              <span>Thuế (ước tính)</span>
               <a
                 href="#"
                 className="ml-2 flex-shrink-0 text-gray-400 hover:text-gray-500"
@@ -188,17 +187,11 @@ export const CartModule = () => {
                 />
               </a>
             </dt>
-            <dd className="text-sm font-medium text-gray-900">
-              ${total / 5}
-            </dd>
+            <dd className="text-sm font-medium text-gray-900">{formatCurrencyVND(total / 5)}</dd>
           </div>
           <div className="flex items-center justify-between border-t border-gray-200 pt-4">
-            <dt className="text-base font-medium text-gray-900">
-              Order total
-            </dt>
-            <dd className="text-base font-medium text-gray-900">
-              ${total === 0 ? 0 : Math.round(total + total / 5 + 5)}
-            </dd>
+            <dt className="text-base font-medium text-gray-900">Tổng cộng</dt>
+            <dd className="text-base font-medium text-gray-900">{formatCurrencyVND(total === 0 ? 0 : Math.round(total + total / 5 + 5000))}</dd>
           </div>
         </dl>
         {products.length > 0 && (

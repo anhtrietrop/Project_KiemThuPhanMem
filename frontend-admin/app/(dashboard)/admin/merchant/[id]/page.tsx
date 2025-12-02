@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import apiClient from "@/lib/api";
 import { toast } from "react-hot-toast";
+import { formatCurrencyVND } from "@/utils/currency";
 
 interface Product {
   id: string;
@@ -271,7 +272,7 @@ const handleInputChange = (
                 {merchant.products.map((product) => (
                   <tr key={product.id} className="border-b hover:bg-gray-50">
                     <td className="py-4">{product.title}</td>
-                    <td className="py-4">${product.price / 100}</td>
+                    <td className="py-4">{formatCurrencyVND(product.price / 100)}</td>
                     <td className="py-4">{product.inStock}</td>
                     <td className="py-4">
                       <Link
