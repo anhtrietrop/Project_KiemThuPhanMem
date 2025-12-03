@@ -16,6 +16,7 @@ import React, { useEffect, useState } from "react";
 import CustomButton from "./CustomButton";
 import apiClient from "@/lib/api";
 import { sanitize } from "@/lib/sanitize";
+import { formatCurrencyVND } from "@/utils/currency";
 
 const DashboardProductTable = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -103,7 +104,7 @@ const DashboardProductTable = () => {
                     </span>) }
                     
                   </td>
-                  <td>${product?.price}</td>
+                  <td>{formatCurrencyVND(product?.price)}</td>
                   <th>
                     <Link
                       href={`/admin/products/${product.id}`}

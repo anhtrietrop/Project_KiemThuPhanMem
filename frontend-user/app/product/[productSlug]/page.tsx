@@ -10,6 +10,7 @@ import apiClient from "@/lib/api";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import React from "react";
+import { formatCurrencyVND } from "@/utils/currency";
 import { FaSquareFacebook } from "react-icons/fa6";
 import { FaSquareXTwitter } from "react-icons/fa6";
 import { FaSquarePinterest } from "react-icons/fa6";
@@ -71,7 +72,7 @@ const SingleProductPage = async ({ params }: SingleProductPageProps) => {
           <div className="flex flex-col gap-y-7 text-black max-[500px]:text-center">
             <SingleProductRating rating={product?.rating} />
             <h1 className="text-3xl">{sanitize(product?.title)}</h1>
-            <p className="text-xl font-semibold">${product?.price}</p>
+            <p className="text-xl font-semibold">{formatCurrencyVND(product?.price)}</p>
             <StockAvailabillity stock={product?.quantity} />
             <SingleProductDynamicFields product={product} />
             <div className="flex flex-col gap-y-2 max-[500px]:items-center">

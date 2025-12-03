@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Alert, AlertDescription } from './ui/alert';
 import { Loader2, CreditCard, Smartphone, QrCode, ExternalLink } from 'lucide-react';
 import config from '@/lib/config';
+import { formatCurrencyVND } from "@/utils/currency";
 import Image from 'next/image';
 
 interface MomoPaymentProps {
@@ -43,12 +44,7 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'failed'>('idle');
 
   // Format amount for display
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(amount);
-  };
+  const formatAmount = (amount: number) => formatCurrencyVND(amount);
 
   // Create MoMo payment request
   const createPayment = async () => {
@@ -161,9 +157,9 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <CardTitle className="text-green-600">Payment Successful!</CardTitle>
+          <CardTitle className="text-green-600">Thanh toán thành công!</CardTitle>
           <CardDescription>
-            Your payment of {formatAmount(amount)} has been processed successfully.
+            Thanh toán {formatAmount(amount)} đã được xử lý thành công.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -179,9 +175,9 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
-          <CardTitle className="text-red-600">Payment Failed</CardTitle>
+          <CardTitle className="text-red-600">Thanh toán thất bại</CardTitle>
           <CardDescription>
-            {error || 'Your payment could not be processed. Please try again.'}
+            {error || 'Thanh toán không thành công. Vui lòng thử lại.'}
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">
@@ -190,7 +186,7 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
             setError(null);
             setPaymentData(null);
           }}>
-            Try Again
+            Thử lại
           </Button>
         </CardContent>
       </Card>
@@ -202,10 +198,10 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Image src="/momo-logo.png" alt="MoMo" width={32} height={32} className="w-8 h-8" />
-          MoMo Payment
+          Thanh toán MoMo
         </CardTitle>
         <CardDescription>
-          Pay {formatAmount(amount)} for order #{orderId}
+          Thanh toán {formatAmount(amount)} cho đơn hàng #{orderId}
         </CardDescription>
       </CardHeader>
 
@@ -219,8 +215,8 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
         {!paymentData ? (
           <div className="space-y-4">
             <div className="text-sm text-gray-600">
-              <p><strong>Order:</strong> {orderInfo}</p>
-              <p><strong>Amount:</strong> {formatAmount(amount)}</p>
+              <p><strong>Đơn hàng:</strong> {orderInfo}</p>
+              <p><strong>Số tiền:</strong> {formatAmount(amount)}</p>
             </div>
 
             <Button
@@ -231,26 +227,26 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating Payment...
+                  Đang tạo yêu cầu thanh toán...
                 </>
               ) : (
                 <>
                   <CreditCard className="mr-2 h-4 w-4" />
-                  Pay with MoMo
+                  Thanh toán với MoMo
                 </>
               )}
             </Button>
 
             {onCancel && (
               <Button variant="outline" onClick={onCancel} className="w-full">
-                Cancel
+                Hủy
               </Button>
             )}
           </div>
         ) : (
           <div className="space-y-4">
             <div className="text-center text-sm text-gray-600 mb-4">
-              Choose your preferred payment method:
+              Chọn phương thức thanh toán:
             </div>
 
             <div className="grid gap-3">
@@ -262,8 +258,8 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
                 <div className="flex items-center gap-3">
                   <ExternalLink className="h-5 w-5" />
                   <div className="text-left">
-                    <div className="font-medium">Web Browser</div>
-                    <div className="text-sm text-gray-500">Pay in new tab</div>
+                    <div className="font-medium">Trình duyệt web</div>
+                    <div className="text-sm text-gray-500">Thanh toán ở tab mới</div>
                   </div>
                 </div>
               </Button>
@@ -277,8 +273,8 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
                   <div className="flex items-center gap-3">
                     <Smartphone className="h-5 w-5" />
                     <div className="text-left">
-                      <div className="font-medium">MoMo App</div>
-                      <div className="text-sm text-gray-500">Open MoMo app directly</div>
+                      <div className="font-medium">Ứng dụng MoMo</div>
+                      <div className="text-sm text-gray-500">Mở ứng dụng MoMo</div>
                     </div>
 
                   </div>
@@ -294,8 +290,8 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
                   <div className="flex items-center gap-3">
                     <QrCode className="h-5 w-5" />
                     <div className="text-left">
-                      <div className="font-medium">QR Code</div>
-                      <div className="text-sm text-gray-500">Scan with MoMo app</div>
+                      <div className="font-medium">Mã QR</div>
+                      <div className="text-sm text-gray-500">Quét bằng ứng dụng MoMo</div>
                     </div>
                   </div>
                 </Button>
@@ -306,7 +302,7 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
               <Alert>
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <AlertDescription>
-                  Waiting for payment confirmation... Please complete the payment in MoMo.
+                  Đang chờ xác nhận thanh toán... Vui lòng hoàn tất trong ứng dụng MoMo.
                 </AlertDescription>
               </Alert>
             )}
@@ -317,7 +313,7 @@ const MomoPayment: React.FC<MomoPaymentProps> = ({
                 size="sm"
                 onClick={onCancel}
               >
-                Cancel Payment
+                Hủy thanh toán
               </Button>
             </div>
           </div>
