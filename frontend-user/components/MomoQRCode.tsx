@@ -6,6 +6,7 @@ import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
 import { Copy, Download, RefreshCw } from 'lucide-react';
 import Image from 'next/image';
+import { formatCurrencyVND } from "@/utils/currency";
 
 interface MomoQRCodeProps {
   qrCodeData: string;
@@ -55,12 +56,7 @@ const MomoQRCode: React.FC<MomoQRCodeProps> = ({
     }
   }, [qrCodeData]);
 
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(amount);
-  };
+  const formatAmount = (amount: number) => formatCurrencyVND(amount);
 
   const copyQRData = async () => {
     try {
@@ -114,10 +110,10 @@ const MomoQRCode: React.FC<MomoQRCodeProps> = ({
       <CardHeader className="text-center">
         <CardTitle className="flex items-center justify-center gap-2">
           <Image src="/momo-logo.png" alt="MoMo" width={24} height={24} className="w-6 h-6" />
-          MoMo QR Payment
+          Thanh toán MoMo bằng QR
         </CardTitle>
         <CardDescription>
-          Scan with MoMo app to pay {formatAmount(amount)}
+          Quét bằng ứng dụng MoMo để thanh toán {formatAmount(amount)}
         </CardDescription>
       </CardHeader>
 
@@ -157,19 +153,19 @@ const MomoQRCode: React.FC<MomoQRCodeProps> = ({
         </div>
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-medium text-blue-900 mb-2">How to pay:</h4>
+          <h4 className="font-medium text-blue-900 mb-2">Cách thanh toán:</h4>
           <ol className="text-sm text-blue-800 space-y-1">
-            <li>1. Open MoMo app on your phone</li>
-            <li>2. Tap &quot;Scan QR&quot; or camera icon</li>
-            <li>3. Point camera at the QR code above</li>
-            <li>4. Confirm payment details</li>
-            <li>5. Enter your MoMo PIN to complete</li>
+            <li>1. Mở ứng dụng MoMo trên điện thoại</li>
+            <li>2. Chọn "Quét mã" hoặc biểu tượng máy ảnh</li>
+            <li>3. Đưa camera vào mã QR ở trên</li>
+            <li>4. Xác nhận thông tin thanh toán</li>
+            <li>5. Nhập PIN MoMo để hoàn tất</li>
           </ol>
         </div>
 
         <div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
-          <p><strong>Order ID:</strong> #{orderId}</p>
-          <p><strong>Amount:</strong> {formatAmount(amount)}</p>
+          <p><strong>Mã đơn hàng:</strong> #{orderId}</p>
+          <p><strong>Số tiền:</strong> {formatAmount(amount)}</p>
         </div>
 
         <div className="flex gap-2">
@@ -180,7 +176,7 @@ const MomoQRCode: React.FC<MomoQRCodeProps> = ({
             className="flex-1"
           >
             <Copy className="w-4 h-4 mr-2" />
-            Copy Data
+            Sao chép dữ liệu
           </Button>
 
           {qrCodeImage && (
@@ -191,7 +187,7 @@ const MomoQRCode: React.FC<MomoQRCodeProps> = ({
               className="flex-1"
             >
               <Download className="w-4 h-4 mr-2" />
-              Download
+              Tải xuống
             </Button>
           )}
 
@@ -207,15 +203,14 @@ const MomoQRCode: React.FC<MomoQRCodeProps> = ({
 
         <Alert>
           <AlertDescription className="text-center">
-            <strong>Important:</strong> This QR code will expire in 15 minutes.
-            Please complete your payment before then.
+            <strong>Lưu ý:</strong> Mã QR sẽ hết hạn sau 15 phút. Vui lòng hoàn tất thanh toán trước thời hạn.
           </AlertDescription>
         </Alert>
 
         {onClose && (
           <div className="text-center">
             <Button variant="ghost" onClick={onClose}>
-              Close
+              Đóng
             </Button>
           </div>
         )}

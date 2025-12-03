@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { formatCurrencyVND } from "@/utils/currency";
 import toast from "react-hot-toast";
 
 // 1. Đã thêm Interface OrderProduct
@@ -433,17 +434,17 @@ const AdminSingleOrder = () => {
                     {product?.product?.title}
                   </Link>
                   <p>
-                    ${product?.product?.price} * {product?.quantity} items
+                    {formatCurrencyVND(product?.product?.price)} × {product?.quantity} sản phẩm
                   </p>
                 </div>
               </div>
             ))}
             <div className="flex flex-col gap-y-2 mt-10">
-              <p className="text-2xl">Subtotal: ${order?.total}</p>
-              <p className="text-2xl">Tax 20%: ${order ? order.total / 5 : 0}</p>
-              <p className="text-2xl">Shipping: $5</p>
+              <p className="text-2xl">Tạm tính: {formatCurrencyVND(order?.total)}</p>
+              <p className="text-2xl">Thuế 20%: {formatCurrencyVND(order ? order.total / 5 : 0)}</p>
+              <p className="text-2xl">Vận chuyển: {formatCurrencyVND(5000)}</p>
               <p className="text-3xl font-semibold">
-                Total: ${order ? order.total + order.total / 5 + 5 : 0}
+                Tổng cộng: {formatCurrencyVND(order ? order.total + order.total / 5 + 5000 : 0)}
               </p>
             </div>
             <div className="flex gap-x-2 max-sm:flex-col mt-5">

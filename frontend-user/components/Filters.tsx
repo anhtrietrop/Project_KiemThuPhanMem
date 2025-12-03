@@ -103,6 +103,7 @@ const Filters = () => {
         <h3 className="text-xl mb-2">Price</h3>
         <div>
           <input
+
             type="range"
             min={0}
             max={3000}

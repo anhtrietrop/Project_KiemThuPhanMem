@@ -198,7 +198,7 @@ const AdminOrders = () => {
               </th>
               <th>Order ID</th>
               <th>Name and country</th>
-              <th className="min-w-[160px]">Order Status</th>
+              <th className="min-w-[200px]">Order Status</th>
               <th className="min-w-[150px]">Payment Status</th>
               <th>Subtotal</th>
               <th>Date</th>
@@ -230,37 +230,43 @@ const AdminOrders = () => {
                       </div>
                     </div>
                   </td>
-                  <td>
-                  <div className="flex items-center">
-                    {/* Thêm w-full và max-w-full để select tận dụng hết khoảng trống của cột */}
-                    <select
-                      className="select select-sm select-bordered w-full font-medium" 
-                      value={order?.status}
-                      title="Order Status"
-                      onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                      disabled={updatingStatus === order.id}
-                      style={{
-                        // Giữ logic màu cũ của bạn
-                        backgroundColor: order?.status === 'processing' ? '#fbbf24' :
-                          order?.status === 'shipped' ? '#3b82f6' :
-                            order?.status === 'delivered' ? '#10b981' :
-                              order?.status === 'success' ? '#22c55e' :
-                                order?.status === 'cancelled' ? '#ef4444' : '#ffffff',
-                        color: order?.status === 'cancelled' || order?.status === 'shipped' || order?.status === 'delivered' || order?.status === 'success' ? '#ffffff' : '#000000',
-                        // Thêm background image none nếu muốn bỏ mũi tên mặc định để tiết kiệm chỗ (tuỳ chọn)
-                      }}
-                    >
-                      <option value="processing">Đang xử lý</option>
-                      <option value="shipped">Đang giao hàng</option>
-                      <option value="delivered">Đã giao hàng</option>
-                      <option value="success">Hoàn thành</option>
-                      <option value="cancelled">Đã hủy</option>
-                    </select>
-                    {updatingStatus === order.id && (
-                      <span className="loading loading-spinner loading-xs ml-2"></span>
-                    )}
-                  </div>
-                </td>
+<td>
+  <div className="flex items-center">
+    <select aria-label="Change order status"
+      className="select select-sm text-sm font-bold text-white border-none rounded-full w-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-1 text-center"
+      
+      value={order?.status}
+      onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+      disabled={updatingStatus === order.id}
+      style={{
+        backgroundColor: 
+          order?.status === 'processing' ? '#f59e0b' : // Màu cam (Amber-500)
+          order?.status === 'shipped' ? '#3b82f6' :    // Màu xanh dương (Blue-500)
+          order?.status === 'delivered' ? '#10b981' :  // Màu xanh lá (Emerald-500)
+          order?.status === 'success' ? '#22c55e' :    // Màu xanh lá tươi (Green-500)
+          order?.status === 'cancelled' ? '#ef4444' : '#9ca3af', // Màu đỏ hoặc xám
+          
+        // Đảm bảo chữ luôn dễ đọc (Trừ trường hợp màu nền quá sáng thì dùng chữ đen)
+        color: '#ffffff', 
+        
+        // Căn chỉnh text center trong select (trên một số trình duyệt)
+        textAlign: 'center', 
+        textAlignLast: 'center'
+      }}
+    >
+      <option className="text-black bg-white" value="processing">⏳ Đang xử lý</option>
+      <option className="text-black bg-white" value="shipped">🚚 Đang giao hàng</option>
+      <option className="text-black bg-white" value="delivered">📦 Đã giao hàng</option>
+      <option className="text-black bg-white" value="success">✅ Hoàn thành</option>
+      <option className="text-black bg-white" value="cancelled">❌ Đã hủy</option>
+    </select>
+    
+    {/* Loading spinner */}
+    {updatingStatus === order.id && (
+      <span className="loading loading-spinner loading-xs ml-2 text-primary"></span>
+    )}
+  </div>
+</td>
 
                  <td>
   {order?.payment_status ? (

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { formatCurrencyVND } from "@/utils/currency";
 
 interface OrderProduct {
     id: string;
@@ -233,10 +234,10 @@ const CustomerOrderDetail = () => {
                                         {product?.product?.title}
                                     </Link>
                                     <p className="text-gray-600">Số lượng: {product?.quantity}</p>
-                                    <p className="text-gray-600">Giá: ${product?.product?.price}</p>
+                                    <p className="text-gray-600">Giá: {formatCurrencyVND(product?.product?.price)}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="font-semibold">${product?.product?.price * product?.quantity}</p>
+                                    <p className="font-semibold">{formatCurrencyVND(product?.product?.price * product?.quantity)}</p>
                                 </div>
                             </div>
                         ))}
@@ -249,20 +250,20 @@ const CustomerOrderDetail = () => {
                     <div className="space-y-2">
                         <div className="flex justify-between">
                             <span>Tạm tính:</span>
-                            <span>${order?.total}</span>
+                            <span>{formatCurrencyVND(order?.total)}</span>
                         </div>
                         <div className="flex justify-between">
                             <span>Thuế (20%):</span>
-                            <span>${order?.total / 5}</span>
+                            <span>{formatCurrencyVND(order?.total / 5)}</span>
                         </div>
                         <div className="flex justify-between">
                             <span>Phí vận chuyển:</span>
-                            <span>$5</span>
+                            <span>{formatCurrencyVND(5000)}</span>
                         </div>
                         <hr className="my-2" />
                         <div className="flex justify-between font-bold text-lg">
                             <span>Tổng cộng:</span>
-                            <span>${order?.total + order?.total / 5 + 5}</span>
+                            <span>{formatCurrencyVND(order?.total + order?.total / 5 + 5000)}</span>
                         </div>
                     </div>
                 </div>
