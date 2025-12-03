@@ -11,9 +11,10 @@
 "use client";
 import React, { useState } from "react";
 import { MdDashboard, MdCategory } from "react-icons/md";
-import { FaTable, FaRegUser, FaGear, FaBagShopping, FaStore, FaBars, FaXmark } from "react-icons/fa6";
+import { FaTable, FaRegUser, FaGear, FaBagShopping, FaStore, FaBars, FaXmark, FaRightFromBracket } from "react-icons/fa6";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 const DashboardSidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -82,42 +83,57 @@ const DashboardSidebar = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 overflow-y-auto h-[calc(100vh-4rem)]">
-          {menuGroups.map((group, idx) => (
-            <div key={idx} className="mb-6">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-3">
-                {group.title}
-              </h3>
-              <ul className="space-y-1">
-                {group.items.map((item) => {
-                  const Icon = item.icon;
-                  const active = isActive(item.href);
-                  return (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        onClick={() => setIsOpen(false)}
-                        className={`
-                          flex items-center gap-3 px-3 py-2.5 rounded-lg
-                          transition-all duration-200 group relative
-                          ${active 
-                            ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/50' 
-                            : 'text-slate-300 hover:bg-slate-700 hover:text-white'
-                          }
-                        `}
-                      >
-                        {active && (
-                          <span className="absolute left-0 w-1 h-8 bg-white rounded-r-full" />
-                        )}
-                        <Icon className={`text-xl ${active ? 'ml-2' : ''}`} />
-                        <span className="font-medium">{item.label}</span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
+        <nav className="p-4 overflow-y-auto h-[calc(100vh-4rem)] flex flex-col">
+          <div className="flex-1">
+            {menuGroups.map((group, idx) => (
+              <div key={idx} className="mb-6">
+                <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-3">
+                  {group.title}
+                </h3>
+                <ul className="space-y-1">
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    const active = isActive(item.href);
+                    return (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          onClick={() => setIsOpen(false)}
+                          className={`
+                            flex items-center gap-3 px-3 py-2.5 rounded-lg
+                            transition-all duration-200 group relative
+                            ${active 
+                              ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/50' 
+                              : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                            }
+                          `}
+                        >
+                          {active && (
+                            <span className="absolute left-0 w-1 h-8 bg-white rounded-r-full" />
+                          )}
+                          <Icon className={`text-xl ${active ? 'ml-2' : ''}`} />
+                          <span className="font-medium">{item.label}</span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          {/* Logout Button */}
+          <div className="mt-auto pt-4 border-t border-slate-700">
+            <button
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg
+                text-slate-300 hover:bg-red-600 hover:text-white
+                transition-all duration-200 group"
+            >
+              <FaRightFromBracket className="text-xl" />
+              <span className="font-medium">Đăng xuất</span>
+            </button>
+          </div>
         </nav>
       </aside>
     </>

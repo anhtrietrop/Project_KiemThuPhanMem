@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-import DashboardSidebar from "@/components/DashboardSidebar";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import apiClient from "@/lib/api";
@@ -60,9 +59,8 @@ export default function NewMerchantPage() {
   };
 
   return (
-    <div className="flex h-screen">
-      <DashboardSidebar />
-      <div className="flex-1 p-10 overflow-y-auto">
+    <div className="bg-white p-8 max-w-screen-2xl mx-auto">
+      <div className="flex flex-col gap-y-7 w-full">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Add New Merchant</h1>
           <Link

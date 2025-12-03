@@ -1,5 +1,5 @@
 "use client";
-import { CustomButton, DashboardSidebar, SectionTitle } from "@/components";
+import { CustomButton, SectionTitle } from "@/components";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState, use } from "react";
@@ -136,9 +136,8 @@ const DashboardProductDetails = ({
   }, [id]);
 
   return (
-    <div className="bg-white flex justify-start max-w-screen-2xl mx-auto xl:h-full max-xl:flex-col max-xl:gap-y-5">
-      <DashboardSidebar />
-      <div className="flex flex-col gap-y-7 xl:ml-5 w-full max-xl:px-5">
+    <div className="bg-white p-8 max-w-screen-2xl mx-auto">
+      <div className="flex flex-col gap-y-7 w-full">
         <h1 className="text-3xl font-semibold">Product details</h1>
         {/* Product name input div - start */}
 

@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import DashboardSidebar from "@/components/DashboardSidebar";
 import Link from "next/link";
 import apiClient from "@/lib/api";
 import { toast } from "react-hot-toast";
@@ -42,18 +41,16 @@ export default function MerchantPage() {
   }, []);
 
   return (
-    <div className="flex h-screen">
-      <DashboardSidebar />
-      <div className="flex-1 p-10 overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Merchants</h1>
-          <Link
-            href="/admin/merchant/new"
-            className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition"
-          >
-            Add Merchant
-          </Link>
-        </div>
+    <div className="p-10 overflow-y-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Merchants</h1>
+        <Link
+          href="/admin/merchant/new"
+          className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition"
+        >
+          Add Merchant
+        </Link>
+      </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">
           {loading ? (
@@ -107,7 +104,6 @@ export default function MerchantPage() {
             <div className="text-center py-10">No merchants found</div>
           )}
         </div>
-      </div>
     </div>
   );
 }

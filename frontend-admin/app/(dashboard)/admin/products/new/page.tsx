@@ -1,5 +1,4 @@
 "use client";
-import { DashboardSidebar } from "@/components";
 import apiClient from "@/lib/api";
 import { convertCategoryNameToURLFriendly as convertSlugToURLFriendly } from "@/utils/categoryFormating";
 import { sanitizeFormData } from "@/lib/form-sanitize";
@@ -139,9 +138,8 @@ const AddNewProduct = () => {
   }, []);
 
   return (
-    <div className="bg-white flex justify-start max-w-screen-2xl mx-auto xl:h-full max-xl:flex-col max-xl:gap-y-5">
-      <DashboardSidebar />
-      <div className="flex flex-col gap-y-7 xl:ml-5 max-xl:px-5 w-full">
+    <div className="bg-white p-8 max-w-screen-2xl mx-auto">
+      <div className="flex flex-col gap-y-7 w-full">
         <h1 className="text-3xl font-semibold">Add new product</h1>
         <div>
           <label className="form-control w-full max-w-xs">

@@ -1,5 +1,4 @@
 "use client";
-import { DashboardSidebar } from "@/components";
 import apiClient from "@/lib/api";
 import { isValidEmailAddressFormat, isValidNameOrLastname } from "@/lib/utils";
 import Image from "next/image";
@@ -204,9 +203,8 @@ const AdminSingleOrder = () => {
   };
 
   return (
-    <div className="bg-white flex justify-start max-w-screen-2xl mx-auto xl:h-full max-xl:flex-col max-xl:gap-y-5">
-      <DashboardSidebar />
-      <div className="flex flex-col gap-y-7 xl:ml-5 w-full max-xl:px-5">
+    <div className="bg-white p-8 max-w-screen-2xl mx-auto">
+      <div className="flex flex-col gap-y-7 w-full">
         <h1 className="text-3xl font-semibold">Order details</h1>
         <div className="mt-5">
           <label className="w-full">

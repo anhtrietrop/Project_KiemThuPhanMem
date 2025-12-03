@@ -1,5 +1,5 @@
 "use client";
-import { CustomButton, DashboardSidebar } from "@/components";
+import { CustomButton } from "@/components";
 import { nanoid } from "nanoid";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
@@ -21,9 +21,7 @@ const DashboardCategory = () => {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      <DashboardSidebar />
-      <main className="flex-1 overflow-y-auto p-8">
+    <div className="p-8">
       <div className="w-full">
         <h1 className="text-3xl font-semibold text-center mb-5">
           All Categories
@@ -92,7 +90,6 @@ const DashboardCategory = () => {
           </table>
         </div>
       </div>
-      </main>
     </div>
   );
 };
