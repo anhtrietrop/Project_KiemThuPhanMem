@@ -24,15 +24,15 @@ async function main() {
 
   // Clear existing data (optional - for clean slate)
   console.log('🗑️  Cleaning existing data...');
-  await prisma.orderItem.deleteMany();
-  await prisma.order.deleteMany();
+  await prisma.customer_order_product.deleteMany();
+  await prisma.customer_order.deleteMany();
+  await prisma.cartitem.deleteMany();
   await prisma.cart.deleteMany();
   await prisma.wishlist.deleteMany();
   await prisma.review.deleteMany();
   await prisma.product.deleteMany();
   await prisma.category.deleteMany();
   await prisma.merchant.deleteMany();
-  await prisma.address.deleteMany();
   await prisma.user.deleteMany();
 
   // 1. Create Admin User
@@ -41,9 +41,10 @@ async function main() {
   
   const adminUser = await prisma.user.create({
     data: {
+      id: 'admin-uuid-001',
       email: 'admin@singitronic.com',
       password: hashedPassword,
-      fullName: 'System Administrator',
+      name: 'System Administrator',
       role: 'ADMIN',
       status: 'ACTIVE',
     },
@@ -55,29 +56,17 @@ async function main() {
   for (let i = 1; i <= 5; i++) {
     const user = await prisma.user.create({
       data: {
+        id: `user-uuid-00${i}`,
         email: `user${i}@test.com`,
         password: hashedPassword,
-        fullName: `Test User ${i}`,
+        name: `Test User ${i}`,
         phone: `012345678${i}`,
         role: 'USER',
         status: 'ACTIVE',
       },
     });
     users.push(user);
-
-    // Create address for each user
-    await prisma.address.create({
-      data: {
-        userId: user.id,
-        fullName: `Test User ${i}`,
-        phone: `012345678${i}`,
-        address: `${i * 100} Test Street`,
-        ward: 'Test Ward',
-        district: 'Test District',
-        city: 'Test City',
-        isDefault: true,
-      },
-    });
+  }
   }
 
   // 3. Create Categories
