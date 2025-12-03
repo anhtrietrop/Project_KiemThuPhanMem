@@ -1,29 +1,71 @@
 "use client";
-import { DashboardSidebar, StatsElement } from "@/components";
-import React, { useEffect } from "react";
-import { FaArrowUp } from "react-icons/fa6";
+import { DashboardSidebar } from "@/components";
+import React from "react";
+import DashboardSummary from "@/components/dashboard/DashboardSummary";
+import DashboardOrdersTable from "@/components/dashboard/DashboardOrdersTable";
+import DashboardProductsTable from "@/components/dashboard/DashboardProductsTable";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { useRecentOrders } from "@/hooks/useRecentOrders";
+import { useTopProducts } from "@/hooks/useTopProducts";
 
 const AdminDashboardPage = () => {
+  const { stats, isLoading: statsLoading } = useDashboardStats();
+  const { orders, isLoading: ordersLoading } = useRecentOrders(10);
+  const { products, isLoading: productsLoading } = useTopProducts(10);
+
   return (
-    <div className="bg-white flex justify-start max-w-screen-2xl mx-auto max-xl:flex-col">
+    <div className="flex min-h-screen bg-slate-50">
       <DashboardSidebar />
-      <div className="flex flex-col items-center ml-5 gap-y-4 w-full max-xl:ml-0 max-xl:px-2 max-xl:mt-5 max-md:gap-y-1">
-        <div className="flex justify-between w-full max-md:flex-col max-md:w-full max-md:gap-y-1">
-          <StatsElement />
-          <StatsElement />
-          <StatsElement />
+      <main className="flex-1 overflow-y-auto">
+        {/* Header */}
+        <div className="bg-white border-b border-slate-200 px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
+              <p className="text-sm text-slate-600 mt-1">Tổng quan hoạt động hệ thống</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-sm font-medium text-slate-900">Admin User</p>
+                <p className="text-xs text-slate-500">admin@example.com</p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center text-white font-semibold">
+                A
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="w-full bg-blue-500 text-white h-40 flex flex-col justify-center items-center gap-y-2">
-          <h4 className="text-3xl text-gray-100 max-[400px]:text-2xl">
-            Number of visitors today
-          </h4>
-          <p className="text-3xl font-bold">1200</p>
-          <p className="text-green-300 flex gap-x-1 items-center">
-            <FaArrowUp />
-            12.5% Since last month
-          </p>
+
+        {/* Content */}
+        <div className="p-8 space-y-8">
+          {/* Stats */}
+          {statsLoading ? (
+            <div className="skeleton h-32 w-full"></div>
+          ) : stats ? (
+            <DashboardSummary stats={stats} />
+          ) : (
+            <div className="alert alert-warning">Không tải được thống kê</div>
+          )}
+
+          {/* Tables Grid */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            <div>
+              {ordersLoading ? (
+                <div className="skeleton h-96 w-full"></div>
+              ) : (
+                <DashboardOrdersTable rows={orders} />
+              )}
+            </div>
+            <div>
+              {productsLoading ? (
+                <div className="skeleton h-96 w-full"></div>
+              ) : (
+                <DashboardProductsTable rows={products} />
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

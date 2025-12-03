@@ -24,24 +24,48 @@ web-electronic/
 
 ## 🚀 Hướng dẫn cài đặt và chạy
 
-### Cách nhanh (Windows)
+### ⚡ Cách nhanh nhất (Khuyến nghị)
 
-1. Double-click: `setup-all.bat` để cài dependencies.
-2. Tạo file .env trong backend, frontend-user, frontend-admin (sử dụng env-template.txt làm mẫu, sửa username/password MySQL).
-3. cd backend && npx prisma migrate dev
-4. cd backend/utills && node insertDemoData.js
-5. Double-click: `start-all.bat` để chạy tất cả services.
-6. Mở browser:
-   - User: http://localhost:3000
-   - Admin: http://localhost:3001
+**Sử dụng Docker + Scripts tự động:**
 
-> 💡 **Chi tiết**: Xem các bước dưới đây hoặc [QUICK-START.md](./QUICK-START.md) để sử dụng scripts tự động
+```bash
+# 1. Start Docker containers
+docker-manager start
 
-### Yêu cầu hệ thống
+# 2. Initialize database
+db init
 
-- Node.js (v18 trở lên)
+# 3. Open browser
+# - User: http://localhost:3000
+# - Admin: http://localhost:3001
+# - Backend: http://localhost:3002
+```
+
+**Các commands hữu ích:**
+
+```bash
+# Database
+db status      # Check migration status
+db studio      # Open database GUI
+db dev         # Create new migration
+
+# Docker
+docker-manager logs backend    # View logs
+docker-manager restart         # Restart containers
+docker-manager check           # Check ports
+```
+
+> 📚 **Chi tiết**: Xem [scripts/README.md](./scripts/README.md) và [DATABASE_SYNC_README.md](./DATABASE_SYNC_README.md)
+
+---
+
+### Cách thủ công (Local development)
+
+#### Yêu cầu
+
+- Node.js v18+
+- MySQL 8.0+
 - npm hoặc yarn
-- MySQL (v8.0 trở lên) hoặc PostgreSQL
 
 ### 🎯 Cấu hình Port (Đã tách riêng)
 

@@ -192,6 +192,8 @@ const handleInputChange = (
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
                 required
+                title="Name"
+                placeholder="Enter merchant name"
               />
             </div>
             <div>
@@ -202,6 +204,8 @@ const handleInputChange = (
                 value={formData.email || ""}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
+                title="Email"
+                placeholder="Enter email (optional)"
               />
             </div>
             <div>
@@ -212,6 +216,8 @@ const handleInputChange = (
                 value={formData.phone || ""}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
+                title="Phone"
+                placeholder="Enter phone number (optional)"
               />
             </div>
             <div>
@@ -221,6 +227,7 @@ const handleInputChange = (
                 value={formData.status || "ACTIVE"}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
+                title="Status"
               >
                 <option value="ACTIVE">Active</option>
                 <option value="INACTIVE">Inactive</option>
@@ -234,6 +241,8 @@ const handleInputChange = (
                 value={formData.address}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
+                title="Address"
+                placeholder="Enter address (optional)"
               />
             </div>
             <div className="md:col-span-2">
@@ -243,6 +252,8 @@ const handleInputChange = (
                 value={formData.description}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded focus:outline-none focus:ring focus:border-blue-300 h-32"
+                title="Description"
+                placeholder="Enter a short description (optional)"
               ></textarea>
             </div>
             <div className="md:col-span-2">

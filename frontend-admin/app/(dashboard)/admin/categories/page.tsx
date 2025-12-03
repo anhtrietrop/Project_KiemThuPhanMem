@@ -21,8 +21,9 @@ const DashboardCategory = () => {
   }, []);
 
   return (
-    <div className="bg-white flex justify-start max-w-screen-2xl mx-auto h-full max-xl:flex-col max-xl:h-fit max-xl:gap-y-4">
+    <div className="flex min-h-screen bg-slate-50">
       <DashboardSidebar />
+      <main className="flex-1 overflow-y-auto p-8">
       <div className="w-full">
         <h1 className="text-3xl font-semibold text-center mb-5">
           All Categories
@@ -91,6 +92,7 @@ const DashboardCategory = () => {
           </table>
         </div>
       </div>
+      </main>
     </div>
   );
 };

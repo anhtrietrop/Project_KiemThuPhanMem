@@ -8,9 +8,11 @@ import React from "react";
 
 const DashboardProducts = () => {
   return (
-    <div className="bg-white flex justify-start max-w-screen-2xl mx-auto h-full max-xl:flex-col max-xl:h-fit max-xl:gap-y-4">
+    <div className="flex min-h-screen bg-slate-50">
       <DashboardSidebar />
+      <main className="flex-1 overflow-y-auto">
         <DashboardProductTable />
+      </main>
     </div>
   );
 };

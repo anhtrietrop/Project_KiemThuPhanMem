@@ -16,7 +16,6 @@ import React, { useEffect, useState } from "react";
 import CustomButton from "./CustomButton";
 import apiClient from "@/lib/api";
 import { sanitize } from "@/lib/sanitize";
-import { formatCurrencyVND } from "@/utils/currency";
 
 const DashboardProductTable = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -53,8 +52,8 @@ const DashboardProductTable = () => {
           <thead>
             <tr>
               <th>
-                <label>
-                  <input type="checkbox" className="checkbox" />
+                <label >
+                  <input type="checkbox" className="checkbox"  aria-label="Search"/>
                 </label>
               </th>
               <th>Product</th>
@@ -70,7 +69,7 @@ const DashboardProductTable = () => {
                 <tr key={nanoid()}>
                   <th>
                     <label>
-                      <input type="checkbox" className="checkbox" />
+                      <input type="checkbox" className="checkbox"  aria-label="Search"/>
                     </label>
                   </th>
 
@@ -104,7 +103,7 @@ const DashboardProductTable = () => {
                     </span>) }
                     
                   </td>
-                  <td>{formatCurrencyVND(product?.price)}</td>
+                  <td>${product?.price}</td>
                   <th>
                     <Link
                       href={`/admin/products/${product.id}`}

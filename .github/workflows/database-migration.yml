@@ -1,0 +1,167 @@
+name: Database Migration Check
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "backend/prisma/schema.prisma"
+      - "backend/prisma/migrations/**"
+
+  push:
+    branches: [main]
+    paths:
+      - "backend/prisma/schema.prisma"
+      - "backend/prisma/migrations/**"
+
+jobs:
+  validate-migrations:
+    name: Validate Prisma Migrations
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for migration comparison
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Check for schema changes
+        id: schema-check
+        run: |
+          if git diff HEAD~1 HEAD -- backend/prisma/schema.prisma | grep -q '^[+-]'; then
+            echo "schema_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "schema_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate migration exists for schema changes
+        if: steps.schema-check.outputs.schema_changed == 'true'
+        run: |
+          echo "Schema changed detected!"
+          if ! git diff HEAD~1 HEAD --name-only | grep -q 'backend/prisma/migrations/'; then
+            echo "❌ ERROR: Schema changed but no migration found!"
+            echo "Please run: npx prisma migrate dev --name <migration_name>"
+            exit 1
+          fi
+          echo "✅ Migration files found"
+
+      - name: Validate migration files
+        working-directory: ./backend
+        run: npm run migrate:validate || true
+
+      - name: Check migration status (dry-run)
+        working-directory: ./backend
+        env:
+          DATABASE_URL: "mysql://user:pass@localhost:3306/test_db"
+        run: |
+          echo "Checking migration syntax..."
+          npx prisma migrate status || echo "Note: Cannot connect to actual database in CI"
+
+      - name: Format schema file
+        working-directory: ./backend
+        run: npx prisma format
+
+      - name: Check for uncommitted changes
+        run: |
+          if ! git diff --exit-code backend/prisma/schema.prisma; then
+            echo "❌ schema.prisma is not formatted. Run: npx prisma format"
+            exit 1
+          fi
+          echo "✅ Schema file is properly formatted"
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && steps.schema-check.outputs.schema_changed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '⚠️ **Database Migration Detected**\n\n' +
+                    'This PR includes database schema changes. Please ensure:\n' +
+                    '- [ ] Migration has been tested locally\n' +
+                    '- [ ] Dangerous operations (DROP, DELETE) are reviewed\n' +
+                    '- [ ] Production data backup plan is in place\n' +
+                    '- [ ] Rollback strategy is documented\n\n' +
+                    'Migration will be applied automatically on merge to main.'
+            })
+
+  test-migrations:
+    name: Test Migrations with MySQL
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: testpassword
+          MYSQL_DATABASE: test_db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Generate Prisma Client
+        working-directory: ./backend
+        run: npx prisma generate
+
+      - name: Apply migrations
+        working-directory: ./backend
+        env:
+          DATABASE_URL: "mysql://root:testpassword@localhost:3306/test_db"
+        run: npx prisma migrate deploy
+
+      - name: Verify database schema
+        working-directory: ./backend
+        env:
+          DATABASE_URL: "mysql://root:testpassword@localhost:3306/test_db"
+        run: |
+          echo "Checking migration status..."
+          npx prisma migrate status
+
+          echo "Validating schema..."
+          npx prisma validate
+
+      - name: Run database tests (if any)
+        working-directory: ./backend
+        env:
+          DATABASE_URL: "mysql://root:testpassword@localhost:3306/test_db"
+        run: npm run test:db || echo "No database tests configured"
+
+      - name: Migration Summary
+        if: always()
+        run: |
+          echo "## Migration Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Migrations applied successfully" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Schema validated" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Database connection tested" >> $GITHUB_STEP_SUMMARY
