@@ -60,6 +60,8 @@ const allowedOrigins = [
   'http://localhost:3001', // Frontend Admin
   process.env.NEXTAUTH_URL,
   process.env.FRONTEND_URL,
+  process.env.FRONTEND_ADMIN_URL,
+  'https://project-kiemthuphanmem-admin.vercel.app',
 ].filter(Boolean); // Remove undefined values
 
 // CORS configuration with origin validation
