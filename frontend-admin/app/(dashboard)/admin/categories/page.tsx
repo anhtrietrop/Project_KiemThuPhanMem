@@ -45,7 +45,7 @@ const DashboardCategory = () => {
               <tr>
                 <th>
                   <label>
-                    <input type="checkbox" className="checkbox" />
+                    <input type="checkbox" className="checkbox" aria-label="Select all categories" />
                   </label>
                 </th>
                 <th>Name</th>
@@ -58,7 +58,7 @@ const DashboardCategory = () => {
                   <tr key={nanoid()}>
                     <th>
                       <label>
-                        <input type="checkbox" className="checkbox" />
+                        <input type="checkbox" className="checkbox" aria-label={`Select ${category?.name}`} />
                       </label>
                     </th>
 

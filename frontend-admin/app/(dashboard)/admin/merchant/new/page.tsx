@@ -110,6 +110,7 @@ export default function NewMerchantPage() {
             <div>
               <label className="block text-gray-700 font-medium mb-2">Status</label>
               <select
+                aria-label="status"
                 name="status"
                 value={formData.status || "ACTIVE"}
                 onChange={handleInputChange}

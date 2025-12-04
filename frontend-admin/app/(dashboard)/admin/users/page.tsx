@@ -42,7 +42,7 @@ const DashboardUsers = () => {
               <tr>
                 <th>
                   <label>
-                    <input type="checkbox" className="checkbox" />
+                    <input aria-label="collum" type="checkbox" className="checkbox" />
                   </label>
                 </th>
                 <th>Email</th>
@@ -57,7 +57,7 @@ const DashboardUsers = () => {
                   <tr key={nanoid()}>
                     <th>
                       <label>
-                        <input type="checkbox" className="checkbox" />
+                        <input aria-label="Select user" type="checkbox" className="checkbox" />
                       </label>
                     </th>
 

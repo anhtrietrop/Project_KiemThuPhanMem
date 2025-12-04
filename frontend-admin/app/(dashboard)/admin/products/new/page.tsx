@@ -273,6 +273,7 @@ const AddNewProduct = () => {
         </div>
         <div>
           <input
+          aria-label="img"
             type="file"
             className="file-input file-input-bordered file-input-lg w-full max-w-sm"
             onChange={(e: any) => {
