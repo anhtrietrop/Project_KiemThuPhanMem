@@ -1,6 +1,5 @@
 {
   "framework": "nextjs",
   "buildCommand": "npm run build",
-  "installCommand": "npm install",
-  "ignoreCommand": "echo Skipping security check"
+  "installCommand": "npm install"
 }
