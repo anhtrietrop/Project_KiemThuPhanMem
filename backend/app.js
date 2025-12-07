@@ -1,5 +1,5 @@
 const express = require("express");
-const bcrypt = require('bcryptjs');
+const bcrypt = require("bcryptjs");
 const fileUpload = require("express-fileupload");
 const productsRouter = require("./routes/products");
 const productImagesRouter = require("./routes/productImages");
@@ -10,14 +10,14 @@ const userRouter = require("./routes/users");
 const authRouter = require("./routes/auth");
 const orderRouter = require("./routes/customer_orders");
 const slugRouter = require("./routes/slugs");
-const orderProductRouter = require('./routes/customer_order_product');
-const wishlistRouter = require('./routes/wishlist');
-const notificationsRouter = require('./routes/notifications');
-const merchantRouter = require('./routes/merchant'); // Add this line
-const momoPaymentRouter = require('./routes/momoPayment');
-const cartRouter = require('./routes/cart');
-const adminRouter = require('./routes/admin');
-const reviewsRouter = require('./routes/reviews');
+const orderProductRouter = require("./routes/customer_order_product");
+const wishlistRouter = require("./routes/wishlist");
+const notificationsRouter = require("./routes/notifications");
+const merchantRouter = require("./routes/merchant"); // Add this line
+const momoPaymentRouter = require("./routes/momoPayment");
+const cartRouter = require("./routes/cart");
+const adminRouter = require("./routes/admin");
+const reviewsRouter = require("./routes/reviews");
 var cors = require("cors");
 
 // Import logging middleware
@@ -25,8 +25,8 @@ const {
   addRequestId,
   requestLogger,
   errorLogger,
-  securityLogger
-} = require('./middleware/requestLogger');
+  securityLogger,
+} = require("./middleware/requestLogger");
 
 // Import rate limiting middleware
 const {
@@ -36,52 +36,52 @@ const {
   userManagementLimiter,
   uploadLimiter,
   searchLimiter,
-  orderLimiter
-} = require('./middleware/rateLimiter');
+  orderLimiter,
+} = require("./middleware/rateLimiter");
 
 const {
   passwordResetLimiter,
   adminLimiter,
   wishlistLimiter,
-  productLimiter
-} = require('./middleware/advancedRateLimiter');
+  productLimiter,
+} = require("./middleware/advancedRateLimiter");
 
-const {
-  handleServerError
-} = require('./utills/errorHandler');
+const { handleServerError } = require("./utills/errorHandler");
 
 const app = express();
 
 // Trust proxy for accurate IP addresses
-app.set('trust proxy', 1);
+app.set("trust proxy", 1);
 
 const allowedOrigins = [
-  'http://localhost:3000', // Frontend User
-  'http://localhost:3001', // Frontend Admin
+  "http://localhost:3000", // Frontend User
+  "http://localhost:3001", // Frontend Admin
   process.env.NEXTAUTH_URL,
   process.env.FRONTEND_URL,
   process.env.FRONTEND_ADMIN_URL,
-  'https://project-kiemthuphanmem-admin.vercel.app',
+  "https://project-kiemthuphanmem-admin.vercel.app",
+  "https://project-kiem-thu-phan-mem-admin.vercel.app",
 ].filter(Boolean); // Remove undefined values
 
 // CORS configuration with origin validation
 const corsOptions = {
   origin: function (origin, callback) {
-
     if (!origin) return callback(null, true);
-
 
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
 
-
-    if (process.env.NODE_ENV === 'development' && origin.startsWith('http://localhost:')) {
+    if (
+      process.env.NODE_ENV === "development" &&
+      origin.startsWith("http://localhost:")
+    ) {
       return callback(null, true);
     }
 
     // Reject other origins
-    const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+    const msg =
+      "The CORS policy for this site does not allow access from the specified Origin.";
     return callback(new Error(msg), false);
   },
   methods: ["GET", "POST", "PUT", "DELETE"],
@@ -136,46 +136,46 @@ app.use("/api/main-image", mainImageRouter);
 app.use("/api/users", userRouter);
 app.use("/api/search", searchRouter);
 app.use("/api/orders", orderRouter);
-app.use('/api/order-product', orderProductRouter);
+app.use("/api/order-product", orderProductRouter);
 app.use("/api/slugs", slugRouter);
 app.use("/api/wishlist", wishlistRouter);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/merchants", merchantRouter);
 app.use("/api/payments/momo", momoPaymentRouter);
 app.use("/api/cart", cartRouter);
-app.use('/api/admin', adminRouter);
-app.use('/api/reviews', reviewsRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api/reviews", reviewsRouter);
 
 // Health check endpoint (no rate limiting)
-app.get('/health', (req, res) => {
+app.get("/health", (req, res) => {
   res.status(200).json({
-    status: 'OK',
+    status: "OK",
     timestamp: new Date().toISOString(),
-    rateLimiting: 'enabled',
-    requestId: req.reqId
+    rateLimiting: "enabled",
+    requestId: req.reqId,
   });
 });
 
 // Rate limit info endpoint
-app.get('/rate-limit-info', (req, res) => {
+app.get("/rate-limit-info", (req, res) => {
   res.status(200).json({
-    general: '100 requests per 15 minutes',
-    auth: '5 login attempts per 15 minutes',
-    register: '3 registrations per hour',
-    upload: '10 uploads per 15 minutes',
-    search: '30 searches per minute',
-    orders: '15 order operations per 15 minutes',
-    wishlist: '20 operations per 5 minutes',
-    products: '60 requests per minute',
-    requestId: req.reqId
+    general: "100 requests per 15 minutes",
+    auth: "5 login attempts per 15 minutes",
+    register: "3 registrations per hour",
+    upload: "10 uploads per 15 minutes",
+    search: "30 searches per minute",
+    orders: "15 order operations per 15 minutes",
+    wishlist: "20 operations per 5 minutes",
+    products: "60 requests per minute",
+    requestId: req.reqId,
   });
 });
 
 // 404 handler
-app.use('*', (req, res) => {
+app.use("*", (req, res) => {
   res.status(404).json({
-    error: 'Route not found',
-    requestId: req.reqId
+    error: "Route not found",
+    requestId: req.reqId,
   });
 });
 
@@ -188,11 +188,11 @@ app.use((err, req, res, next) => {
 module.exports = app;
 
 // Only start server if not in test environment
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== "test") {
   const PORT = process.env.PORT || 3002;
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-    console.log('Rate limiting and request logging enabled for all endpoints');
-    console.log('Logs are being written to server/logs/ directory');
+    console.log("Rate limiting and request logging enabled for all endpoints");
+    console.log("Logs are being written to server/logs/ directory");
   });
 }
