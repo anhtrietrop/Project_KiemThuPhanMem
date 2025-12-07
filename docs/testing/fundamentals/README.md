@@ -23,14 +23,17 @@ Mỗi module bạn sẽ học:
 
 ---
 
-## 📚 4 Modules Tiêu Biểu
+## 📚 7 Modules Tiêu Biểu
 
-| #   | Module             | Tệp                          | Độ Khó          | Khi Nào        |
-| --- | ------------------ | ---------------------------- | --------------- | -------------- |
-| 1️⃣  | **Users/Auth**     | `01_USERS_AUTH_MODULE.md`    | ⭐ Dễ           | Đọc đầu tiên   |
-| 2️⃣  | **Products**       | `02_PRODUCTS_MODULE.md`      | ⭐⭐ Trung Bình | Sau Users/Auth |
-| 3️⃣  | **Orders**         | `03_ORDERS_MODULE.md`        | ⭐⭐⭐ Khó      | Hiểu tích hợp  |
-| 4️⃣  | **Cart & Payment** | `04_CART_PAYMENT_MODULES.md` | ⭐⭐⭐ Khó      | Cuối cùng      |
+| #   | Module                 | Tệp                             | Độ Khó          | Khi Nào            |
+| --- | ---------------------- | ------------------------------- | --------------- | ------------------ |
+| 1️⃣  | **Users/Auth**         | `01_USERS_AUTH_MODULE.md`       | ⭐ Dễ           | Đọc đầu tiên       |
+| 2️⃣  | **Products**           | `02_PRODUCTS_MODULE.md`         | ⭐⭐ Trung Bình | Sau Users/Auth     |
+| 3️⃣  | **Orders**             | `03_ORDERS_MODULE.md`           | ⭐⭐⭐ Khó      | Hiểu tích hợp      |
+| 4️⃣  | **Cart & Payment**     | `04_CART_PAYMENT_MODULES.md`    | ⭐⭐⭐ Khó      | Cuối cùng nhóm UC1 |
+| 5️⃣  | **Wishlist & Reviews** | `05_WISHLIST_REVIEWS_MODULE.md` | ⭐⭐ Trung Bình | Sau Cart/Products  |
+| 6️⃣  | **Admin Analytics**    | `06_ADMIN_ANALYTICS_MODULE.md`  | ⭐⭐⭐ Khó      | Khi cần số liệu    |
+| 7️⃣  | **Notifications**      | `07_NOTIFICATION_MODULE.md`     | ⭐⭐ Trung Bình | Queue/OTP/Push     |
 
 ---
 

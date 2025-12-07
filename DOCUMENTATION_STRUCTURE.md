@@ -97,25 +97,31 @@ docker compose up --build
 
 **PHẦN MỚI** - Hướng dẫn kiểm thử từng bước với sơ đồ PlantUML & ví dụ mã
 
-| File                         | Module                | Nội Dung                                                     | Liên Kết                                                                                                                           |
-| ---------------------------- | --------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `README.md`                  | Chỉ mục               | Điều hướng cho 4 modules                                     | -                                                                                                                                  |
-| `01_USERS_AUTH_MODULE.md`    | Users/Auth            | Yêu cầu → Thiết kế Test → Test Cases → Ví dụ Code            | [Tests](../../backend/tests/unit/auth.logic.test.js)                                                                               |
-| `02_PRODUCTS_MODULE.md`      | Products              | Kiểm thử CRUD, xác thực, các trường hợp lỗi                  | [Tests](../../backend/tests/unit/product.logic.test.js)                                                                            |
-| `03_ORDERS_MODULE.md`        | Orders                | Quy trình làm việc, theo dõi trạng thái, tương tác người bán | [Tests](../../backend/tests/unit/order.logic.test.js) + [Integration](../../backend/tests/integration/order-merchant-flow.test.js) |
-| `04_CART_PAYMENT_MODULES.md` | Giỏ Hàng & Thanh Toán | Các phép toán giỏ hàng, tích hợp thanh toán MoMo             | [Tests](../../backend/tests/unit/cart.logic.test.js)                                                                               |
+| File                            | Module                         | Nội Dung                                                     | Liên Kết                                                                                                                           |
+| ------------------------------- | ------------------------------ | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `README.md`                     | Chỉ mục                        | Điều hướng cho 7 modules                                     | -                                                                                                                                  |
+| `01_USERS_AUTH_MODULE.md`       | Users/Auth                     | Yêu cầu → Thiết kế Test → Test Cases → Ví dụ Code            | [Tests](../../backend/tests/unit/auth.logic.test.js)                                                                               |
+| `02_PRODUCTS_MODULE.md`         | Products                       | Kiểm thử CRUD, xác thực, các trường hợp lỗi                  | [Tests](../../backend/tests/unit/product.logic.test.js)                                                                            |
+| `03_ORDERS_MODULE.md`           | Orders                         | Quy trình làm việc, theo dõi trạng thái, tương tác người bán | [Tests](../../backend/tests/unit/order.logic.test.js) + [Integration](../../backend/tests/integration/order-merchant-flow.test.js) |
+| `04_CART_PAYMENT_MODULES.md`    | Giỏ Hàng & Thanh Toán          | Các phép toán giỏ hàng, tích hợp thanh toán MoMo             | [Tests](../../backend/tests/unit/cart.logic.test.js)                                                                               |
+| `05_WISHLIST_REVIEWS_MODULE.md` | Wishlist & Reviews             | Dedupe wishlist, review sau mua, moderation                  | [Tests](../../backend/tests/integration/wishlist.test.js)                                                                          |
+| `06_ADMIN_ANALYTICS_MODULE.md`  | Admin Analytics                | Aggregation, merchant scope, CSV export                      | [Tests](../../backend/tests/integration/admin-analytics.test.js)                                                                   |
+| `07_NOTIFICATION_MODULE.md`     | Notifications (Email/SMS/Push) | Queue, retry/DLQ, OTP, idempotency                           | [Tests](../../backend/tests/integration/notification.test.js)                                                                      |
 
 **Lộ Trình Đọc:**
 
 ```
 BẮT ĐẦU → docs/testing/fundamentals/README.md
-  ├─→ 01_USERS_AUTH_MODULE.md (Lý Thuyết + Mã)
-  ├─→ 02_PRODUCTS_MODULE.md (Lý Thuyết + Mã)
-  ├─→ 03_ORDERS_MODULE.md (Lý Thuyết + Tích Hợp)
-  └─→ 04_CART_PAYMENT_MODULES.md (Lý Thuyết + Mã)
+    ├─→ 01_USERS_AUTH_MODULE.md (Lý Thuyết + Mã)
+    ├─→ 02_PRODUCTS_MODULE.md (Lý Thuyết + Mã)
+    ├─→ 03_ORDERS_MODULE.md (Lý Thuyết + Tích Hợp)
+    ├─→ 04_CART_PAYMENT_MODULES.md (Giỏ hàng + thanh toán)
+    ├─→ 05_WISHLIST_REVIEWS_MODULE.md (Wishlist/Review)
+    ├─→ 06_ADMIN_ANALYTICS_MODULE.md (Phân tích số liệu)
+    └─→ 07_NOTIFICATION_MODULE.md (Thông báo đa kênh)
 ```
 
-#### **3.2 Tài Liệu Tham Khảo Kiểm Thử** (`docs/testing/`)
+#### **3.2 Tài Liệu Tham Khảo Kiểm Thử** (`docs/testing/reference/`)
 
 **Mục Đích:** Kế hoạch kiểm thử chính thức & thực hành tốt nhất
 
@@ -124,12 +130,13 @@ BẮT ĐẦU → docs/testing/fundamentals/README.md
 | `README.md`              | Chỉ mục tài liệu kiểm thử                                          | Điều hướng              |
 | `TEST_PLAN.md`           | 📋 **CONSOLIDATED** - Kế hoạch kiểm thử toàn diện (107 test cases) | ⭐⭐⭐⭐⭐ Rất Chi Tiết |
 | `TEST_BEST_PRACTICES.md` | Jest, mô hình kiểm thử, các tình huống thường gặp                  | ⭐⭐⭐⭐ Tham Khảo      |
+| `QA_PLAYBOOK.md`         | Code examples, troubleshooting, performance quickstart             | ⭐⭐⭐⭐ Tham Khảo      |
 
 **Trạng Thái Kiểm Thử Hiện Tại:**
 
 - ✅ **88 / 107 tests implemented** (82% pass rate)
-- 📊 Phạm vi: Auth, Products, Orders, Cart, Wishlist, Review, Payment
-- 🧪 Kiểm thử tích hợp: Quy trình Order-Merchant
+- 📊 Phạm vi: Auth, Products, Orders, Cart, Wishlist, Review, Payment, Notifications
+- 🧪 Kiểm thử tích hợp: Quy trình Order-Merchant, Notification queue mocks
 - ⏭️ 19 tests skipped do missing features (Product Variants, Addresses, Analytics)
 
 **Ghi Chú Consolidation:**

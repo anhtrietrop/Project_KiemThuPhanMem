@@ -26,18 +26,21 @@ docs/testing/
 │   ├── 02_PRODUCTS_MODULE.md
 │   ├── 03_ORDERS_MODULE.md
 │   ├── 04_CART_PAYMENT_MODULES.md
+│   ├── 05_WISHLIST_REVIEWS_MODULE.md
+│   ├── 06_ADMIN_ANALYTICS_MODULE.md
+│   ├── 07_NOTIFICATION_MODULE.md
 │   └── README.md
 ├── reference/            ← TÀI LIỆU THAM KHẢO CHÍNH THỨC
 │   ├── TEST_PLAN.md
-│   ├── Official_Test_Plan.md
 │   ├── TEST_SUMMARY_REPORT.md
 │   ├── TEST_BEST_PRACTICES.md
+│   ├── QA_PLAYBOOK.md
 │   └── README.md
 └── execution/            ← HƯỚNG DẪN CHẠY KIỂM THỬ
-    ├── TEST_DATABASE_SETUP.md
-    ├── HOW_TO_RUN_TESTS.md
-    ├── DEBUGGING_GUIDE.md
-    └── README.md
+   ├── TEST_DATABASE_SETUP.md
+   ├── HOW_TO_RUN_TESTS.md
+   ├── DEBUGGING_GUIDE.md
+   └── README.md
 ```
 
 ---
@@ -56,6 +59,8 @@ docs/testing/
 4. execution/HOW_TO_RUN_TESTS.md (chạy thực tế)
    ↓
 5. execution/DEBUGGING_GUIDE.md (gỡ lỗi)
+   ↓
+6. reference/QA_PLAYBOOK.md (code mẫu, troubleshooting nhanh)
 ```
 
 **Thời gian:** ~3-4 giờ để hiểu cơ bản
@@ -66,6 +71,7 @@ docs/testing/
 1. reference/TEST_PLAN.md (kế hoạch toàn diện)
 2. reference/TEST_BEST_PRACTICES.md (thực hành tốt)
 3. reference/TEST_SUMMARY_REPORT.md (kết quả hiện tại)
+4. reference/QA_PLAYBOOK.md (code samples, troubleshooting, performance)
 ```
 
 ### **🚀 Tôi Muốn Chạy Kiểm Thử Ngay**
@@ -74,6 +80,7 @@ docs/testing/
 1. execution/TEST_DATABASE_SETUP.md (chuẩn bị)
 2. execution/HOW_TO_RUN_TESTS.md (chạy)
 3. execution/DEBUGGING_GUIDE.md (nếu có lỗi)
+4. reference/QA_PLAYBOOK.md (quick fixes, code snippets)
 ```
 
 ### **🔍 Kiểm Thử Thất Bại, Cần Gỡ Lỗi**
@@ -101,10 +108,10 @@ docs/testing/
 
 ## 📊 Trạng Thái Kiểm Thử Hiện Tại
 
-- ✅ **119 / 121 tests passing** (98.3%)
-- 📊 Bao gồm: Auth, Products, Orders, Cart, Wishlist, Review
-- 🧪 Tích hợp: Order-Merchant workflow
-- ⏱️ Thời gian chạy: ~30 giây cho tất cả tests
+- ✅ **88 / 107 tests implemented** (82%)
+- 📊 Bao gồm: Auth, Products, Orders, Cart, Wishlist, Review, Payment, Notifications
+- 🧪 Tích hợp: Order-Merchant workflow, Notification queue
+- ⏱️ Thời gian chạy: ~30-60 giây (tùy môi trường)
 
 ---
 
