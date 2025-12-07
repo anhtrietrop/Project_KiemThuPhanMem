@@ -367,5 +367,3 @@ Nếu có câu hỏi không có trong docs:
 ## 🚀 LET'S GO!
 
 **Start here:** [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)
-
-Happy coding! 🎉

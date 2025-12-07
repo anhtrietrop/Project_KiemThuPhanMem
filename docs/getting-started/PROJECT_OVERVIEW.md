@@ -6,8 +6,6 @@ Thành viên nhóm:
 
 # Electronics eCommerce - Tách Admin và User
 
-> **📖 Xem [DOCUMENTATION_STRUCTURE.md](./DOCUMENTATION_STRUCTURE.md) để tìm hiểu toàn bộ tài liệu dự án**
-
 Dự án này đã được tách thành 3 phần riêng biệt:
 
 - **Frontend User**: Giao diện người dùng (shop, product, cart, checkout, wishlist)
