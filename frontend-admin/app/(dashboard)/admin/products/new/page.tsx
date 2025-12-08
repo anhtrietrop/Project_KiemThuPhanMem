@@ -17,7 +17,6 @@ const AddNewProduct = () => {
     quantity: number;
     mainImage: string;
     description: string;
-    slug: string;
     categoryId: string;
   }>({
     merchantId: "",
@@ -28,7 +27,6 @@ const AddNewProduct = () => {
     quantity: 0,
     mainImage: "",
     description: "",
-    slug: "",
     categoryId: "",
   });
   const [categories, setCategories] = useState<Category[]>([]);
@@ -69,7 +67,6 @@ const AddNewProduct = () => {
           quantity: 0,
           mainImage: "",
           description: "",
-          slug: "",
           categoryId: categories[0]?.id || "",
         });
       } else {
@@ -139,7 +136,6 @@ const AddNewProduct = () => {
           quantity: 0,
           mainImage: "",
           description: "",
-          slug: "",
           categoryId: data[0]?.id,
         });
       });
@@ -191,25 +187,6 @@ const AddNewProduct = () => {
               value={product?.title}
               onChange={(e) =>
                 setProduct({ ...product, title: e.target.value })
-              }
-            />
-          </label>
-        </div>
-
-        <div>
-          <label className="form-control w-full max-w-xs">
-            <div className="label">
-              <span className="label-text">Product slug:</span>
-            </div>
-            <input
-              type="text"
-              className="input input-bordered w-full max-w-xs"
-              value={convertSlugToURLFriendly(product?.slug)}
-              onChange={(e) =>
-                setProduct({
-                  ...product,
-                  slug: convertSlugToURLFriendly(e.target.value),
-                })
               }
             />
           </label>

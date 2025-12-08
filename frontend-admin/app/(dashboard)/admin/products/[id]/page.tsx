@@ -181,27 +181,6 @@ const DashboardProductDetails = ({
           </label>
         </div>
         {/* Product price input div - end */}
-        {/* Product slug input div - start */}
-
-        <div>
-          <label className="form-control w-full max-w-xs">
-            <div className="label">
-              <span className="label-text">Slug:</span>
-            </div>
-            <input
-              type="text"
-              className="input input-bordered w-full max-w-xs"
-              value={product?.slug ? convertSlugToURLFriendly(product?.slug) : ""}
-              onChange={(e) =>
-                setProduct({
-                  ...product!,
-                  slug: convertSlugToURLFriendly(e.target.value),
-                })
-              }
-            />
-          </label>
-        </div>
-        {/* Product slug input div - end */}
         {/* Product inStock select input div - start */}
 
         <div>
