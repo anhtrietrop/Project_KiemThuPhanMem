@@ -14,7 +14,7 @@ interface SummaryStats {
 const fetcher = (url: string) => apiClient.get(url).then((r) => r.json());
 
 export function useDashboardStats() {
-  const { data, error, isLoading } = useSWR<SummaryStats>("/api/dashboard/stats", fetcher, {
+  const { data, error, isLoading } = useSWR<SummaryStats>("/api/admin/dashboard/overview", fetcher, {
     refreshInterval: 60000, // refresh every 60s
   });
 
