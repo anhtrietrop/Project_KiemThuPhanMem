@@ -239,6 +239,25 @@ const DashboardProductDetails = ({
           </label>
         </div>
         {/* Product inStock select input div - end */}
+        {/* Product quantity input div - start */}
+        <div>
+          <label className="form-control w-full max-w-xs">
+            <div className="label">
+              <span className="label-text">Số lượng (Quantity):</span>
+            </div>
+            <input
+              type="number"
+              min="0"
+              placeholder="Nhập số lượng"
+              className="input input-bordered w-full max-w-xs"
+              value={product?.quantity ?? 0}
+              onChange={(e) =>
+                setProduct({ ...product!, quantity: Number(e.target.value) })
+              }
+            />
+          </label>
+        </div>
+        {/* Product quantity input div - end */}
         {/* Product category select input div - start */}
         <div>
           <label className="form-control w-full max-w-xs">
