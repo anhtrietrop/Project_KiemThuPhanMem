@@ -73,6 +73,11 @@ const corsOptions = {
       return callback(null, true);
     }
 
+    // Allow Vercel preview deployments
+    if (origin && origin.includes('.vercel.app')) {
+      return callback(null, true);
+    }
+
     if (
       process.env.NODE_ENV === "development" &&
       origin.startsWith("http://localhost:")
@@ -96,7 +101,7 @@ app.use(cors(corsOptions));
 app.use(fileUpload());
 
 // Serve static files from public directory (for local image uploads)
-app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 
 // Add request ID to all requests
 app.use(addRequestId);
