@@ -1,18 +1,28 @@
-const { uploadFileToCloudinary, deleteFromCloudinary, extractPublicIdFromUrl } = require("../utills/cloudinary");
+const { uploadFileToCloudinary, deleteFromCloudinary, extractPublicIdFromUrl, isCloudinaryConfigured } = require("../utills/cloudinary");
+const path = require('path');
+const fs = require('fs');
 
 /**
- * Upload main image to Cloudinary
+ * Upload main image to Cloudinary or local storage
  * POST /api/main-image
  * Body: multipart/form-data with uploadedFile
  */
 async function uploadMainImage(req, res) {
   try {
+    console.log('📸 Upload main image request received');
+    console.log('Files:', req.files ? Object.keys(req.files) : 'No files');
+    
     if (!req.files || Object.keys(req.files).length === 0) {
       return res.status(400).json({ message: "Không có file được tải lên" });
     }
 
     // Get file from request
     const uploadedFile = req.files.uploadedFile;
+    console.log('File details:', {
+      name: uploadedFile.name,
+      size: uploadedFile.size,
+      mimetype: uploadedFile.mimetype
+    });
 
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -30,20 +40,61 @@ async function uploadMainImage(req, res) {
       });
     }
 
-    // Upload to Cloudinary
-    const result = await uploadFileToCloudinary(uploadedFile, 'products/main');
+    // Check if Cloudinary is configured
+    if (isCloudinaryConfigured) {
+      console.log('☁️ Uploading to Cloudinary...');
+      try {
+        // Upload to Cloudinary
+        const result = await uploadFileToCloudinary(uploadedFile, 'products/main');
+        console.log('✅ Cloudinary upload successful:', result.url);
 
-    res.status(200).json({ 
-      message: "Tải ảnh lên thành công",
-      url: result.url,
-      publicId: result.publicId,
-      fileName: uploadedFile.name
+        return res.status(200).json({ 
+          message: "Tải ảnh lên thành công",
+          url: result.url,
+          publicId: result.publicId,
+          fileName: uploadedFile.name,
+          storage: 'cloudinary'
+        });
+      } catch (cloudinaryError) {
+        console.error('❌ Cloudinary upload failed:', cloudinaryError.message);
+        // Fall back to local storage
+        console.log('⚠️ Falling back to local storage...');
+      }
+    } else {
+      console.log('⚠️ Cloudinary not configured, using local storage');
+    }
+
+    // Fallback: Save to local storage
+    const uploadDir = path.join(__dirname, '..', 'public', 'uploads');
+    
+    // Create directory if not exists
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const uniqueName = `${Date.now()}_${uploadedFile.name}`;
+    const filePath = path.join(uploadDir, uniqueName);
+    
+    // Move file to upload directory
+    await uploadedFile.mv(filePath);
+    
+    const localUrl = `/uploads/${uniqueName}`;
+    console.log('✅ Local upload successful:', localUrl);
+
+    return res.status(200).json({ 
+      message: "Tải ảnh lên thành công (local)",
+      url: localUrl,
+      publicId: null,
+      fileName: uploadedFile.name,
+      storage: 'local'
     });
+
   } catch (error) {
-    console.error("Error uploading main image:", error);
+    console.error("❌ Error uploading main image:", error);
     res.status(500).json({ 
       message: "Lỗi khi tải ảnh lên",
-      error: error.message 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 }

@@ -1,6 +1,6 @@
 /**
  * Helper function to get the correct image source URL
- * Supports both Cloudinary URLs and local file paths
+ * Supports Cloudinary URLs, API URLs, and local file paths
  * 
  * @param imagePath - The image path or URL
  * @param fallback - Fallback image if imagePath is empty
@@ -11,9 +11,16 @@ export function getImageSrc(imagePath: string | null | undefined, fallback: stri
     return fallback;
   }
 
-  // If it's already a full URL (Cloudinary or any other), return as is
+  // If it's already a full URL (Cloudinary, API, or any other), return as is
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
     return imagePath;
+  }
+
+  // If it's an /uploads/ path from local backend storage
+  if (imagePath.startsWith('/uploads/')) {
+    // Prepend API base URL for backend-served images
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+    return apiBaseUrl ? `${apiBaseUrl}${imagePath}` : imagePath;
   }
 
   // If it's a local path, ensure it starts with /

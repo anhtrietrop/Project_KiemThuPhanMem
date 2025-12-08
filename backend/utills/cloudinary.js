@@ -1,11 +1,28 @@
 const cloudinary = require('cloudinary').v2;
 
 // Configure Cloudinary with environment variables
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+const apiKey = process.env.CLOUDINARY_API_KEY;
+const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+// Check if Cloudinary is configured
+const isCloudinaryConfigured = !!(cloudName && apiKey && apiSecret);
+
+if (isCloudinaryConfigured) {
+  cloudinary.config({
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
+  });
+  console.log('✅ Cloudinary configured successfully');
+} else {
+  console.warn('⚠️ Cloudinary not configured. Image uploads will fall back to local storage.');
+  console.warn('Missing env vars:', {
+    CLOUDINARY_CLOUD_NAME: !!cloudName,
+    CLOUDINARY_API_KEY: !!apiKey,
+    CLOUDINARY_API_SECRET: !!apiSecret
+  });
+}
 
 /**
  * Upload a file buffer to Cloudinary
@@ -49,6 +66,11 @@ async function uploadToCloudinary(fileBuffer, fileName, folder = 'products') {
  * @returns {Promise<Object>} - Cloudinary upload result
  */
 async function uploadFileToCloudinary(file, folder = 'products') {
+  // Check if Cloudinary is configured
+  if (!isCloudinaryConfigured) {
+    throw new Error('Cloudinary is not configured. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.');
+  }
+
   try {
     const result = await uploadToCloudinary(file.data, file.name, folder);
     return {
@@ -109,6 +131,14 @@ function isCloudinaryUrl(url) {
   return url && typeof url === 'string' && url.includes('cloudinary.com');
 }
 
+/**
+ * Check if Cloudinary is properly configured
+ * @returns {boolean}
+ */
+function checkCloudinaryConfig() {
+  return isCloudinaryConfigured;
+}
+
 module.exports = {
   cloudinary,
   uploadToCloudinary,
@@ -116,4 +146,6 @@ module.exports = {
   deleteFromCloudinary,
   extractPublicIdFromUrl,
   isCloudinaryUrl,
+  checkCloudinaryConfig,
+  isCloudinaryConfigured,
 };

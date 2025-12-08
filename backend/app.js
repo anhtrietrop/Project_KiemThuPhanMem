@@ -1,6 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const fileUpload = require("express-fileupload");
+const path = require("path");
 const productsRouter = require("./routes/products");
 const productImagesRouter = require("./routes/productImages");
 const categoryRouter = require("./routes/category");
@@ -93,6 +94,9 @@ const corsOptions = {
 app.use(express.json());
 app.use(cors(corsOptions));
 app.use(fileUpload());
+
+// Serve static files from public directory (for local image uploads)
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
 // Add request ID to all requests
 app.use(addRequestId);
