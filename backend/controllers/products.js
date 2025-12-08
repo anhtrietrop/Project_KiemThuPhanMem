@@ -2,7 +2,7 @@ const prisma = require("../utills/db"); // ✅ Use shared connection with SSL
 const { asyncHandler, handleServerError, AppError } = require("../utills/errorHandler");
 
 // Security: Define whitelists for allowed filter types and operators
-const ALLOWED_FILTER_TYPES = ['price', 'rating', 'category'];
+const ALLOWED_FILTER_TYPES = ['price', 'rating', 'category', 'quantity'];
 const ALLOWED_OPERATORS = ['gte', 'lte', 'gt', 'lt', 'equals', 'contains'];
 const ALLOWED_SORT_VALUES = ['defaultSort', 'titleAsc', 'titleDesc', 'lowPrice', 'highPrice'];
 
@@ -23,6 +23,7 @@ function validateAndSanitizeFilterValue(filterType, filterValue) {
   switch (filterType) {
     case 'price':
     case 'rating':
+    case 'quantity':
       // Parse numeric values
       const numericValue = Number(filterValue);
       if (isNaN(numericValue)) {
@@ -109,7 +110,8 @@ const getAllProducts = asyncHandler(async (request, response) => {
             filterType = "rating";
           } else if (queryParam.includes("category")) {
             filterType = "category";
-
+          } else if (queryParam.includes("quantity")) {
+            filterType = "quantity";
           } else {
             // Skip unknown filter types
             continue;
