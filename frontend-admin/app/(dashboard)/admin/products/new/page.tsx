@@ -255,21 +255,6 @@ const AddNewProduct = () => {
         <div>
           <label className="form-control w-full max-w-xs">
             <div className="label">
-              <span className="label-text">Manufacturer:</span>
-            </div>
-            <input
-              type="text"
-              className="input input-bordered w-full max-w-xs"
-              value={product?.manufacturer}
-              onChange={(e) =>
-                setProduct({ ...product, manufacturer: e.target.value })
-              }
-            />
-          </label>
-        </div>
-        <div>
-          <label className="form-control w-full max-w-xs">
-            <div className="label">
               <span className="label-text">Is product in stock?</span>
             </div>
             <select
