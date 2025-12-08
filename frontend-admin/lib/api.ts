@@ -1,4 +1,5 @@
 import config from './config';
+import { getSession } from 'next-auth/react';
 
 export const apiClient = {
   baseUrl: config.apiBaseUrl,
@@ -6,9 +7,13 @@ export const apiClient = {
   async request(endpoint: string, options: RequestInit = {}) {
     const url = `${this.baseUrl}${endpoint}`;
     
+    // Get session token for authentication
+    const session = await getSession();
+    
     const defaultOptions: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
+        ...(session?.user?.email ? { 'Authorization': `Bearer ${session.user.email}` } : {}),
         ...options.headers,
       },
     };
