@@ -2,14 +2,14 @@
 // Role of the component: Filters on shop page
 // Name of the component: Filters.tsx
 // Developer: Aleksandar Kuzmanovic
-// Version: 2.0 - Updated with VND currency, improved UI
+// Version: 2.1 - Added Apply Filter button, improved UX
 // Component call: <Filters />
 // Input parameters: no input parameters
 // Output: stock, rating and price filter
 // *********************
 
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState, useCallback } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useSortStore } from "@/app/_zustand/sortStore";
@@ -31,9 +31,10 @@ const PRICE_STEP = 100000; // 100k VND step
 const Filters = () => {
   const pathname = usePathname();
   const { replace } = useRouter();
+  const searchParams = useSearchParams();
 
   // getting current page number from Zustand store
-  const { page } = usePaginationStore();
+  const { resetPage } = usePaginationStore();
 
   const [inputCategory, setInputCategory] = useState<InputCategory>({
     inStock: { text: "instock", isChecked: true },
@@ -41,19 +42,41 @@ const Filters = () => {
     priceFilter: { text: "price", value: MAX_PRICE },
     ratingFilter: { text: "rating", value: 0 },
   });
+  
+  const [hasChanges, setHasChanges] = useState(false);
   const { sortBy } = useSortStore();
 
-  useEffect(() => {
+  // Handle filter changes - mark as having changes
+  const handleFilterChange = (newCategory: InputCategory) => {
+    setInputCategory(newCategory);
+    setHasChanges(true);
+  };
+
+  // Apply filters when button is clicked
+  const applyFilters = useCallback(() => {
     const params = new URLSearchParams();
-    // setting URL params and after that putting them all in URL
     params.set("outOfStock", inputCategory.outOfStock.isChecked.toString());
     params.set("inStock", inputCategory.inStock.isChecked.toString());
     params.set("rating", inputCategory.ratingFilter.value.toString());
     params.set("price", inputCategory.priceFilter.value.toString());
     params.set("sort", sortBy);
-    params.set("page", page.toString());
+    params.set("page", "1"); // Reset to page 1 when applying new filters
+    resetPage(); // Reset page in store
     replace(`${pathname}?${params}`);
-  }, [inputCategory, sortBy, page, pathname, replace]);
+    setHasChanges(false);
+  }, [inputCategory, sortBy, pathname, replace, resetPage]);
+
+  // Reset filters
+  const resetFilters = () => {
+    const defaultFilters = {
+      inStock: { text: "instock", isChecked: true },
+      outOfStock: { text: "outofstock", isChecked: true },
+      priceFilter: { text: "price", value: MAX_PRICE },
+      ratingFilter: { text: "rating", value: 0 },
+    };
+    setInputCategory(defaultFilters);
+    setHasChanges(true);
+  };
 
   return (
     <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
@@ -68,7 +91,7 @@ const Filters = () => {
               type="checkbox"
               checked={inputCategory.inStock.isChecked}
               onChange={() =>
-                setInputCategory({
+                handleFilterChange({
                   ...inputCategory,
                   inStock: {
                     text: "instock",
@@ -89,7 +112,7 @@ const Filters = () => {
               type="checkbox"
               checked={inputCategory.outOfStock.isChecked}
               onChange={() =>
-                setInputCategory({
+                handleFilterChange({
                   ...inputCategory,
                   outOfStock: {
                     text: "outofstock",
@@ -123,7 +146,7 @@ const Filters = () => {
             aria-label="Lọc theo giá"
             title="Lọc theo giá"
             onChange={(e) =>
-              setInputCategory({
+              handleFilterChange({
                 ...inputCategory,
                 priceFilter: {
                   text: "price",
@@ -145,7 +168,7 @@ const Filters = () => {
                 key={price}
                 type="button"
                 onClick={() =>
-                  setInputCategory({
+                  handleFilterChange({
                     ...inputCategory,
                     priceFilter: { text: "price", value: price },
                   })
@@ -175,7 +198,7 @@ const Filters = () => {
             max={5}
             value={inputCategory.ratingFilter.value}
             onChange={(e) =>
-              setInputCategory({
+              handleFilterChange({
                 ...inputCategory,
                 ratingFilter: { text: "rating", value: Number(e.target.value) },
               })
@@ -195,7 +218,7 @@ const Filters = () => {
                     : ""
                 }`}
                 onClick={() =>
-                  setInputCategory({
+                  handleFilterChange({
                     ...inputCategory,
                     ratingFilter: { text: "rating", value: num },
                   })
@@ -217,18 +240,29 @@ const Filters = () => {
         </div>
       </div>
 
-      {/* Reset Filters Button */}
-      <div className="mt-6">
+      {/* Action Buttons */}
+      <div className="mt-6 space-y-2">
+        {/* Apply Filter Button */}
         <button
           type="button"
-          onClick={() =>
-            setInputCategory({
-              inStock: { text: "instock", isChecked: true },
-              outOfStock: { text: "outofstock", isChecked: true },
-              priceFilter: { text: "price", value: MAX_PRICE },
-              ratingFilter: { text: "rating", value: 0 },
-            })
-          }
+          onClick={applyFilters}
+          disabled={!hasChanges}
+          className={`w-full py-3 px-4 rounded-lg transition-all duration-200 text-sm font-semibold flex items-center justify-center gap-2 ${
+            hasChanges
+              ? "bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          }`}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+          Áp dụng bộ lọc
+        </button>
+
+        {/* Reset Filters Button */}
+        <button
+          type="button"
+          onClick={resetFilters}
           className="w-full py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors text-sm font-medium"
         >
           Đặt lại bộ lọc
