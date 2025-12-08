@@ -63,8 +63,8 @@ export default function DashboardProductsTable({ rows, onSortChange }: Props) {
                     <span className="text-sm text-slate-600">{p.quantity} sản phẩm</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <Badge variant={p.inStock ? "success" : "danger"} size="sm">
-                      {p.inStock ? "Còn hàng" : "Hết hàng"}
+                    <Badge variant={(p.quantity ?? 0) > 0 ? "success" : "danger"} size="sm">
+                      {(p.quantity ?? 0) > 0 ? "Còn hàng" : "Hết hàng"}
                     </Badge>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">

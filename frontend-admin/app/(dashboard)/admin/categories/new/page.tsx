@@ -12,15 +12,11 @@ const DashboardNewCategoryPage = () => {
 
   const addNewCategory = () => {
     if (categoryInput.name.length > 0) {
-      const requestOptions = {
-        method: "post",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: convertCategoryNameToURLFriendly(categoryInput.name),
-        }),
+      const categoryData = {
+        name: convertCategoryNameToURLFriendly(categoryInput.name),
       };
       // sending API request for creating new cateogry
-      apiClient.post(`/api/categories`, requestOptions)
+      apiClient.post(`/api/categories`, categoryData)
         .then((response) => {
           if (response.status === 201) {
             return response.json();

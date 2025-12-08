@@ -51,7 +51,7 @@ const AddToWishlistBtn = ({ product, slug }: AddToWishlistBtnProps) => {
             price: product?.price,
             image: product?.mainImage,
             slug: product?.slug,
-            stockAvailabillity: product?.inStock,
+            stockAvailabillity: (product?.quantity ?? 0) > 0 ? 1 : 0,
           });
           toast.success("Product added to the wishlist");
         } else {

@@ -36,6 +36,15 @@ export const apiClient = {
     
   delete: (endpoint: string, options?: RequestInit) =>
     apiClient.request(endpoint, { ...options, method: 'DELETE' }),
+    
+  // Special method for FormData (file uploads) - doesn't set Content-Type header
+  postFormData: (endpoint: string, formData: FormData) => {
+    const url = `${apiClient.baseUrl}${endpoint}`;
+    return fetch(url, {
+      method: 'POST',
+      body: formData,
+    });
+  },
 };
 
 export default apiClient;

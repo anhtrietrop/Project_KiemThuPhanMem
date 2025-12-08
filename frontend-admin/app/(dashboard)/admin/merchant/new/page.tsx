@@ -37,11 +37,7 @@ export default function NewMerchantPage() {
     setIsSubmitting(true);
     
     try {
-      const response = await apiClient.post("/api/merchants", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const response = await apiClient.post("/api/merchants", formData);
 
       if (!response.ok) {
         throw new Error("Failed to create merchant");
