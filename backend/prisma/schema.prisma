@@ -17,7 +17,7 @@ model Product {
   costPrice      Float?
   quantity       Int                      @default(0)
   rating         Int                      @default(0)
-  description    String
+  description    String                   @db.Text
   manufacturer   String
   categoryId     String
   merchantId     String
