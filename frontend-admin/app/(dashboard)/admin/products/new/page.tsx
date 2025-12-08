@@ -38,8 +38,7 @@ const AddNewProduct = () => {
       !product.merchantId ||
       product.title === "" ||
       product.manufacturer === "" ||
-      product.description == "" ||
-      product.slug === ""
+      product.description == ""
     ) {
       toast.error("Please enter values in input fields");
       return;
