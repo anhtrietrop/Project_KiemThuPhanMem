@@ -14,6 +14,7 @@ const AddNewProduct = () => {
     price: number;
     manufacturer: string;
     inStock: number;
+    quantity: number;
     mainImage: string;
     description: string;
     slug: string;
@@ -24,6 +25,7 @@ const AddNewProduct = () => {
     price: 0,
     manufacturer: "",
     inStock: 1,
+    quantity: 0,
     mainImage: "",
     description: "",
     slug: "",
@@ -278,6 +280,23 @@ const AddNewProduct = () => {
               <option value={1}>Yes</option>
               <option value={0}>No</option>
             </select>
+          </label>
+        </div>
+        <div>
+          <label className="form-control w-full max-w-xs">
+            <div className="label">
+              <span className="label-text">Số lượng (Quantity)</span>
+            </div>
+            <input
+              type="number"
+              min="0"
+              placeholder="Nhập số lượng sản phẩm"
+              className="input input-bordered w-full"
+              value={product?.quantity || 0}
+              onChange={(e) =>
+                setProduct({ ...product, quantity: Number(e.target.value) })
+              }
+            />
           </label>
         </div>
         <div>
