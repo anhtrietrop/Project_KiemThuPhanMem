@@ -20,6 +20,7 @@ import { deleteWishItem } from "@/app/actions";
 import { useSession } from "next-auth/react";
 import apiClient from "@/lib/api";
 import { sanitize } from "@/lib/sanitize";
+import { getImageSrc } from "@/utils/imageHelper";
 
 interface wishItemStateTrackers {
   setIsWishItemDeleted: any;
@@ -80,7 +81,7 @@ const WishItem = ({
       <th>
         <div className="w-12 h-12 mx-auto" onClick={() => openProduct(slug)}>
           <Image
-            src={`/${image}`}
+            src={getImageSrc(image)}
             width={200}
             height={200}
             className="w-auto h-auto"

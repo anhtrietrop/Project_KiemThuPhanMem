@@ -17,6 +17,7 @@ import CustomButton from "./CustomButton";
 import apiClient from "@/lib/api";
 import { sanitize } from "@/lib/sanitize";
 import { formatCurrencyVND } from "@/utils/currency";
+import { getImageSrc } from "@/utils/imageHelper";
 
 const DashboardProductTable = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -81,7 +82,7 @@ const DashboardProductTable = () => {
                           <Image
                             width={48}
                             height={48}
-                            src={product?.mainImage ? `/${product?.mainImage}` : "/product_placeholder.jpg"}
+                            src={getImageSrc(product?.mainImage)}
                             alt={sanitize(product?.title) || "Product image"}
                             className="w-auto h-auto"
                           />

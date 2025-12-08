@@ -2,6 +2,7 @@
 import apiClient from "@/lib/api";
 import { convertCategoryNameToURLFriendly as convertSlugToURLFriendly } from "@/utils/categoryFormating";
 import { sanitizeFormData } from "@/lib/form-sanitize";
+import { getImageSrc } from "@/utils/imageHelper";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -30,6 +31,8 @@ const AddNewProduct = () => {
   });
   const [categories, setCategories] = useState<Category[]>([]);
   const [merchants, setMerchants] = useState<Merchant[]>([]);
+  const [uploading, setUploading] = useState(false);
+  
   const addProduct = async () => {
     if (
       !product.merchantId ||
@@ -94,17 +97,26 @@ const AddNewProduct = () => {
   const uploadFile = async (file: File) => {
     const formData = new FormData();
     formData.append("uploadedFile", file);
+    setUploading(true);
 
     try {
       const response = await apiClient.postFormData("/api/main-image", formData);
 
       if (response.ok) {
-        await response.json();
+        const data = await response.json();
+        // Lưu Cloudinary URL thay vì tên file
+        setProduct(prev => ({ ...prev, mainImage: data.url }));
+        toast.success("Tải ảnh lên thành công!");
       } else {
-        console.error("File upload unsuccessful");
+        const errorData = await response.json();
+        console.error("File upload unsuccessful:", errorData);
+        toast.error(errorData.message || "Lỗi khi tải ảnh lên");
       }
     } catch (error) {
-      console.error("Error happend while sending request:", error);
+      console.error("Error happened while sending request:", error);
+      toast.error("Lỗi kết nối khi tải ảnh lên");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -269,23 +281,40 @@ const AddNewProduct = () => {
           </label>
         </div>
         <div>
-          <input
-          aria-label="img"
-            type="file"
-            className="file-input file-input-bordered file-input-lg w-full max-w-sm"
-            onChange={(e: any) => {
-              uploadFile(e.target.files[0]);
-              setProduct({ ...product, mainImage: e.target.files[0].name });
-            }}
-          />
-          {product?.mainImage && (
-            <Image
-              src={`/` + product?.mainImage}
-              alt={product?.title}
-              className="w-auto h-auto"
-              width={100}
-              height={100}
+          <label className="form-control w-full max-w-sm">
+            <div className="label">
+              <span className="label-text">Ảnh sản phẩm (Upload lên Cloudinary):</span>
+            </div>
+            <input
+              aria-label="img"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="file-input file-input-bordered file-input-lg w-full"
+              disabled={uploading}
+              onChange={(e: any) => {
+                if (e.target.files?.[0]) {
+                  uploadFile(e.target.files[0]);
+                }
+              }}
             />
+            {uploading && (
+              <div className="flex items-center gap-2 mt-2 text-blue-600">
+                <span className="loading loading-spinner loading-sm"></span>
+                <span>Đang tải ảnh lên Cloudinary...</span>
+              </div>
+            )}
+          </label>
+          {product?.mainImage && (
+            <div className="mt-3">
+              <p className="text-sm text-gray-500 mb-2">Xem trước:</p>
+              <Image
+                src={getImageSrc(product.mainImage)}
+                alt={product?.title || "Product preview"}
+                className="w-auto h-auto rounded-lg border"
+                width={150}
+                height={150}
+              />
+            </div>
           )}
         </div>
         <div>
@@ -306,6 +335,7 @@ const AddNewProduct = () => {
           <button
             onClick={addProduct}
             type="button"
+            disabled={uploading}
             className="uppercase bg-blue-500 px-10 py-5 text-lg border border-black border-gray-300 font-bold text-white shadow-sm hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2"
           >
             Add product

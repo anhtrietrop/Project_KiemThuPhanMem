@@ -10,6 +10,7 @@ import {
 } from "../../../../../utils/categoryFormating";
 import { nanoid } from "nanoid";
 import apiClient from "@/lib/api";
+import { getImageSrc } from "@/utils/imageHelper";
 
 interface DashboardProductDetailsProps {
   params: Promise<{ id: string }>;
@@ -24,6 +25,7 @@ const DashboardProductDetails = ({
   const [product, setProduct] = useState<Product>();
   const [categories, setCategories] = useState<Category[]>();
   const [otherImages, setOtherImages] = useState<OtherImages[]>([]);
+  const [uploading, setUploading] = useState(false);
   const router = useRouter();
 
   // functionality for deleting product
@@ -84,18 +86,25 @@ const DashboardProductDetails = ({
   const uploadFile = async (file: File) => {
     const formData = new FormData();
     formData.append("uploadedFile", file);
+    setUploading(true);
 
     try {
       const response = await apiClient.postFormData("/api/main-image", formData);
 
       if (response.ok) {
-        await response.json();
+        const data = await response.json();
+        // Lưu Cloudinary URL thay vì tên file
+        setProduct(prev => prev ? { ...prev, mainImage: data.url } : prev);
+        toast.success("Tải ảnh lên thành công!");
       } else {
-        toast.error("File upload unsuccessful.");
+        const errorData = await response.json();
+        toast.error(errorData.message || "Lỗi khi tải ảnh lên");
       }
     } catch (error) {
       console.error("There was an error while during request sending:", error);
-      toast.error("There was an error during request sending");
+      toast.error("Lỗi kết nối khi tải ảnh lên");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -261,30 +270,38 @@ const DashboardProductDetails = ({
         <div>
           <label className="form-control w-full max-w-sm">
             <div className="label">
-              <span className="label-text">Main image:</span>
+              <span className="label-text">Ảnh chính (Upload lên Cloudinary):</span>
             </div>
             <input
               type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
               className="file-input file-input-bordered file-input-lg w-full max-w-sm"
+              disabled={uploading}
               onChange={(e) => {
-                // @ts-ignore
-                const selectedFile = e.target.files[0];
-
+                const selectedFile = e.target.files?.[0];
                 if (selectedFile) {
                   uploadFile(selectedFile);
-                  setProduct({ ...product!, mainImage: selectedFile.name });
                 }
               }}
             />
+            {uploading && (
+              <div className="flex items-center gap-2 mt-2 text-blue-600">
+                <span className="loading loading-spinner loading-sm"></span>
+                <span>Đang tải ảnh lên Cloudinary...</span>
+              </div>
+            )}
           </label>
           {product?.mainImage && (
-            <Image
-              src={`/` + product?.mainImage}
-              alt={product?.title}
-              className="w-auto h-auto mt-2"
-              width={100}
-              height={100}
-            />
+            <div className="mt-3">
+              <p className="text-sm text-gray-500 mb-2">Xem trước:</p>
+              <Image
+                src={getImageSrc(product.mainImage)}
+                alt={product?.title || "Product image"}
+                className="w-auto h-auto rounded-lg border"
+                width={150}
+                height={150}
+              />
+            </div>
           )}
         </div>
         {/* Main image file upload div - end */}
@@ -293,12 +310,12 @@ const DashboardProductDetails = ({
           {otherImages &&
             otherImages.map((image) => (
               <Image
-                src={`/${image.image}`}
+                src={getImageSrc(image.image)}
                 key={nanoid()}
                 alt="product image"
                 width={100}
                 height={100}
-                className="w-auto h-auto"
+                className="w-auto h-auto rounded border"
               />
             ))}
         </div>

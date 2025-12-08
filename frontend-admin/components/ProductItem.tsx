@@ -14,6 +14,7 @@ import Link from "next/link";
 import ProductItemRating from "./ProductItemRating";
 import { sanitize } from "@/lib/sanitize";
 import { formatCurrencyVND } from "@/utils/currency";
+import { getImageSrc } from "@/utils/imageHelper";
 
 const ProductItem = ({
   product,
@@ -26,11 +27,7 @@ const ProductItem = ({
     <div className="flex flex-col items-center gap-y-2">
       <Link href={`/product/${product.slug}`}>
         <Image
-          src={
-            product.mainImage
-              ? `/${product.mainImage}`
-              : "/product_placeholder.jpg"
-          }
+          src={getImageSrc(product.mainImage)}
           width="0"
           height="0"
           sizes="100vw"

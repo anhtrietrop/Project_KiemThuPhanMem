@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { formatCurrencyVND } from "@/utils/currency";
+import { getImageSrc } from "@/utils/imageHelper";
 
 interface OrderProduct {
     id: string;
@@ -223,7 +224,7 @@ const CustomerOrderDetail = () => {
                         {orderProducts?.map((product) => (
                             <div key={product?.id} className="flex items-center gap-4 p-4 border rounded-lg">
                                 <Image
-                                    src={product?.product?.mainImage ? `/${product?.product?.mainImage}` : "/product_placeholder.jpg"}
+                                    src={getImageSrc(product?.product?.mainImage)}
                                     alt={product?.product?.title}
                                     width={80}
                                     height={80}
