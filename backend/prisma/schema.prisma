@@ -10,7 +10,7 @@ datasource db {
 
 model Product {
   id             String                   @id @default(uuid())
-  slug           String                   @unique(map: "Product_slug_key")
+  slug           String?                  @unique(map: "Product_slug_key")
   title          String
   mainImage      String
   price          Float?                   @default(0)
@@ -18,7 +18,7 @@ model Product {
   quantity       Int                      @default(0)
   rating         Int                      @default(0)
   description    String                   @db.Text
-  manufacturer   String
+  manufacturer   String?
   categoryId     String
   merchantId     String
   cartitem       cartitem[]
