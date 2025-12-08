@@ -1,7 +1,6 @@
 import {
   StockAvailabillity,
   UrgencyText,
-  SingleProductRating,
   ProductTabs,
   SingleProductDynamicFields,
   AddToWishlistBtn,
@@ -71,7 +70,6 @@ const SingleProductPage = async ({ params }: SingleProductPageProps) => {
             </div>
           </div>
           <div className="flex flex-col gap-y-7 text-black max-[500px]:text-center">
-            <SingleProductRating rating={product?.rating} />
             <h1 className="text-3xl">{sanitize(product?.title)}</h1>
             <p className="text-xl font-semibold">{formatCurrencyVND(product?.price)}</p>
             <StockAvailabillity stock={product?.quantity} />
