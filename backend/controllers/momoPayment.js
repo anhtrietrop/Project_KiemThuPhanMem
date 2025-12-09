@@ -412,50 +412,37 @@ async function handlePaymentCallback(req, res) {
 }
 
 // ================= QUERY PAYMENT STATUS =================
-async function queryPaymentStatus(req, res) {
+async function queryPaymentStatus(orderId) {
   try {
-    const { orderId } = req.params;
-
     const payment = await prisma.momopayment.findFirst({
       where: { orderId: orderId },
       orderBy: { createdAt: 'desc' }
     });
 
     if (!payment) {
-      return res.status(404).json({
-        success: false,
-        message: 'Payment not found'
-      });
+      throw new Error('Payment not found');
     }
 
-    return res.status(200).json({
-      success: true,
-      data: {
-        orderId: payment.orderId,
-        requestId: payment.requestId,
-        amount: payment.amount,
-        status: payment.status,
-        payUrl: payment.payUrl,
-        deeplink: payment.deeplink,
-        qrCodeUrl: payment.qrCodeUrl,
-        transId: payment.transId,
-        resultCode: payment.resultCode,
-        message: payment.message,
-        payType: payment.payType,
-        createdAt: payment.createdAt,
-        updatedAt: payment.updatedAt
-      }
-    });
+    return {
+      orderId: payment.orderId,
+      requestId: payment.requestId,
+      amount: payment.amount,
+      status: payment.status,
+      payUrl: payment.payUrl,
+      deeplink: payment.deeplink,
+      qrCodeUrl: payment.qrCodeUrl,
+      transId: payment.transId,
+      resultCode: payment.resultCode,
+      message: payment.message,
+      payType: payment.payType,
+      createdAt: payment.createdAt,
+      updatedAt: payment.updatedAt
+    };
 
   } catch (error) {
     console.error('\n=== Query Status Error ===');
     console.error(error);
-
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: error.message
-    });
+    throw error;
   }
 }
 
