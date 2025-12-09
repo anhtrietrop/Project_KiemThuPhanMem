@@ -17,8 +17,10 @@ const PRODUCTS_PER_PAGE = 12;
 
 const Products = async ({ params, searchParams }: { params: { slug?: string[] }, searchParams: { [key: string]: string | string[] | undefined } }) => {
   // getting all data from URL slug and preparing everything for sending GET request
-  const inStockChecked = searchParams?.inStock === "true";
-  const outOfStockChecked = searchParams?.outOfStock === "true";
+  // Default to showing all products (both in stock and out of stock) when no filter params
+  const hasStockFilter = searchParams?.inStock !== undefined || searchParams?.outOfStock !== undefined;
+  const inStockChecked = hasStockFilter ? searchParams?.inStock === "true" : true;
+  const outOfStockChecked = hasStockFilter ? searchParams?.outOfStock === "true" : true;
   const page = searchParams?.page ? Number(searchParams?.page) : 1;
   const minPrice = searchParams?.minPrice ? Number(searchParams?.minPrice) : 0;
   const maxPrice = searchParams?.maxPrice ? Number(searchParams?.maxPrice) : null; // null = unlimited
@@ -29,7 +31,7 @@ const Products = async ({ params, searchParams }: { params: { slug?: string[] },
   let quantityFilter = "";
 
   if (inStockChecked && outOfStockChecked) {
-    // Both checked: show all products (quantity >= 0)
+    // Both checked or no filter: show all products (quantity >= 0)
     quantityFilter = "filters[quantity][$gte]=0";
   } else if (inStockChecked && !outOfStockChecked) {
     // Only in stock: show products with quantity > 0
