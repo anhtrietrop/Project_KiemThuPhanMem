@@ -20,7 +20,9 @@ const Products = async ({ params, searchParams }: { params: { slug?: string[] },
   const inStockChecked = searchParams?.inStock === "true";
   const outOfStockChecked = searchParams?.outOfStock === "true";
   const page = searchParams?.page ? Number(searchParams?.page) : 1;
-  const maxPrice = searchParams?.price ? Number(searchParams?.price) : 10000000;
+  const minPrice = searchParams?.minPrice ? Number(searchParams?.minPrice) : 0;
+  const maxPrice = searchParams?.maxPrice ? Number(searchParams?.maxPrice) : null; // null = unlimited
+  const categoryId = searchParams?.category ? String(searchParams?.category) : null;
 
   // Build quantity filter based on stock checkbox selections
   // quantity > 0 means in stock, quantity = 0 means out of stock
@@ -40,27 +42,28 @@ const Products = async ({ params, searchParams }: { params: { slug?: string[] },
     quantityFilter = "filters[quantity][$lt]=0";
   }
 
+  // Build price filter
+  let priceFilter = `filters[price][$gte]=${minPrice}`;
+  if (maxPrice !== null) {
+    priceFilter += `&filters[price][$lte]=${maxPrice}`;
+  }
+
+  // Build category filter - prioritize URL param over slug
+  let categoryFilter = "";
+  if (categoryId) {
+    categoryFilter = `&filters[category][$equals]=${categoryId}`;
+  } else if (params?.slug && params.slug.length > 0) {
+    categoryFilter = `&filters[category][$equals]=${params?.slug}`;
+  }
+
   let products = [];
   let totalProducts = 0;
 
   try {
-    // First, get count of all matching products (without pagination)
-    const countUrl = `/api/products?filters[price][$lte]=${maxPrice}&filters[rating][$gte]=${
-      Number(searchParams?.rating) || 0
-    }&${quantityFilter}${
-      params?.slug?.length! > 0
-        ? `&filters[category][$equals]=${params?.slug}`
-        : ""
-    }&sort=${searchParams?.sort || 'defaultSort'}&page=1&count=true`;
-
     // Get paginated products
-    const apiUrl = `/api/products?filters[price][$lte]=${maxPrice}&filters[rating][$gte]=${
+    const apiUrl = `/api/products?${priceFilter}&filters[rating][$gte]=${
       Number(searchParams?.rating) || 0
-    }&${quantityFilter}${
-      params?.slug?.length! > 0
-        ? `&filters[category][$equals]=${params?.slug}`
-        : ""
-    }&sort=${searchParams?.sort || 'defaultSort'}&page=${page}`;
+    }&${quantityFilter}${categoryFilter}&sort=${searchParams?.sort || 'defaultSort'}&page=${page}`;
     
     const data = await apiClient.get(apiUrl);
 
