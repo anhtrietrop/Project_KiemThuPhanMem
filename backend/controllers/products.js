@@ -6,7 +6,7 @@ const {
 } = require("../utills/errorHandler");
 
 // Security: Define whitelists for allowed filter types and operators
-const ALLOWED_FILTER_TYPES = ["price", "rating", "category", "quantity"];
+const ALLOWED_FILTER_TYPES = ["price", "rating", "category", "quantity", "inStock"];
 const ALLOWED_OPERATORS = ["gte", "lte", "gt", "lt", "equals", "contains"];
 const ALLOWED_SORT_VALUES = [
   "defaultSort",
@@ -34,6 +34,7 @@ function validateAndSanitizeFilterValue(filterType, filterValue) {
     case "price":
     case "rating":
     case "quantity":
+    case "inStock":
       // Parse numeric values
       const numericValue = Number(filterValue);
       if (isNaN(numericValue)) {
@@ -80,7 +81,9 @@ function buildSafeFilterObject(filterArray) {
     }
 
     // Build safe filter object
-    filterObj[item.filterType] = {
+    // Map inStock to quantity for database query
+    const dbFieldName = item.filterType === "inStock" ? "quantity" : item.filterType;
+    filterObj[dbFieldName] = {
       [item.filterOperator]: sanitizedValue,
     };
   }
@@ -127,6 +130,8 @@ const getAllProducts = asyncHandler(async (request, response) => {
             filterType = "category";
           } else if (queryParam.includes("quantity")) {
             filterType = "quantity";
+          } else if (queryParam.includes("inStock")) {
+            filterType = "inStock";
           } else {
             // Skip unknown filter types
             continue;
