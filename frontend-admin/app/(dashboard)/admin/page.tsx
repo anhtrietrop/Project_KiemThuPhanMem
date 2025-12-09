@@ -1,14 +1,11 @@
 "use client";
 import React from "react";
-import DashboardSummary from "@/components/dashboard/DashboardSummary";
 import DashboardOrdersTable from "@/components/dashboard/DashboardOrdersTable";
 import DashboardProductsTable from "@/components/dashboard/DashboardProductsTable";
-import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useRecentOrders } from "@/hooks/useRecentOrders";
 import { useTopProducts } from "@/hooks/useTopProducts";
 
 const AdminDashboardPage = () => {
-  const { stats, isLoading: statsLoading } = useDashboardStats();
   const { orders, isLoading: ordersLoading } = useRecentOrders(10);
   const { products, isLoading: productsLoading } = useTopProducts(10);
 
@@ -35,15 +32,6 @@ const AdminDashboardPage = () => {
 
       {/* Content */}
       <div className="p-8 space-y-8">
-        {/* Stats */}
-        {statsLoading ? (
-          <div className="skeleton h-32 w-full"></div>
-        ) : stats ? (
-          <DashboardSummary stats={stats} />
-        ) : (
-          <div className="alert alert-warning">Không tải được thống kê</div>
-        )}
-
         {/* Tables Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           <div>

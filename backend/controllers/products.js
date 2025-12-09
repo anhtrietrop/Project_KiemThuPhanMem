@@ -1,10 +1,20 @@
 const prisma = require("../utills/db"); // ✅ Use shared connection with SSL
-const { asyncHandler, handleServerError, AppError } = require("../utills/errorHandler");
+const {
+  asyncHandler,
+  handleServerError,
+  AppError,
+} = require("../utills/errorHandler");
 
 // Security: Define whitelists for allowed filter types and operators
-const ALLOWED_FILTER_TYPES = ['price', 'rating', 'category', 'quantity'];
-const ALLOWED_OPERATORS = ['gte', 'lte', 'gt', 'lt', 'equals', 'contains'];
-const ALLOWED_SORT_VALUES = ['defaultSort', 'titleAsc', 'titleDesc', 'lowPrice', 'highPrice'];
+const ALLOWED_FILTER_TYPES = ["price", "rating", "category", "quantity", "inStock"];
+const ALLOWED_OPERATORS = ["gte", "lte", "gt", "lt", "equals", "contains"];
+const ALLOWED_SORT_VALUES = [
+  "defaultSort",
+  "titleAsc",
+  "titleDesc",
+  "lowPrice",
+  "highPrice",
+];
 
 // Security: Input validation functions
 function validateFilterType(filterType) {
@@ -21,18 +31,19 @@ function validateSortValue(sortValue) {
 
 function validateAndSanitizeFilterValue(filterType, filterValue) {
   switch (filterType) {
-    case 'price':
-    case 'rating':
-    case 'quantity':
+    case "price":
+    case "rating":
+    case "quantity":
+    case "inStock":
       // Parse numeric values
       const numericValue = Number(filterValue);
       if (isNaN(numericValue)) {
         return null;
       }
       return numericValue;
-      
-    case 'category':
-      return typeof filterValue === 'string' && filterValue.trim().length > 0
+
+    case "category":
+      return typeof filterValue === "string" && filterValue.trim().length > 0
         ? filterValue.trim()
         : null;
     default:
@@ -58,14 +69,21 @@ function buildSafeFilterObject(filterArray) {
     }
 
     // Validate and sanitize filter value
-    const sanitizedValue = validateAndSanitizeFilterValue(item.filterType, item.filterValue);
+    const sanitizedValue = validateAndSanitizeFilterValue(
+      item.filterType,
+      item.filterValue
+    );
     if (sanitizedValue === null) {
-      console.warn(`Invalid filter value for ${item.filterType}: ${item.filterValue}`);
+      console.warn(
+        `Invalid filter value for ${item.filterType}: ${item.filterValue}`
+      );
       continue;
     }
 
     // Build safe filter object
-    filterObj[item.filterType] = {
+    // Map inStock to quantity for database query
+    const dbFieldName = item.filterType === "inStock" ? "quantity" : item.filterType;
+    filterObj[dbFieldName] = {
       [item.filterOperator]: sanitizedValue,
     };
   }
@@ -88,7 +106,7 @@ const getAllProducts = asyncHandler(async (request, response) => {
 
     // getting current page with validation
     const page = Number(request.query.page);
-    const validatedPage = (page && page > 0) ? page : 1;
+    const validatedPage = page && page > 0 ? page : 1;
 
     if (dividerLocation !== -1) {
       const queryArray = request.url
@@ -112,6 +130,8 @@ const getAllProducts = asyncHandler(async (request, response) => {
             filterType = "category";
           } else if (queryParam.includes("quantity")) {
             filterType = "quantity";
+          } else if (queryParam.includes("inStock")) {
+            filterType = "inStock";
           } else {
             // Skip unknown filter types
             continue;
@@ -120,7 +140,9 @@ const getAllProducts = asyncHandler(async (request, response) => {
 
         if (queryParam.includes("sort")) {
           // Security: Validate sort value
-          const extractedSortValue = queryParam.substring(queryParam.indexOf("=") + 1);
+          const extractedSortValue = queryParam.substring(
+            queryParam.indexOf("=") + 1
+          );
           if (validateSortValue(extractedSortValue)) {
             sortByValue = extractedSortValue;
           }
@@ -134,7 +156,9 @@ const getAllProducts = asyncHandler(async (request, response) => {
           if (filterType === "category") {
             filterValue = queryParam.substring(queryParam.indexOf("=") + 1);
           } else {
-            const numValue = parseInt(queryParam.substring(queryParam.indexOf("=") + 1));
+            const numValue = parseInt(
+              queryParam.substring(queryParam.indexOf("=") + 1)
+            );
             filterValue = isNaN(numValue) ? null : numValue;
           }
 
@@ -143,14 +167,17 @@ const getAllProducts = asyncHandler(async (request, response) => {
           const operatorEnd = queryParam.indexOf("=") - 1;
 
           if (operatorStart > 0 && operatorEnd > operatorStart) {
-            const filterOperator = queryParam.substring(operatorStart, operatorEnd);
+            const filterOperator = queryParam.substring(
+              operatorStart,
+              operatorEnd
+            );
 
             // Only add to filter array if all values are valid
             if (filterValue !== null && filterOperator) {
               filterArray.push({
                 filterType,
                 filterOperator,
-                filterValue
+                filterValue,
               });
             }
           }
@@ -272,7 +299,6 @@ const createProduct = asyncHandler(async (request, response) => {
     description,
     manufacturer,
     categoryId,
-
   } = request.body;
 
   if (!title) {
@@ -314,7 +340,6 @@ const createProduct = asyncHandler(async (request, response) => {
       description,
       manufacturer,
       categoryId,
-
     },
   });
   return response.status(201).json(product);
@@ -334,7 +359,6 @@ const updateProduct = asyncHandler(async (request, response) => {
     description,
     manufacturer,
     categoryId,
-
   } = request.body;
 
   // Basic validation
@@ -369,7 +393,6 @@ const updateProduct = asyncHandler(async (request, response) => {
       description: description,
       manufacturer: manufacturer,
       categoryId: categoryId,
-
     },
   });
 
@@ -384,22 +407,30 @@ const deleteProduct = asyncHandler(async (request, response) => {
     throw new AppError("Product ID is required", 400);
   }
 
-  // Check for related records in order_product table
-  const relatedOrderProductItems = await prisma.customer_order_product.findMany({
-    where: {
-      productId: id,
-    },
-  });
+  // Delete all related records first to avoid foreign key constraint
+  await prisma.$transaction([
+    // Delete from cart
+    prisma.cart.deleteMany({
+      where: { productId: id },
+    }),
+    // Delete from wishlist
+    prisma.wishlist.deleteMany({
+      where: { productId: id },
+    }),
+    // Delete from customer_order_product
+    prisma.customer_order_product.deleteMany({
+      where: { productId: id },
+    }),
+    // Delete from review
+    prisma.review.deleteMany({
+      where: { productId: id },
+    }),
+    // Finally delete the product
+    prisma.product.delete({
+      where: { id },
+    }),
+  ]);
 
-  if (relatedOrderProductItems.length > 0) {
-    throw new AppError("Cannot delete product because of foreign key constraint", 400);
-  }
-
-  await prisma.product.delete({
-    where: {
-      id,
-    },
-  });
   return response.status(204).send();
 });
 

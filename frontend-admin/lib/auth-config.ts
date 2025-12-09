@@ -21,11 +21,11 @@ export const authOptions: any = {
             },
           });
           if (user) {
-            // Check if user is admin
-            if (user.role !== "admin") {
+            // Check if user is admin (case-insensitive)
+            if (!user.role || user.role.toLowerCase() !== "admin") {
               throw new Error("Access denied. Admin account required.");
             }
-            
+
             const isPasswordCorrect = await bcrypt.compare(
               credentials.password,
               user.password!
@@ -59,17 +59,17 @@ export const authOptions: any = {
         token.id = user.id;
         token.iat = Math.floor(Date.now() / 1000); // Issued at time
       }
-      
+
       // Check if token is expired (15 minutes)
       const now = Math.floor(Date.now() / 1000);
       const tokenAge = now - (token.iat as number);
       const maxAge = 15 * 60; // 15 minutes
-      
+
       if (tokenAge > maxAge) {
         // Token expired, return empty object to force re-authentication
         return {};
       }
-      
+
       return token;
     },
     async session({ session, token }: any) {
@@ -81,8 +81,8 @@ export const authOptions: any = {
     },
   },
   pages: {
-    signIn: '/login',
-    error: '/login', // Redirect to login page on auth errors
+    signIn: "/login",
+    error: "/login", // Redirect to login page on auth errors
   },
   session: {
     strategy: "jwt",

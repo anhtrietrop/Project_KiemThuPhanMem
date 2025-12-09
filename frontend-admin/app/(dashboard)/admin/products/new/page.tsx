@@ -32,7 +32,7 @@ const AddNewProduct = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [merchants, setMerchants] = useState<Merchant[]>([]);
   const [uploading, setUploading] = useState(false);
-  
+
   const addProduct = async () => {
     if (
       !product.merchantId ||
@@ -98,12 +98,15 @@ const AddNewProduct = () => {
     setUploading(true);
 
     try {
-      const response = await apiClient.postFormData("/api/main-image", formData);
+      const response = await apiClient.postFormData(
+        "/api/main-image",
+        formData
+      );
 
       if (response.ok) {
         const data = await response.json();
         // Lưu Cloudinary URL thay vì tên file
-        setProduct(prev => ({ ...prev, mainImage: data.url }));
+        setProduct((prev) => ({ ...prev, mainImage: data.url }));
         toast.success("Tải ảnh lên thành công!");
       } else {
         const errorData = await response.json();
@@ -119,7 +122,8 @@ const AddNewProduct = () => {
   };
 
   const fetchCategories = async () => {
-    apiClient.get(`/api/categories`)
+    apiClient
+      .get(`/api/categories`)
       .then((res) => {
         return res.json();
       })
@@ -264,7 +268,9 @@ const AddNewProduct = () => {
         <div>
           <label className="form-control w-full max-w-sm">
             <div className="label">
-              <span className="label-text">Ảnh sản phẩm (Upload lên Cloudinary):</span>
+              <span className="label-text">
+                Ảnh sản phẩm (Upload lên Cloudinary):
+              </span>
             </div>
             <input
               aria-label="img"

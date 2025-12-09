@@ -23,21 +23,17 @@ interface ImageItem {
 }
 
 interface SingleProductPageProps {
-  params: Promise<{ productSlug: string, id: string }>;
+  params: Promise<{ productSlug: string; id: string }>;
 }
 
 const SingleProductPage = async ({ params }: SingleProductPageProps) => {
   const paramsAwaited = await params;
   // sending API request for a single product with a given product slug
-  const data = await apiClient.get(
-    `/api/slugs/${paramsAwaited?.productSlug}`
-  );
+  const data = await apiClient.get(`/api/slugs/${paramsAwaited?.productSlug}`);
   const product = await data.json();
 
   // sending API request for more than 1 product image if it exists
-  const imagesData = await apiClient.get(
-    `/api/images/${paramsAwaited?.id}`
-  );
+  const imagesData = await apiClient.get(`/api/images/${paramsAwaited?.id}`);
   const images = await imagesData.json();
 
   if (!product || product.error) {
@@ -71,11 +67,16 @@ const SingleProductPage = async ({ params }: SingleProductPageProps) => {
           </div>
           <div className="flex flex-col gap-y-7 text-black max-[500px]:text-center">
             <h1 className="text-3xl">{sanitize(product?.title)}</h1>
-            <p className="text-xl font-semibold">{formatCurrencyVND(product?.price)}</p>
+            <p className="text-xl font-semibold">
+              {formatCurrencyVND(product?.price)}
+            </p>
             <StockAvailabillity stock={product?.quantity} />
             <SingleProductDynamicFields product={product} />
             <div className="flex flex-col gap-y-2 max-[500px]:items-center">
-              <AddToWishlistBtn product={product} slug={paramsAwaited.productSlug} />
+              <AddToWishlistBtn
+                product={product}
+                slug={paramsAwaited.productSlug}
+              />
               <p className="text-lg">
                 SKU: <span className="ml-1">abccd-18</span>
               </p>

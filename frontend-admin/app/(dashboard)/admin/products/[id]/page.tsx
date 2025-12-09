@@ -16,9 +16,7 @@ interface DashboardProductDetailsProps {
   params: Promise<{ id: string }>;
 }
 
-const DashboardProductDetails = ({
-  params,
-}: DashboardProductDetailsProps) => {
+const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
   const resolvedParams = use(params);
   const id = resolvedParams.id;
 
@@ -33,7 +31,8 @@ const DashboardProductDetails = ({
     const requestOptions = {
       method: "DELETE",
     };
-    apiClient.delete(`/api/products/${id}`, requestOptions)
+    apiClient
+      .delete(`/api/products/${id}`, requestOptions)
       .then((response) => {
         if (response.status !== 204) {
           if (response.status === 400) {
@@ -66,9 +65,10 @@ const DashboardProductDetails = ({
       return;
     }
 
-    apiClient.put(`/api/products/${id}`, product, {
-      headers: { "Content-Type": "application/json" }
-    })
+    apiClient
+      .put(`/api/products/${id}`, product, {
+        headers: { "Content-Type": "application/json" },
+      })
       .then((response) => {
         if (response.status === 200) {
           return response.json();
@@ -89,12 +89,15 @@ const DashboardProductDetails = ({
     setUploading(true);
 
     try {
-      const response = await apiClient.postFormData("/api/main-image", formData);
+      const response = await apiClient.postFormData(
+        "/api/main-image",
+        formData
+      );
 
       if (response.ok) {
         const data = await response.json();
         // Lưu Cloudinary URL thay vì tên file
-        setProduct(prev => prev ? { ...prev, mainImage: data.url } : prev);
+        setProduct((prev) => (prev ? { ...prev, mainImage: data.url } : prev));
         toast.success("Tải ảnh lên thành công!");
       } else {
         const errorData = await response.json();
@@ -110,7 +113,8 @@ const DashboardProductDetails = ({
 
   // fetching main product data including other product images
   const fetchProductData = async () => {
-    apiClient.get(`/api/products/${id}`)
+    apiClient
+      .get(`/api/products/${id}`)
       .then((res) => {
         return res.json();
       })
@@ -127,7 +131,8 @@ const DashboardProductDetails = ({
 
   // fetching all product categories. It will be used for displaying categories in select category input
   const fetchCategories = async () => {
-    apiClient.get(`/api/categories`)
+    apiClient
+      .get(`/api/categories`)
       .then((res) => {
         return res.json();
       })
@@ -251,7 +256,9 @@ const DashboardProductDetails = ({
         <div>
           <label className="form-control w-full max-w-sm">
             <div className="label">
-              <span className="label-text">Ảnh chính (Upload lên Cloudinary):</span>
+              <span className="label-text">
+                Ảnh chính (Upload lên Cloudinary):
+              </span>
             </div>
             <input
               type="file"
