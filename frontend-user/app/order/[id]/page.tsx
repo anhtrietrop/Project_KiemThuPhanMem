@@ -7,6 +7,8 @@ import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { formatCurrencyVND } from "@/utils/currency";
 import { getImageSrc } from "@/utils/imageHelper";
+import { useSession } from "next-auth/react";
+import OrderProductReview from "@/components/OrderProductReview";
 
 interface OrderProduct {
     id: string;
@@ -29,6 +31,8 @@ interface OrderProduct {
 
 const CustomerOrderDetail = () => {
     const [orderProducts, setOrderProducts] = useState<OrderProduct[]>([]);
+    const [userId, setUserId] = useState<string | null>(null);
+    const { data: session } = useSession();
     const [order, setOrder] = useState<Order>({
         id: "",
         adress: "",
@@ -46,6 +50,24 @@ const CustomerOrderDetail = () => {
     const [loading, setLoading] = useState(false);
     const params = useParams<{ id: string }>();
     const router = useRouter();
+
+    // Get userId from email
+    useEffect(() => {
+        const getUserId = async () => {
+            if (session?.user?.email) {
+                try {
+                    const userResponse = await apiClient.get(`/api/users/email/${session.user.email}`);
+                    if (userResponse.ok) {
+                        const userData = await userResponse.json();
+                        setUserId(userData?.id);
+                    }
+                } catch {
+                    // User not found
+                }
+            }
+        };
+        getUserId();
+    }, [session?.user?.email]);
 
     useEffect(() => {
         const fetchOrderData = async () => {
@@ -236,6 +258,15 @@ const CustomerOrderDetail = () => {
                                     </Link>
                                     <p className="text-gray-600">Số lượng: {product?.quantity}</p>
                                     <p className="text-gray-600">Giá: {formatCurrencyVND(product?.product?.price)}</p>
+                                    
+                                    {/* Review button for delivered/completed orders */}
+                                    {(order?.status === 'delivered' || order?.status === 'success') && userId && (
+                                        <OrderProductReview
+                                            productId={product?.product?.id}
+                                            productTitle={product?.product?.title}
+                                            userId={userId}
+                                        />
+                                    )}
                                 </div>
                                 <div className="text-right">
                                     <p className="font-semibold">{formatCurrencyVND(product?.product?.price * product?.quantity)}</p>
