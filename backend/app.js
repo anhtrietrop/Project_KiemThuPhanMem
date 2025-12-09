@@ -60,8 +60,11 @@ const allowedOrigins = [
   process.env.NEXTAUTH_URL,
   process.env.FRONTEND_URL,
   process.env.FRONTEND_ADMIN_URL,
+  process.env.FRONTEND_USER_URL,
   "https://project-kiemthuphanmem-admin.vercel.app",
   "https://project-kiem-thu-phan-mem-admin.vercel.app",
+  "https://project-kiem-thu-phan-mem.vercel.app",
+  "https://project-kiemthuphanmem.vercel.app",
 ].filter(Boolean); // Remove undefined values
 
 // CORS configuration with origin validation
@@ -74,7 +77,7 @@ const corsOptions = {
     }
 
     // Allow Vercel preview deployments
-    if (origin && origin.includes('.vercel.app')) {
+    if (origin && origin.includes(".vercel.app")) {
       return callback(null, true);
     }
 

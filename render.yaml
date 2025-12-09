@@ -1,0 +1,40 @@
+{
+  "$schema": "https://render.com/schema/v1",
+  "services":
+    [
+      {
+        "type": "web",
+        "name": "kiemthuphanmem-backend",
+        "env": "node",
+        "region": "singapore",
+        "plan": "free",
+        "buildCommand": "npm install && npx prisma generate",
+        "startCommand": "npm start",
+        "healthCheckPath": "/",
+        "envVars":
+          [
+            {
+              "key": "DATABASE_URL",
+              "value": "mysql://avnadmin:AVNS_vOxavUE1Bc5hiqpyggA@mysql-113d396c-anhtrietrop-c340.j.aivencloud.com:17368/defaultdb?ssl-mode=REQUIRED",
+            },
+            { "key": "NODE_ENV", "value": "production" },
+            { "key": "PORT", "value": "3002" },
+            {
+              "key": "JWT_SECRET",
+              "value": "ZTcxMGFiYzUtYTg3Yi00NzA1LWFlNWItM2Y4MzVlNDZjNTcw",
+            },
+            {
+              "key": "NEXTAUTH_SECRET",
+              "value": "MTdjNDIxNTMtNzA4Ni00NzM0LWIyY2ItODc5MDA3YzUwNGI2",
+            },
+            { "key": "MOMO_PARTNER_CODE", "value": "MOMO" },
+            { "key": "MOMO_ACCESS_KEY", "value": "F8BBA842ECF85" },
+            {
+              "key": "MOMO_SECRET_KEY",
+              "value": "K951B6PE1waDMi640xX08PD3vg6EkVlz",
+            },
+            { "key": "MOMO_ENVIRONMENT", "value": "sandbox" },
+          ],
+      },
+    ],
+}

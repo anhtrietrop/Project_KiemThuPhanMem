@@ -21,8 +21,8 @@ export const authOptions: any = {
             },
           });
           if (user) {
-            // Check if user is admin
-            if (user.role !== "admin") {
+            // Check if user is admin (case-insensitive)
+            if (!user.role || user.role.toLowerCase() !== "admin") {
               throw new Error("Access denied. Admin account required.");
             }
             
