@@ -2,7 +2,7 @@
 // Role of the component: Single product tabs on the single product page containing product description, main product info and reviews
 // Name of the component: ProductTabs.tsx
 // Developer: Aleksandar Kuzmanovic
-// Version: 1.0
+// Version: 2.0 - Added Reviews tab
 // Component call: <ProductTabs product={product} />
 // Input parameters: { product: Product }
 // Output: Single product tabs containing product description, main product info and reviews
@@ -13,6 +13,7 @@
 import React, { useState } from "react";
 import RatingPercentElement from "./RatingPercentElement";
 import SingleReview from "./SingleReview";
+import ProductReviews from "./ProductReviews";
 import { formatCategoryName } from "@/utils/categoryFormating";
 import { sanitize, sanitizeHtml } from "@/lib/sanitize";
 
@@ -39,6 +40,15 @@ const ProductTabs = ({ product }: { product: Product }) => {
           onClick={() => setCurrentProductTab(1)}
         >
           Additional info
+        </a>
+        <a
+          role="tab"
+          className={`tab text-black text-lg pb-8 max-[500px]:text-base max-[400px]:text-sm max-[370px]:text-xs ${
+            currentProductTab === 2 && "tab-active"
+          }`}
+          onClick={() => setCurrentProductTab(2)}
+        >
+          Reviews ({product?.rating || 0}★)
         </a>
       </div>
       <div className="pt-5">
@@ -77,6 +87,10 @@ const ProductTabs = ({ product }: { product: Product }) => {
               </tbody>
             </table>
           </div>
+        )}
+
+        {currentProductTab === 2 && (
+          <ProductReviews productId={product?.id} />
         )}
       </div>
     </div>

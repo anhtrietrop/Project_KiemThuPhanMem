@@ -331,6 +331,62 @@ async function getReviewStats(request, response) {
   }
 }
 
+// Check if user can review a product
+async function canReviewProduct(request, response) {
+  try {
+    const { productId } = request.params;
+    const userId = request.user.id;
+
+    // Check if product exists
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      return response.status(404).json({ canReview: false, reason: "Product not found" });
+    }
+
+    // Check if user has purchased this product (delivered order)
+    const hasPurchased = await prisma.customer_order_product.findFirst({
+      where: {
+        productId: productId,
+        customerOrder: {
+          userId: userId,
+          status: { in: ['delivered', 'completed', 'DELIVERED', 'COMPLETED'] }
+        }
+      }
+    });
+
+    if (!hasPurchased) {
+      return response.json({ 
+        canReview: false, 
+        reason: "You must purchase and receive this product before reviewing" 
+      });
+    }
+
+    // Check if user already reviewed this product
+    const existingReview = await prisma.review.findFirst({
+      where: {
+        productId: productId,
+        userId: userId,
+      },
+    });
+
+    if (existingReview) {
+      return response.json({ 
+        canReview: false, 
+        reason: "You have already reviewed this product",
+        existingReviewId: existingReview.id
+      });
+    }
+
+    return response.json({ canReview: true });
+  } catch (error) {
+    console.error("Error checking review eligibility:", error);
+    return response.status(500).json({ canReview: false, error: "Error checking eligibility" });
+  }
+}
+
 module.exports = {
   createReview,
   getProductReviews,
@@ -338,4 +394,5 @@ module.exports = {
   deleteReview,
   getUserReviews,
   getReviewStats,
+  canReviewProduct,
 };
