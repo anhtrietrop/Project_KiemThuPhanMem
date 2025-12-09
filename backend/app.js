@@ -94,7 +94,7 @@ const corsOptions = {
     return callback(new Error(msg), false);
   },
   methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-User-Id"],
   credentials: true, // Allow cookies and authorization headers
 };
 
