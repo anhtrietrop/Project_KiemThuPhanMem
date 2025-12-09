@@ -407,27 +407,30 @@ const deleteProduct = asyncHandler(async (request, response) => {
     throw new AppError("Product ID is required", 400);
   }
 
-  // Check for related records in order_product table
-  const relatedOrderProductItems = await prisma.customer_order_product.findMany(
-    {
-      where: {
-        productId: id,
-      },
-    }
-  );
+  // Delete all related records first to avoid foreign key constraint
+  await prisma.$transaction([
+    // Delete from cart
+    prisma.cart.deleteMany({
+      where: { productId: id },
+    }),
+    // Delete from wishlist
+    prisma.wishlist.deleteMany({
+      where: { productId: id },
+    }),
+    // Delete from customer_order_product
+    prisma.customer_order_product.deleteMany({
+      where: { productId: id },
+    }),
+    // Delete from review
+    prisma.review.deleteMany({
+      where: { productId: id },
+    }),
+    // Finally delete the product
+    prisma.product.delete({
+      where: { id },
+    }),
+  ]);
 
-  if (relatedOrderProductItems.length > 0) {
-    throw new AppError(
-      "Cannot delete product because of foreign key constraint",
-      400
-    );
-  }
-
-  await prisma.product.delete({
-    where: {
-      id,
-    },
-  });
   return response.status(204).send();
 });
 

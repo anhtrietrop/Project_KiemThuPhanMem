@@ -15,7 +15,7 @@ const fetcher = (url: string) => apiClient.get(url).then((r) => r.json());
 
 export function useDashboardStats() {
   const { data, error, isLoading } = useSWR<SummaryStats>(
-    "/api/admin/dashboard/overview",
+    `${process.env.NEXT_PUBLIC_API_URL}/admin/dashboard/overview`,
     fetcher,
     {
       refreshInterval: 60000, // refresh every 60s
