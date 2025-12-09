@@ -71,12 +71,33 @@ const ReviewForm = ({
   const [error, setError] = useState<string | null>(null);
   const [canReview, setCanReview] = useState<boolean | null>(null);
   const [checkingEligibility, setCheckingEligibility] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Get user ID from email
+  useEffect(() => {
+    const getUserId = async () => {
+      if (session?.user?.email) {
+        try {
+          const userResponse = await apiClient.get(`/api/users/email/${session.user.email}`);
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            setUserId(userData?.id);
+          }
+        } catch {
+          // User not found
+        }
+      }
+    };
+    getUserId();
+  }, [session?.user?.email]);
 
   useEffect(() => {
     const checkCanReview = async () => {
-      if (!session?.user?.id) {
-        setCanReview(false);
-        setCheckingEligibility(false);
+      if (!userId) {
+        if (!session?.user?.email) {
+          setCanReview(false);
+          setCheckingEligibility(false);
+        }
         return;
       }
 
@@ -85,13 +106,13 @@ const ReviewForm = ({
           `/api/reviews/can-review/${productId}`,
           {
             headers: {
-              Authorization: `Bearer ${(session as any)?.accessToken}`,
+              'X-User-Id': userId,
             },
           }
         );
         const data = await response.json();
         setCanReview(data.canReview);
-      } catch (err) {
+      } catch {
         setCanReview(false);
       } finally {
         setCheckingEligibility(false);
@@ -99,11 +120,11 @@ const ReviewForm = ({
     };
 
     checkCanReview();
-  }, [session, productId]);
+  }, [userId, productId, session?.user?.email]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!session) return;
+    if (!session || !userId) return;
 
     setIsSubmitting(true);
     setError(null);
@@ -111,10 +132,10 @@ const ReviewForm = ({
     try {
       const response = await apiClient.post(
         "/api/reviews",
-        { productId, rating, comment },
+        { productId, rating, comment, userId },
         {
           headers: {
-            Authorization: `Bearer ${(session as any)?.accessToken}`,
+            'X-User-Id': userId,
           },
         }
       );
@@ -127,7 +148,7 @@ const ReviewForm = ({
         const data = await response.json();
         setError(data.error || "Không thể gửi đánh giá");
       }
-    } catch (err) {
+    } catch {
       setError("Đã có lỗi xảy ra. Vui lòng thử lại.");
     } finally {
       setIsSubmitting(false);
