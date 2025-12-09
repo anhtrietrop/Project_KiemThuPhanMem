@@ -2,7 +2,7 @@
 // Role of the component: Showing products on the shop page with applied filter and sort
 // Name of the component: Products.tsx
 // Developer: Aleksandar Kuzmanovic
-// Version: 2.1 - Fixed quantity-based stock filtering, added pagination support
+// Version: 2.2 - Updated API client to use production backend
 // Component call: <Products params={params} searchParams={searchParams} />
 // Input parameters: { params, searchParams }: { params: { slug?: string[] }, searchParams: { [key: string]: string | string[] | undefined } }
 // Output: products grid
