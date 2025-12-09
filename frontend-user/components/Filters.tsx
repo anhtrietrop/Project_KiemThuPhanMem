@@ -283,12 +283,11 @@ const Filters = () => {
                   },
                 })
               }
-              className={`px-2 py-1 text-xs rounded-full border transition-colors ${
-                inputCategory.priceFilter.minValue === range.min &&
-                inputCategory.priceFilter.maxValue === range.max
+              className={`px-2 py-1 text-xs rounded-full border transition-colors ${inputCategory.priceFilter.minValue === range.min &&
+                  inputCategory.priceFilter.maxValue === range.max
                   ? "bg-blue-500 text-white border-blue-500"
                   : "bg-white text-gray-600 border-gray-300 hover:border-blue-500"
-              }`}
+                }`}
             >
               {range.label}
             </button>
@@ -324,11 +323,10 @@ const Filters = () => {
             {[0, 1, 2, 3, 4, 5].map((num) => (
               <span
                 key={num}
-                className={`cursor-pointer hover:text-yellow-500 ${
-                  inputCategory.ratingFilter.value === num
+                className={`cursor-pointer hover:text-yellow-500 ${inputCategory.ratingFilter.value === num
                     ? "text-yellow-500 font-bold"
                     : ""
-                }`}
+                  }`}
                 onClick={() =>
                   handleFilterChange({
                     ...inputCategory,
@@ -358,11 +356,10 @@ const Filters = () => {
           type="button"
           onClick={applyFilters}
           disabled={!hasChanges}
-          className={`w-full py-3 px-4 rounded-lg transition-all duration-200 text-sm font-semibold flex items-center justify-center gap-2 ${
-            hasChanges
+          className={`w-full py-3 px-4 rounded-lg transition-all duration-200 text-sm font-semibold flex items-center justify-center gap-2 ${hasChanges
               ? "bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg"
               : "bg-gray-300 text-gray-500 cursor-not-allowed"
-          }`}
+            }`}
         >
           <svg
             className="w-5 h-5"

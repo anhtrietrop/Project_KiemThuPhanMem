@@ -27,7 +27,7 @@ const Products = async ({ params, searchParams }: { params: { slug?: string[] },
   // Build quantity filter based on stock checkbox selections
   // quantity > 0 means in stock, quantity = 0 means out of stock
   let quantityFilter = "";
-  
+
   if (inStockChecked && outOfStockChecked) {
     // Both checked: show all products (quantity >= 0)
     quantityFilter = "filters[quantity][$gte]=0";
@@ -61,10 +61,9 @@ const Products = async ({ params, searchParams }: { params: { slug?: string[] },
 
   try {
     // Get paginated products
-    const apiUrl = `/api/products?${priceFilter}&filters[rating][$gte]=${
-      Number(searchParams?.rating) || 0
-    }&${quantityFilter}${categoryFilter}&sort=${searchParams?.sort || 'defaultSort'}&page=${page}`;
-    
+    const apiUrl = `/api/products?${priceFilter}&filters[rating][$gte]=${Number(searchParams?.rating) || 0
+      }&${quantityFilter}${categoryFilter}&sort=${searchParams?.sort || 'defaultSort'}&page=${page}`;
+
     const data = await apiClient.get(apiUrl);
 
     if (!data.ok) {
@@ -73,7 +72,7 @@ const Products = async ({ params, searchParams }: { params: { slug?: string[] },
     } else {
       const result = await data.json();
       products = Array.isArray(result) ? result : [];
-      
+
       // Estimate total products based on current results
       // If we got a full page, assume there might be more
       // This is a simple heuristic - ideally backend should return total count
