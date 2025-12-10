@@ -194,9 +194,49 @@ describe("Product Controller - Search & Filter", () => {
     // Expected: Products in price range
   });
 
+  test("UC1.30a: Lọc với minPrice = 0 (từ 0đ)", async () => {
+    // Query: minPrice=0
+    // Expected: All products (no lower limit)
+  });
+
+  test("UC1.30b: Lọc với maxPrice không giới hạn (unlimited)", async () => {
+    // Query: minPrice=10000000 (không có maxPrice)
+    // Expected: Products >= 10tr, không có upper limit
+  });
+
+  test("UC1.30c: Lỗi khi minPrice > maxPrice", async () => {
+    // Query: minPrice=500000, maxPrice=100000
+    // Expected: Error 400 - minPrice cannot exceed maxPrice
+  });
+
+  test("UC1.30d: Lỗi khi minPrice < 0", async () => {
+    // Query: minPrice=-1000
+    // Expected: Error 400 - minPrice must be >= 0
+  });
+
   test("UC1.31: Sắp xếp sản phẩm (price, createdAt)", async () => {
     // Query: sortBy=price, order=asc
     // Expected: Sorted products
+  });
+
+  test("UC1.31a: Lọc theo tình trạng còn hàng (inStock)", async () => {
+    // Query: inStock=true, outOfStock=false
+    // Expected: Products with quantity > 0
+  });
+
+  test("UC1.31b: Lọc theo tình trạng hết hàng (outOfStock)", async () => {
+    // Query: inStock=false, outOfStock=true
+    // Expected: Products with quantity = 0
+  });
+
+  test("UC1.31c: Lọc theo rating tối thiểu", async () => {
+    // Query: rating=4.5
+    // Expected: Products with rating >= 4.5
+  });
+
+  test("UC1.31d: Kết hợp nhiều filter (Category + Price + Stock + Rating)", async () => {
+    // Query: category=phones&minPrice=5000000&inStock=true&rating=4
+    // Expected: Products matching all criteria
   });
 });
 

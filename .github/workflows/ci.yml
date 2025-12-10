@@ -10,6 +10,12 @@ on:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
 
+# Add permissions for GitHub token
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -160,6 +166,7 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
             const coveragePath = './backend/coverage/coverage-summary.json';
@@ -168,27 +175,29 @@ jobs:
               const coverage = JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
               const total = coverage.total;
               
-              const statusIcon = (actual, threshold) => actual >= threshold ? '✅' : '❌';
+              const getIcon = (actual, threshold) => actual >= threshold ? '✅' : '❌';
               const thresholds = { lines: 50, statements: 50, functions: 45, branches: 30 };
               
-              const comment = \`## 📊 Backend Test Coverage Report
+              const lines = total.lines.pct.toFixed(2);
+              const statements = total.statements.pct.toFixed(2);
+              const functions = total.functions.pct.toFixed(2);
+              const branches = total.branches.pct.toFixed(2);
               
-              | Metric | Coverage | Threshold | Status |
-              |--------|----------|-----------|--------|
-              | **Lines** | \${total.lines.pct.toFixed(2)}% | \${thresholds.lines}% | \${statusIcon(total.lines.pct, thresholds.lines)} |
-              | **Statements** | \${total.statements.pct.toFixed(2)}% | \${thresholds.statements}% | \${statusIcon(total.statements.pct, thresholds.statements)} |
-              | **Functions** | \${total.functions.pct.toFixed(2)}% | \${thresholds.functions}% | \${statusIcon(total.functions.pct, thresholds.functions)} |
-              | **Branches** | \${total.branches.pct.toFixed(2)}% | \${thresholds.branches}% | \${statusIcon(total.branches.pct, thresholds.branches)} |
-              
-              \${total.lines.pct >= thresholds.lines && 
+              const allPassed = total.lines.pct >= thresholds.lines && 
                 total.statements.pct >= thresholds.statements && 
                 total.functions.pct >= thresholds.functions && 
-                total.branches.pct >= thresholds.branches
-                ? '✅ **All coverage thresholds met!**'
-                : '❌ **Coverage below required thresholds.**'}
-              \`;
+                total.branches.pct >= thresholds.branches;
               
-              github.rest.issues.createComment({
+              const comment = '## 📊 Backend Test Coverage Report\n\n' +
+                '| Metric | Coverage | Threshold | Status |\n' +
+                '|--------|----------|-----------|--------|\n' +
+                '| **Lines** | ' + lines + '% | ' + thresholds.lines + '% | ' + getIcon(total.lines.pct, thresholds.lines) + ' |\n' +
+                '| **Statements** | ' + statements + '% | ' + thresholds.statements + '% | ' + getIcon(total.statements.pct, thresholds.statements) + ' |\n' +
+                '| **Functions** | ' + functions + '% | ' + thresholds.functions + '% | ' + getIcon(total.functions.pct, thresholds.functions) + ' |\n' +
+                '| **Branches** | ' + branches + '% | ' + thresholds.branches + '% | ' + getIcon(total.branches.pct, thresholds.branches) + ' |\n\n' +
+                (allPassed ? '✅ **All coverage thresholds met!**' : '❌ **Coverage below required thresholds.**');
+              
+              await github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -297,28 +306,24 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const backendStatus = '${{ needs.test-backend.result }}';
             const adminStatus = '${{ needs.test-frontend-admin.result }}';
             const userStatus = '${{ needs.test-frontend-user.result }}';
 
-            const statusIcon = (status) => status === 'success' ? '✅' : status === 'failure' ? '❌' : '⚠️';
+            const getIcon = (status) => status === 'success' ? '✅' : status === 'failure' ? '❌' : '⚠️';
             const allPassed = backendStatus === 'success' && adminStatus === 'success' && userStatus === 'success';
 
-            const comment = `## 🚀 CI Pipeline Results
+            const comment = '## 🚀 CI Pipeline Results\n\n' +
+              '| Component | Status | Result |\n' +
+              '|-----------|--------|--------|\n' +
+              '| **Backend Tests** | ' + getIcon(backendStatus) + ' | ' + backendStatus + ' |\n' +
+              '| **Frontend Admin** | ' + getIcon(adminStatus) + ' | ' + adminStatus + ' |\n' +
+              '| **Frontend User** | ' + getIcon(userStatus) + ' | ' + userStatus + ' |\n\n' +
+              (allPassed ? '✅ **All checks passed!** This PR is ready to merge.' : '❌ **Some checks failed.** Please fix all errors before merging.');
 
-            | Component | Status | Result |
-            |-----------|--------|--------|
-            | **Backend Tests** | ${statusIcon(backendStatus)} | ${backendStatus} |
-            | **Frontend Admin** | ${statusIcon(adminStatus)} | ${adminStatus} |
-            | **Frontend User** | ${statusIcon(userStatus)} | ${userStatus} |
-
-            ${allPassed 
-              ? '✅ **All checks passed!** This PR is ready to merge.' 
-              : '❌ **Some checks failed.** Please fix all errors before merging.'}
-            `;
-
-            github.rest.issues.createComment({
+            await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -348,119 +353,84 @@ jobs:
             const adminStatus = '${{ needs.test-frontend-admin.result }}';
             const userStatus = '${{ needs.test-frontend-user.result }}';
             
-            const statusIcon = (status) => status === 'success' ? '✅' : status === 'failure' ? '❌' : '⚠️';
+            const getIcon = (status) => status === 'success' ? '✅' : status === 'failure' ? '❌' : '⚠️';
             
-            // Xác định component nào fail
             const failedComponents = [];
             if (backendStatus === 'failure') failedComponents.push('Backend Tests');
             if (adminStatus === 'failure') failedComponents.push('Frontend Admin');
             if (userStatus === 'failure') failedComponents.push('Frontend User');
             
-            // Thông tin về commit/PR
             const sha = context.sha.substring(0, 7);
             const branch = context.ref.replace('refs/heads/', '');
             const actor = context.actor;
             const runId = context.runId;
-            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}`;
+            const runUrl = 'https://github.com/' + context.repo.owner + '/' + context.repo.repo + '/actions/runs/' + runId;
             
-            // Tạo title cho issue
             const isPR = context.eventName === 'pull_request';
             const prNumber = isPR ? context.payload.pull_request?.number : null;
+            
             const issueTitle = isPR 
-              ? `🔴 CI Failed on PR #${prNumber}: ${failedComponents.join(', ')}`
-              : `🔴 CI Failed on branch \`${branch}\`: ${failedComponents.join(', ')}`;
+              ? '🔴 CI Failed on PR #' + prNumber + ': ' + failedComponents.join(', ')
+              : '🔴 CI Failed on branch ' + branch + ': ' + failedComponents.join(', ');
             
-            // Tạo body cho issue
-            const issueBody = `## 🚨 CI Pipeline Failed
+            const issueBody = '## 🚨 CI Pipeline Failed\n\n' +
+              '**Triggered by:** @' + actor + '\n' +
+              '**Branch:** `' + branch + '`\n' +
+              '**Commit:** `' + sha + '`\n' +
+              '**Workflow Run:** [View Details](' + runUrl + ')\n\n' +
+              '---\n\n' +
+              '### 📊 CI Results Summary\n\n' +
+              '| Component | Status |\n' +
+              '|-----------|--------|\n' +
+              '| **Backend Tests** | ' + getIcon(backendStatus) + ' ' + backendStatus + ' |\n' +
+              '| **Frontend Admin** | ' + getIcon(adminStatus) + ' ' + adminStatus + ' |\n' +
+              '| **Frontend User** | ' + getIcon(userStatus) + ' ' + userStatus + ' |\n\n' +
+              '---\n\n' +
+              '### ❌ Failed Components\n\n' +
+              failedComponents.map(c => '- **' + c + '**').join('\n') + '\n\n' +
+              '---\n\n' +
+              '> ⚡ Issue này được tạo tự động bởi CI workflow.';
             
-            **Triggered by:** @${actor}
-            **Branch:** \`${branch}\`
-            **Commit:** \`${sha}\`
-            **Workflow Run:** [View Details](${runUrl})
-            ${isPR ? `**Pull Request:** #${prNumber}` : ''}
-            
-            ---
-            
-            ### 📊 CI Results Summary
-            
-            | Component | Status |
-            |-----------|--------|
-            | **Backend Tests** | ${statusIcon(backendStatus)} ${backendStatus} |
-            | **Frontend Admin** | ${statusIcon(adminStatus)} ${adminStatus} |
-            | **Frontend User** | ${statusIcon(userStatus)} ${userStatus} |
-            
-            ---
-            
-            ### ❌ Failed Components
-            
-            ${failedComponents.map(c => `- **${c}**`).join('\n')}
-            
-            ---
-            
-            ### 🔍 How to Fix
-            
-            1. **Check the [workflow run logs](${runUrl})** để xem chi tiết lỗi
-            2. **Chạy test locally** trước khi push:
-               ${backendStatus === 'failure' ? '   - Backend: `cd backend && npm run test`' : ''}
-               ${adminStatus === 'failure' ? '   - Frontend Admin: `cd frontend-admin && npm run lint:check && npm run build`' : ''}
-               ${userStatus === 'failure' ? '   - Frontend User: `cd frontend-user && npm run lint:check && npm run build`' : ''}
-            3. **Fix lỗi** và push lại code
-            4. **Đóng issue này** khi CI pass
-            
-            ---
-            
-            ### 📝 Checklist
-            
-            - [ ] Đã xem logs và xác định nguyên nhân
-            - [ ] Đã fix lỗi locally
-            - [ ] Đã chạy test locally thành công
-            - [ ] Đã push fix và CI pass
-            
-            ---
-            
-            > ⚡ Issue này được tạo tự động bởi CI workflow.
-            > 🏷️ Gắn labels phù hợp để tracking.
-            `;
-            
-            // Kiểm tra xem đã có issue tương tự chưa (tránh duplicate)
-            const existingIssues = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              labels: 'ci-failure',
-              per_page: 10
-            });
-            
-            // Tìm issue có cùng branch/PR
-            const duplicateIssue = existingIssues.data.find(issue => {
-              return issue.title.includes(branch) || (prNumber && issue.title.includes(`PR #${prNumber}`));
-            });
-            
-            if (duplicateIssue) {
-              // Cập nhật comment vào issue cũ thay vì tạo mới
-              await github.rest.issues.createComment({
+            try {
+              const existingIssues = await github.rest.issues.listForRepo({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: duplicateIssue.number,
-                body: `## 🔄 CI Failed Again\n\n**Commit:** \`${sha}\`\n**Run:** [View Details](${runUrl})\n\n${failedComponents.map(c => `- ❌ ${c}`).join('\n')}`
+                state: 'open',
+                labels: 'ci-failure',
+                per_page: 10
               });
-              console.log(`Updated existing issue #${duplicateIssue.number}`);
-            } else {
-              // Tạo issue mới
-              const newIssue = await github.rest.issues.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title: issueTitle,
-                body: issueBody,
-                labels: ['ci-failure', 'bug', 'automated'],
-                assignees: [actor]
+              
+              const duplicateIssue = existingIssues.data.find(issue => {
+                return issue.title.includes(branch) || (prNumber && issue.title.includes('PR #' + prNumber));
               });
-              console.log(`Created new issue #${newIssue.data.number}`);
+              
+              if (duplicateIssue) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: duplicateIssue.number,
+                  body: '## 🔄 CI Failed Again\n\n**Commit:** `' + sha + '`\n**Run:** [View Details](' + runUrl + ')'
+                });
+                console.log('Updated existing issue #' + duplicateIssue.number);
+              } else {
+                const newIssue = await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: issueTitle,
+                  body: issueBody,
+                  labels: ['ci-failure', 'bug', 'automated']
+                });
+                console.log('Created new issue #' + newIssue.data.number);
+              }
+            } catch (error) {
+              console.log('Could not create/update issue: ' + error.message);
+              console.log('This is non-critical, CI status is still valid.');
             }
 
       - name: Add failure comment to PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
+        continue-on-error: true
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -468,22 +438,19 @@ jobs:
             const adminStatus = '${{ needs.test-frontend-admin.result }}';
             const userStatus = '${{ needs.test-frontend-user.result }}';
             
-            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const runUrl = 'https://github.com/' + context.repo.owner + '/' + context.repo.repo + '/actions/runs/' + context.runId;
             
-            const comment = `## ⛔ CI Failed - Cannot Merge
+            const getIcon = (status) => status === 'success' ? '✅' : '❌';
             
-            This PR cannot be merged because CI checks have failed.
-            
-            | Component | Status |
-            |-----------|--------|
-            | Backend Tests | ${backendStatus === 'success' ? '✅' : '❌'} ${backendStatus} |
-            | Frontend Admin | ${adminStatus === 'success' ? '✅' : '❌'} ${adminStatus} |
-            | Frontend User | ${userStatus === 'success' ? '✅' : '❌'} ${userStatus} |
-            
-            👉 [View CI Logs](${runUrl})
-            
-            Please fix all failing checks before requesting review.
-            `;
+            const comment = '## ⛔ CI Failed - Cannot Merge\n\n' +
+              'This PR cannot be merged because CI checks have failed.\n\n' +
+              '| Component | Status |\n' +
+              '|-----------|--------|\n' +
+              '| Backend Tests | ' + getIcon(backendStatus) + ' ' + backendStatus + ' |\n' +
+              '| Frontend Admin | ' + getIcon(adminStatus) + ' ' + adminStatus + ' |\n' +
+              '| Frontend User | ' + getIcon(userStatus) + ' ' + userStatus + ' |\n\n' +
+              '👉 [View CI Logs](' + runUrl + ')\n\n' +
+              'Please fix all failing checks before requesting review.';
             
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
@@ -491,3 +458,4 @@ jobs:
               repo: context.repo.repo,
               body: comment
             });
+

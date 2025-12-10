@@ -806,7 +806,90 @@ describe("Product Search - Decision Table", () => {
 
 ---
 
-## 6. CHECKLIST SINH TEST CASES
+## 6. VÍ DỤ CỤ THỂ: PRODUCT FILTER (Integration Test)
+
+### 6.1 Phân Tích Yêu Cầu Filter
+
+```
+Feature: Lọc sản phẩm nâng cao
+Endpoint: GET /api/products
+
+Query Parameters:
+- category: string (categoryId), optional
+- minPrice: number, >= 0, optional (default: 0)
+- maxPrice: number, >= minPrice, optional (default: unlimited)
+- inStock: boolean, optional
+- outOfStock: boolean, optional
+- rating: number 0-5, optional (minimum rating)
+- sort: string, optional
+- page: number, >= 1, default=1
+```
+
+### 6.2 Test Cases đã implement
+
+```javascript
+// File: backend/tests/integration/product-filter.test.js
+
+describe("Product Filter API Integration Tests", () => {
+  
+  // UC1.29: Filter by Category
+  describe("Filter by Category", () => {
+    test("Lọc theo category 'phones' → 2 sản phẩm");
+    test("Category không tồn tại → 0 sản phẩm");
+    test("Không có category filter → tất cả sản phẩm");
+  });
+
+  // UC1.30: Filter by Price Range  
+  describe("Filter by Price Range", () => {
+    test("Lọc minPrice=20000000 → 4 sản phẩm");
+    test("Lọc maxPrice=10000000 → 1 sản phẩm");
+    test("Lọc khoảng giá 20tr-40tr → 3 sản phẩm");
+    test("Không có maxPrice (unlimited) → lọc từ minPrice trở lên");
+    test("minPrice=0 (từ 0đ) → tất cả sản phẩm");
+    test("minPrice > maxPrice → Error 400");
+    test("minPrice < 0 → Error 400");
+  });
+
+  // Filter by Stock Availability
+  describe("Filter by Stock", () => {
+    test("Chỉ còn hàng (inStock=true) → 4 sản phẩm");
+    test("Chỉ hết hàng (outOfStock=true) → 1 sản phẩm");
+    test("Cả hai → 5 sản phẩm");
+    test("Không chọn gì → 0 sản phẩm");
+  });
+
+  // Filter by Rating
+  describe("Filter by Rating", () => {
+    test("Rating >= 4.5 → 3 sản phẩm");
+    test("Rating >= 4.0 → 5 sản phẩm");
+    test("Rating >= 5.0 → 0 sản phẩm");
+  });
+
+  // Combined Filters
+  describe("Combined Filters", () => {
+    test("Category + Price Range");
+    test("Category + InStock + Rating");
+    test("Price Range + Category + Rating + InStock");
+    test("Unlimited maxPrice + Category");
+  });
+});
+```
+
+### 6.3 Kết quả Test
+
+```
+✅ 25/25 tests passed
+- UC1.29: Filter by Category (4 tests)
+- UC1.30: Filter by Price Range (7 tests)
+- Filter by Stock Availability (4 tests)
+- Filter by Rating (3 tests)
+- Combined Filters (4 tests)
+- Edge Cases (3 tests)
+```
+
+---
+
+## 7. CHECKLIST SINH TEST CASES
 
 Khi sinh test cho một feature mới, hãy đi qua checklist này:
 
@@ -847,7 +930,7 @@ Khi sinh test cho một feature mới, hãy đi qua checklist này:
 
 ---
 
-## 7. CÔNG CỤ HỖ TRỢ
+## 8. CÔNG CỤ HỖ TRỢ
 
 ### 7.1 Tạo Test Data
 
@@ -897,7 +980,7 @@ test("Register then login flow", async () => {
 
 ---
 
-## 8. KẾT LUẬN
+## 9. KẾT LUẬN
 
 **Quy trình tổng quát:**
 
