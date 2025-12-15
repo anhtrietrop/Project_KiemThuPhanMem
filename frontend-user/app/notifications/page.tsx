@@ -1,21 +1,21 @@
-'use client';
+"use client";
 export const dynamic = "force-dynamic";
 
-import React, { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useNotifications } from '@/hooks/useNotifications';
-import { NotificationType } from '@/types/notification';
-import NotificationCard from '@/components/NotificationCard';
-import { useNotificationStore } from '@/app/_zustand/notificationStore';
-import { 
-  FaSearch, 
-  FaFilter, 
-  FaCheckCircle, 
-  FaTrash, 
+import React, { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useNotifications } from "@/hooks/useNotifications";
+import { NotificationType } from "@/types/notification";
+import NotificationCard from "@/components/NotificationCard";
+import { useNotificationStore } from "@/app/_zustand/notificationStore";
+import {
+  FaSearch,
+  FaFilter,
+  FaCheckCircle,
+  FaTrash,
   FaSpinner,
-  FaBell 
-} from 'react-icons/fa';
+  FaBell,
+} from "react-icons/fa";
 
 const NotificationsPage = () => {
   const { data: session, status } = useSession();
@@ -35,32 +35,34 @@ const NotificationsPage = () => {
     updateFilters,
     loadMore,
     markNotificationAsRead,
-    deleteNotificationById
+    deleteNotificationById,
   } = useNotifications();
 
   const { toggleSelection, selectAll, clearSelection } = useNotificationStore();
 
-  const [searchTerm, setSearchTerm] = useState(filters.search || '');
-  const [selectedType, setSelectedType] = useState<string>(filters.type || 'all');
+  const [searchTerm, setSearchTerm] = useState(filters.search || "");
+  const [selectedType, setSelectedType] = useState<string>(
+    filters.type || "all"
+  );
   const [selectedStatus, setSelectedStatus] = useState<string>(
-    filters.isRead === undefined ? 'all' : filters.isRead ? 'read' : 'unread'
+    filters.isRead === undefined ? "all" : filters.isRead ? "read" : "unread"
   );
 
   // Redirect if not authenticated
   useEffect(() => {
-    if (status === 'loading') return;
+    if (status === "loading") return;
     if (!session) {
-      router.push('/login');
+      router.push("/login");
       return;
     }
   }, [session, status, router]);
 
   // Sync local state with store filters
   useEffect(() => {
-    setSearchTerm(filters.search || '');
-    setSelectedType(filters.type || 'all');
+    setSearchTerm(filters.search || "");
+    setSelectedType(filters.type || "all");
     setSelectedStatus(
-      filters.isRead === undefined ? 'all' : filters.isRead ? 'read' : 'unread'
+      filters.isRead === undefined ? "all" : filters.isRead ? "read" : "unread"
     );
   }, [filters]);
 
@@ -74,10 +76,10 @@ const NotificationsPage = () => {
   // Handle search
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    updateFilters({ 
+    updateFilters({
       ...filters,
       search: searchTerm || undefined,
-      page: 1
+      page: 1,
     });
   };
 
@@ -86,8 +88,8 @@ const NotificationsPage = () => {
     setSelectedType(type);
     updateFilters({
       ...filters,
-      type: type === 'all' ? undefined : type as NotificationType,
-      page: 1
+      type: type === "all" ? undefined : (type as NotificationType),
+      page: 1,
     });
   };
 
@@ -95,8 +97,8 @@ const NotificationsPage = () => {
     setSelectedStatus(status);
     updateFilters({
       ...filters,
-      isRead: status === 'all' ? undefined : status === 'read',
-      page: 1
+      isRead: status === "all" ? undefined : status === "read",
+      page: 1,
     });
   };
 
@@ -108,7 +110,12 @@ const NotificationsPage = () => {
   };
 
   const handleBulkDelete = async () => {
-    if (selectedIds.length > 0 && confirm(`Are you sure you want to delete ${selectedIds.length} notification(s)?`)) {
+    if (
+      selectedIds.length > 0 &&
+      confirm(
+        `Are you sure you want to delete ${selectedIds.length} notification(s)?`
+      )
+    ) {
       await deleteSelectedNotifications();
     }
   };
@@ -122,7 +129,7 @@ const NotificationsPage = () => {
   };
 
   // Loading state
-  if (status === 'loading') {
+  if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <FaSpinner className="animate-spin text-4xl text-blue-500" />
@@ -142,7 +149,9 @@ const NotificationsPage = () => {
         <div className="mb-8">
           <div className="flex items-center space-x-3 mb-2">
             <FaBell className="text-2xl text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Notification Center</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Notification Center
+            </h1>
           </div>
           <p className="text-gray-600">
             Manage and view all your notifications in one place
@@ -175,7 +184,9 @@ const NotificationsPage = () => {
           <div className="flex flex-wrap gap-4 items-center">
             <div className="flex items-center space-x-2">
               <FaFilter className="text-gray-400" />
-              <span className="text-sm font-medium text-gray-700">Filters:</span>
+              <span className="text-sm font-medium text-gray-700">
+                Filters:
+              </span>
             </div>
 
             {/* Type Filter */}
@@ -185,10 +196,16 @@ const NotificationsPage = () => {
               className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
             >
               <option value="all">All Types</option>
-              <option value={NotificationType.ORDER_UPDATE}>Order Updates</option>
-              <option value={NotificationType.PAYMENT_STATUS}>Payment Status</option>
+              <option value={NotificationType.ORDER_UPDATE}>
+                Order Updates
+              </option>
+              <option value={NotificationType.PAYMENT_STATUS}>
+                Payment Status
+              </option>
               <option value={NotificationType.PROMOTION}>Promotions</option>
-              <option value={NotificationType.SYSTEM_ALERT}>System Alerts</option>
+              <option value={NotificationType.SYSTEM_ALERT}>
+                System Alerts
+              </option>
             </select>
 
             {/* Status Filter */}
@@ -205,17 +222,17 @@ const NotificationsPage = () => {
             {/* Clear Filters */}
             <button
               onClick={() => {
-                setSearchTerm('');
-                setSelectedType('all');
-                setSelectedStatus('all');
-                updateFilters({ 
-                  type: undefined, 
-                  isRead: undefined, 
-                  search: undefined, 
+                setSearchTerm("");
+                setSelectedType("all");
+                setSelectedStatus("all");
+                updateFilters({
+                  type: undefined,
+                  isRead: undefined,
+                  search: undefined,
                   page: 1,
                   limit: 10,
-                  sortBy: 'createdAt',
-                  sortOrder: 'desc'
+                  sortBy: "createdAt",
+                  sortOrder: "desc",
                 });
               }}
               className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 underline"
@@ -258,7 +275,10 @@ const NotificationsPage = () => {
             <label className="flex items-center space-x-2 text-sm text-gray-600">
               <input
                 type="checkbox"
-                checked={selectedIds.length === notifications.length && notifications.length > 0}
+                checked={
+                  selectedIds.length === notifications.length &&
+                  notifications.length > 0
+                }
                 onChange={handleSelectAll}
                 className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
               />
@@ -277,11 +297,23 @@ const NotificationsPage = () => {
           ) : error ? (
             <div className="text-center py-12">
               <div className="text-red-500 mb-4">
-                <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="w-12 h-12 mx-auto"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </div>
-              <p className="text-red-600 font-medium mb-2">Error loading notifications</p>
+              <p className="text-red-600 font-medium mb-2">
+                Error loading notifications
+              </p>
               <p className="text-gray-500 mb-4">{error}</p>
               <button
                 onClick={() => fetchNotifications()}
@@ -293,9 +325,18 @@ const NotificationsPage = () => {
           ) : notifications.length === 0 ? (
             <div className="text-center py-12">
               <FaBell className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No notifications found</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No notifications found
+              </h3>
               <p className="text-gray-500">
-                {Object.keys(filters).some(key => filters[key as keyof typeof filters] !== undefined && key !== 'page' && key !== 'limit' && key !== 'sortBy' && key !== 'sortOrder')
+                {Object.keys(filters).some(
+                  (key) =>
+                    filters[key as keyof typeof filters] !== undefined &&
+                    key !== "page" &&
+                    key !== "limit" &&
+                    key !== "sortBy" &&
+                    key !== "sortOrder"
+                )
                   ? "Try adjusting your filters to see more notifications."
                   : "You don't have any notifications yet."}
               </p>
@@ -310,7 +351,11 @@ const NotificationsPage = () => {
                   onToggleSelect={toggleSelection}
                   onMarkAsRead={markNotificationAsRead}
                   onDelete={async (id) => {
-                    if (confirm('Are you sure you want to delete this notification?')) {
+                    if (
+                      confirm(
+                        "Are you sure you want to delete this notification?"
+                      )
+                    ) {
                       await deleteNotificationById(id);
                     }
                   }}
@@ -331,7 +376,7 @@ const NotificationsPage = () => {
                         Loading...
                       </>
                     ) : (
-                      'Load More'
+                      "Load More"
                     )}
                   </button>
                 </div>
@@ -343,7 +388,8 @@ const NotificationsPage = () => {
         {/* Stats */}
         {total > 0 && (
           <div className="mt-8 text-center text-sm text-gray-500">
-            Showing {notifications.length} of {total} notification{total !== 1 ? 's' : ''}
+            Showing {notifications.length} of {total} notification
+            {total !== 1 ? "s" : ""}
             {page < totalPages && ` (Page ${page} of ${totalPages})`}
           </div>
         )}

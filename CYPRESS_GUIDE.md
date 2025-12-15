@@ -47,6 +47,7 @@ npx cypress open
 ```
 
 Trong GUI:
+
 1. Chọn "E2E Testing"
 2. Chọn browser (Chrome recommended)
 3. Click vào test file muốn chạy
@@ -118,6 +119,7 @@ Password: admin123
 ### Lỗi: "Cannot connect to localhost:3000"
 
 **Giải pháp:**
+
 1. Kiểm tra frontend user đang chạy
 2. Check port không bị chiếm bởi app khác
 3. Chạy `npm run dev` trong frontend-user
@@ -125,6 +127,7 @@ Password: admin123
 ### Lỗi: "Cannot connect to localhost:3002"
 
 **Giải pháp:**
+
 1. Kiểm tra backend đang chạy
 2. Check database connection
 3. Chạy `npm start` trong backend
@@ -132,6 +135,7 @@ Password: admin123
 ### Lỗi: "Login failed"
 
 **Giải pháp:**
+
 1. Kiểm tra test accounts đã được tạo trong database
 2. Chạy seed data: `cd backend && node utills/insertDemoData.js`
 3. Chạy admin user: `cd backend && node utills/insertAdminUser.js`
@@ -139,6 +143,7 @@ Password: admin123
 ### Lỗi: "Element not found"
 
 **Giải pháp:**
+
 1. UI có thể đã thay đổi, update selectors trong test
 2. Tăng timeout: `cy.get('selector', { timeout: 10000 })`
 3. Check element có hidden không
@@ -176,23 +181,23 @@ cypress/screenshots/
 
 ```javascript
 // Login commands
-cy.loginUser('email@example.com', 'password')
-cy.loginAdmin('admin@example.com', 'admin123')
-cy.logout()
+cy.loginUser("email@example.com", "password");
+cy.loginAdmin("admin@example.com", "admin123");
+cy.logout();
 
 // Register command
-cy.registerUser('new@example.com', 'Password123!', 'John Doe')
+cy.registerUser("new@example.com", "Password123!", "John Doe");
 
 // API commands
-cy.apiRequest('GET', '/api/products')
-cy.waitForAPI('@apiCall')
+cy.apiRequest("GET", "/api/products");
+cy.waitForAPI("@apiCall");
 
 // Product commands
 cy.createProduct({
-  title: 'Test Product',
+  title: "Test Product",
   price: 1000000,
-  quantity: 10
-})
+  quantity: 10,
+});
 ```
 
 ## 🔄 CI/CD Integration
@@ -210,53 +215,58 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Start services
         run: |
           npm run start:backend &
           npm run start:frontend &
-      
+
       - name: Run Cypress tests
         uses: cypress-io/github-action@v5
         with:
-          wait-on: 'http://localhost:3000, http://localhost:3002'
+          wait-on: "http://localhost:3000, http://localhost:3002"
 ```
 
 ## 📈 Tips & Best Practices
 
 1. **Chạy tests thường xuyên**
+
    - Sau mỗi lần code mới
    - Trước khi commit/push
 
 2. **Debug tests**
+
    ```javascript
-   cy.pause() // Tạm dừng test
-   cy.debug() // Log ra console
+   cy.pause(); // Tạm dừng test
+   cy.debug(); // Log ra console
    ```
 
 3. **Skip tests tạm thời**
+
    ```javascript
-   it.skip('Test tạm skip', () => {})
-   describe.only('Chỉ chạy suite này', () => {})
+   it.skip("Test tạm skip", () => {});
+   describe.only("Chỉ chạy suite này", () => {});
    ```
 
 4. **Xem network requests**
+
    - Mở Cypress GUI
    - Click vào command trong log
    - Xem XHR/Fetch requests
 
 5. **Custom viewport**
    ```javascript
-   cy.viewport(1920, 1080) // Desktop
-   cy.viewport('iphone-6') // Mobile
+   cy.viewport(1920, 1080); // Desktop
+   cy.viewport("iphone-6"); // Mobile
    ```
 
 ## 📞 Support
 
 Nếu gặp vấn đề:
+
 1. Check documentation: https://docs.cypress.io
 2. Xem logs trong terminal
 3. Debug với Cypress GUI

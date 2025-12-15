@@ -1,112 +1,115 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
+import path from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // Compiler optimizations (SWC minify đã mặc định trong Next.js 15+)
-    compiler: {
-        // Loại bỏ console.log trong production (trừ error/warn)
-        removeConsole: process.env.NODE_ENV === 'production' ? {
-            exclude: ['error', 'warn'],
-        } : false,
+  // Compiler optimizations (SWC minify đã mặc định trong Next.js 15+)
+  compiler: {
+    // Loại bỏ console.log trong production (trừ error/warn)
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? {
+            exclude: ["error", "warn"],
+          }
+        : false,
+  },
+
+  // Tối ưu imports - tree shaking tốt hơn
+  modularizeImports: {
+    "react-icons/md": {
+      transform: "react-icons/md/{{member}}",
     },
-
-    // Tối ưu imports - tree shaking tốt hơn
-    modularizeImports: {
-        'react-icons/md': {
-            transform: 'react-icons/md/{{member}}',
-        },
-        'react-icons/fa': {
-            transform: 'react-icons/fa/{{member}}',
-        },
-        'react-icons/io': {
-            transform: 'react-icons/io/{{member}}',
-        },
-        'react-icons/hi': {
-            transform: 'react-icons/hi/{{member}}',
-        },
+    "react-icons/fa": {
+      transform: "react-icons/fa/{{member}}",
     },
-
-    // Tối ưu images
-    images: {
-        formats: ['image/avif', 'image/webp'], // Sử dụng format mới nhẹ hơn
-        minimumCacheTTL: 60,
-        remotePatterns: [
-            {
-                protocol: 'https',
-                hostname: 'placehold.co',
-                port: ""
-            },
-            {
-                protocol: 'https',
-                hostname: 'res.cloudinary.com',
-                port: ""
-            },
-        ],
+    "react-icons/io": {
+      transform: "react-icons/io/{{member}}",
     },
-
-    // Parallel processing - disabled due to DataCloneError
-    experimental: {
-        workerThreads: false,
-        cpus: 4,
+    "react-icons/hi": {
+      transform: "react-icons/hi/{{member}}",
     },
+  },
 
-    // Fix warning về multiple lockfiles
-    outputFileTracingRoot: __dirname,
+  // Tối ưu images
+  images: {
+    formats: ["image/avif", "image/webp"], // Sử dụng format mới nhẹ hơn
+    minimumCacheTTL: 60,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "placehold.co",
+        port: "",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        port: "",
+      },
+    ],
+  },
 
-    // Output standalone - DISABLED vì gây lỗi "self is not defined"
-    // output: 'standalone',
+  // Parallel processing - disabled due to DataCloneError
+  experimental: {
+    workerThreads: false,
+    cpus: 4,
+  },
 
-    // Webpack optimization - COMMENTED OUT for Next.js 15 compatibility
-    // webpack: (config, { isServer }) => {
-    //     // Chỉ optimize cho client-side
-    //     if (!isServer) {
-    //         config.optimization = {
-    //             ...config.optimization,
-    //             moduleIds: 'deterministic',
-    //         };
-    //     }
-    //     return config;
-    // },
+  // Fix warning về multiple lockfiles
+  outputFileTracingRoot: __dirname,
 
-    // Tắt source maps trong production (giảm kích thước)
-    productionBrowserSourceMaps: false,
+  // Output standalone - DISABLED vì gây lỗi "self is not defined"
+  // output: 'standalone',
 
-    // Skip static generation for auth pages during build
-    skipTrailingSlashRedirect: true,
-    
-    env: {
-        NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
-        // Fix NextAuth build error - provide fallback URL
-        NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3001',
-        NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || 'build-time-secret',
-    },
+  // Webpack optimization - COMMENTED OUT for Next.js 15 compatibility
+  // webpack: (config, { isServer }) => {
+  //     // Chỉ optimize cho client-side
+  //     if (!isServer) {
+  //         config.optimization = {
+  //             ...config.optimization,
+  //             moduleIds: 'deterministic',
+  //         };
+  //     }
+  //     return config;
+  // },
 
-    // Headers - COMMENTED OUT for Next.js 15 Docker build compatibility
-    // async headers() {
-    //   return [
-    //     {
-    //       source: '/(.*)',
-    //       headers: [
-    //         {
-    //           key: 'X-Frame-Options',
-    //           value: 'DENY',
-    //         },
-    //         {
-    //           key: 'X-Content-Type-Options',
-    //           value: 'nosniff',
-    //         },
-    //         {
-    //           key: 'X-XSS-Protection',
-    //           value: '1; mode=block',
-    //         },
-    //       ],
-    //     },
-    //   ];
-    // },
+  // Tắt source maps trong production (giảm kích thước)
+  productionBrowserSourceMaps: false,
+
+  // Skip static generation for auth pages during build
+  skipTrailingSlashRedirect: true,
+
+  env: {
+    NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+    // Fix NextAuth build error - provide fallback URL
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL || "http://localhost:3001",
+    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || "build-time-secret",
+  },
+
+  // Headers - COMMENTED OUT for Next.js 15 Docker build compatibility
+  // async headers() {
+  //   return [
+  //     {
+  //       source: '/(.*)',
+  //       headers: [
+  //         {
+  //           key: 'X-Frame-Options',
+  //           value: 'DENY',
+  //         },
+  //         {
+  //           key: 'X-Content-Type-Options',
+  //           value: 'nosniff',
+  //         },
+  //         {
+  //           key: 'X-XSS-Protection',
+  //           value: '1; mode=block',
+  //         },
+  //       ],
+  //     },
+  //   ];
+  // },
 };
 
 export default nextConfig;

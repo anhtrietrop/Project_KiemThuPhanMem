@@ -16,15 +16,15 @@ const LoginPage = () => {
 
   useEffect(() => {
     // Check if session expired
-    const expired = searchParams.get('expired');
-    if (expired === 'true') {
+    const expired = searchParams.get("expired");
+    if (expired === "true") {
       setError("Your session has expired. Please log in again.");
       toast.error("Your session has expired. Please log in again.");
     }
 
     // if user has already logged in redirect to callbackUrl or home page
     if (sessionStatus === "authenticated") {
-      const callbackUrl = searchParams.get('callbackUrl') || '/';
+      const callbackUrl = searchParams.get("callbackUrl") || "/";
       router.replace(callbackUrl);
     }
   }, [sessionStatus, router, searchParams]);
@@ -32,8 +32,10 @@ const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const target = e.currentTarget;
-    const emailInput = target.elements.namedItem('email') as HTMLInputElement;
-    const passwordInput = target.elements.namedItem('password') as HTMLInputElement;
+    const emailInput = target.elements.namedItem("email") as HTMLInputElement;
+    const passwordInput = target.elements.namedItem(
+      "password"
+    ) as HTMLInputElement;
 
     const email = emailInput.value;
     const password = passwordInput.value;
@@ -64,7 +66,7 @@ const LoginPage = () => {
       setError("");
       toast.success("Successful login");
       // Redirect to callbackUrl if exists, otherwise go to home
-      const callbackUrl = searchParams.get('callbackUrl') || '/';
+      const callbackUrl = searchParams.get("callbackUrl") || "/";
       router.replace(callbackUrl);
     }
   };

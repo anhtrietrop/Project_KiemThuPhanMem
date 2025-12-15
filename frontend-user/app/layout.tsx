@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { getServerSession } from "next-auth/next";
+
+export const dynamic = "force-dynamic";
 import { authOptions } from "@/lib/auth-config";
 import 'svgmap/dist/svgMap.min.css';
 import SessionProvider from "@/utils/SessionProvider";

@@ -24,7 +24,7 @@ const RegisterPage = () => {
     const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
     return emailRegex.test(email);
   };
-  
+
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     const email = e.target[2].value;
@@ -72,7 +72,9 @@ const RegisterPage = () => {
         // Handle different types of errors
         if (data.details && Array.isArray(data.details)) {
           // Validation errors
-          const errorMessage = data.details.map((err: any) => err.message).join(", ");
+          const errorMessage = data.details
+            .map((err: any) => err.message)
+            .join(", ");
           setError(errorMessage);
           toast.error(errorMessage);
         } else if (data.error) {

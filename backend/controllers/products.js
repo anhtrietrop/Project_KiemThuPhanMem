@@ -430,9 +430,9 @@ const deleteProduct = asyncHandler(async (request, response) => {
     where: { id },
   });
 
-  return response.status(200).json({ 
+  return response.status(200).json({
     message: "Product deleted successfully",
-    deletedProductId: id 
+    deletedProductId: id,
   });
 });
 

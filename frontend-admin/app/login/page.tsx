@@ -22,13 +22,13 @@ const LoginPage = () => {
   const { data: session, status: sessionStatus } = useSession();
 
   useEffect(() => {
-    const errorParam = searchParams.get('error');
-    if (errorParam === 'unauthorized') {
+    const errorParam = searchParams.get("error");
+    if (errorParam === "unauthorized") {
       toast.error("Access denied. Admin account required.");
     }
 
-    const expiredParam = searchParams.get('expired');
-    if (expiredParam === 'true') {
+    const expiredParam = searchParams.get("expired");
+    if (expiredParam === "true") {
       toast.error("Your session has expired. Please log in again.");
     }
   }, [searchParams]);
@@ -43,7 +43,7 @@ const LoginPage = () => {
       // If a non-admin user is somehow authenticated on the admin portal,
       // they should be redirected away. The middleware should also handle this,
       // but this is a good client-side fallback.
-      router.replace('/unauthorized'); // Or sign them out
+      router.replace("/unauthorized"); // Or sign them out
     }
   }, [sessionStatus, session, router]);
 
