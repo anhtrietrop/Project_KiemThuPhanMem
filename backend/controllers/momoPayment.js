@@ -288,6 +288,14 @@ async function createPaymentRequest(req, res) {
 
 // ================= PAYMENT CALLBACK =================
 async function handlePaymentCallback(req, res) {
+  console.log("\n========================================");
+  console.log("🔔 MOMO CALLBACK FUNCTION CALLED");
+  console.log("========================================");
+  console.log("Timestamp:", new Date().toISOString());
+  console.log("Request Method:", req?.method);
+  console.log("Request URL:", req?.url);
+  console.log("Request Headers:", JSON.stringify(req?.headers, null, 2));
+  
   try {
     const {
       partnerCode,
@@ -305,9 +313,6 @@ async function handlePaymentCallback(req, res) {
       signature,
     } = req.body;
 
-    console.log("\n========================================");
-    console.log("🔔 MOMO CALLBACK RECEIVED");
-    console.log("========================================");
     console.log("📋 Full Request Body:", JSON.stringify(req.body, null, 2));
     console.log("Order ID:", orderId);
     console.log("Request ID:", requestId);
