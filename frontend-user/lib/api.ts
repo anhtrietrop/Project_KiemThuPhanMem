@@ -9,7 +9,7 @@ export const apiClient = {
 
     // Get NextAuth session for user ID
     const session = await getSession();
-    const userId = session?.user?.id;
+    const userId = (session?.user as any)?.id;
 
     const defaultOptions: RequestInit = {
       headers: {
