@@ -391,8 +391,8 @@ async function handlePaymentCallback(req, res) {
       // Auto-update order status based on payment result
       let newOrderStatus = order.status;
       if (resultCode === 0) {
-        // Payment successful - set to 'success' (paid and confirmed)
-        newOrderStatus = "success";
+        // Payment successful - set to 'processing' (paid and confirmed)
+        newOrderStatus = "processing";
       } else if (status === "FAILED") {
         // Payment failed - keep order in pending or cancel it
         // Don't change status if user wants to retry payment

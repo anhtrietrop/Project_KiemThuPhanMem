@@ -10,6 +10,7 @@ import apiClient from "@/lib/api";
 import MomoPayment from "@/components/MomoPayment";
 import { ValidationTooltip, VALIDATION_RULES } from "@/components/ValidationTooltip";
 import { formatCurrencyVND } from "@/utils/currency";
+import { getImageSrc } from "@/utils/imageHelper";
 
 const CheckoutPage = () => {
   const { data: session, status } = useSession();
@@ -411,7 +412,7 @@ const CheckoutPage = () => {
               {products.map((product) => (
                 <li key={product?.id} className="flex items-start space-x-4 py-6">
                   <Image
-                    src={product?.image ? `/${product?.image}` : "/product_placeholder.jpg"}
+                    src={getImageSrc(product?.mainImage || product?.image)}
                     alt={product?.title}
                     width={80}
                     height={80}
