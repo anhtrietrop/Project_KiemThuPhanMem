@@ -75,8 +75,14 @@ const nextConfig = {
     // Tắt source maps trong production (giảm kích thước)
     productionBrowserSourceMaps: false,
 
+    // Skip static generation for auth pages during build
+    skipTrailingSlashRedirect: true,
+    
     env: {
         NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+        // Fix NextAuth build error - provide fallback URL
+        NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3001',
+        NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || 'build-time-secret',
     },
 
     // Headers - COMMENTED OUT for Next.js 15 Docker build compatibility

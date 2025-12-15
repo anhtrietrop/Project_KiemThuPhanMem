@@ -38,8 +38,8 @@ model customer_order_product {
   customerOrderId String
   productId       String
   quantity        Int
-  customerOrder   customer_order @relation(fields: [customerOrderId], references: [id], onDelete: NoAction)
-  product         Product        @relation(fields: [productId], references: [id], onDelete: NoAction)
+  customerOrder   customer_order @relation(fields: [customerOrderId], references: [id], onDelete: Cascade)
+  product         Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([customerOrderId], map: "customer_order_product_customerOrderId_fkey")
   @@index([productId], map: "customer_order_product_productId_fkey")

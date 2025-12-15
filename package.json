@@ -1,6 +1,17 @@
 {
+  "scripts": {
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "cy:run:chrome": "cypress run --browser chrome",
+    "cy:run:firefox": "cypress run --browser firefox",
+    "test:e2e": "cypress run",
+    "test:e2e:headed": "cypress run --headed"
+  },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
     "cookie": "^1.0.2"
+  },
+  "devDependencies": {
+    "cypress": "^13.6.2"
   }
 }

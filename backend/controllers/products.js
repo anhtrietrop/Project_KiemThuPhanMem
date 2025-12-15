@@ -407,6 +407,7 @@ const updateProduct = asyncHandler(async (request, response) => {
 });
 
 // Method for deleting a product
+// With Cascade delete in schema, related records are automatically deleted
 const deleteProduct = asyncHandler(async (request, response) => {
   const { id } = request.params;
 
@@ -414,31 +415,25 @@ const deleteProduct = asyncHandler(async (request, response) => {
     throw new AppError("Product ID is required", 400);
   }
 
-  // Delete all related records first to avoid foreign key constraint
-  await prisma.$transaction([
-    // Delete from cart
-    prisma.cart.deleteMany({
-      where: { productId: id },
-    }),
-    // Delete from wishlist
-    prisma.wishlist.deleteMany({
-      where: { productId: id },
-    }),
-    // Delete from customer_order_product
-    prisma.customer_order_product.deleteMany({
-      where: { productId: id },
-    }),
-    // Delete from review
-    prisma.review.deleteMany({
-      where: { productId: id },
-    }),
-    // Finally delete the product
-    prisma.product.delete({
-      where: { id },
-    }),
-  ]);
+  // Check if product exists
+  const product = await prisma.product.findUnique({
+    where: { id },
+  });
 
-  return response.status(204).send();
+  if (!product) {
+    throw new AppError("Product not found", 404);
+  }
+
+  // Delete product - Cascade will handle related records automatically
+  // (cartitem, wishlist, customer_order_product, review)
+  await prisma.product.delete({
+    where: { id },
+  });
+
+  return response.status(200).json({ 
+    message: "Product deleted successfully",
+    deletedProductId: id 
+  });
 });
 
 const searchProducts = asyncHandler(async (request, response) => {

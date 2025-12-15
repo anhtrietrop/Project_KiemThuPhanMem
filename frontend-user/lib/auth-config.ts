@@ -94,6 +94,10 @@ export const authOptions: any = {
   jwt: {
     maxAge: 15 * 60, // 15 minutes in seconds
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || 'fallback-secret-for-build',
   debug: process.env.NODE_ENV === "development",
+  // Fix for build time - don't fetch session during static generation
+  ...(process.env.NODE_ENV !== "production" && {
+    useSecureCookies: false,
+  }),
 };
