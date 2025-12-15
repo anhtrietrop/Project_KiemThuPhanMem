@@ -23,13 +23,22 @@ export function getImageSrc(imagePath: string | null | undefined, fallback: stri
     return apiBaseUrl ? `${apiBaseUrl}${imagePath}` : imagePath;
   }
 
-  // If it's a local path, ensure it starts with /
+  // If it's a local path starting with /, check if it exists in public folder
   if (imagePath.startsWith('/')) {
     return imagePath;
   }
 
-  // If it's just a filename (e.g., "product1.webp"), prepend /
-  // This handles legacy data that might just store filenames
+  // If it's just a filename without extension or path (e.g., "image1", "product1")
+  // Assume it's a Cloudinary image and construct the URL
+  const cloudinaryBaseUrl = process.env.NEXT_PUBLIC_CLOUDINARY_BASE_URL;
+  if (cloudinaryBaseUrl) {
+    // Remove file extension if present
+    const fileNameWithoutExt = imagePath.replace(/\.(jpg|jpeg|png|webp|gif)$/i, '');
+    // Construct Cloudinary URL - assuming images are in 'products' folder
+    return `${cloudinaryBaseUrl}/image/upload/products/${fileNameWithoutExt}`;
+  }
+
+  // Fallback to local path
   return `/${imagePath}`;
 }
 
