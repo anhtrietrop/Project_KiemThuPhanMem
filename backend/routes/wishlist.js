@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { authenticate } = require('../middleware/auth');
+const { authenticate, authenticateFlexible } = require('../middleware/auth');
 const {
   getAllWishlistByUserId,
   getAllWishlist,
@@ -11,17 +11,17 @@ const {
 } = require("../controllers/wishlist");
 
 // Auth-based routes - convert userId to String
-router.post('/', authenticate, (req, res, next) => {
+router.post('/', authenticateFlexible, (req, res, next) => {
   req.body.userId = String(req.user.id || req.user.userId);
   createWishItem(req, res, next);
 });
 
-router.get('/', authenticate, (req, res, next) => {
+router.get('/', authenticateFlexible, (req, res, next) => {
   req.params.userId = String(req.user.id || req.user.userId);
   getAllWishlistByUserId(req, res, next);
 });
 
-router.delete('/:id', authenticate, deleteWishItemById);
+router.delete('/:id', authenticateFlexible, deleteWishItemById);
 
 // Param-based routes
 router.route("/:userId").get(getAllWishlistByUserId);
