@@ -11,6 +11,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { formatCurrencyVND } from "@/utils/currency";
+import { getImageSrc } from "@/utils/imageHelper";
 
 export const CartModule = () => {
   const { data: session, status } = useSession();
@@ -69,8 +70,8 @@ export const CartModule = () => {
                 <Image
                   width={192}
                   height={192}
-                  src={product?.image ? `/${product.image}` : "/product_placeholder.jpg"}
-                  alt="laptop image"
+                  src={getImageSrc(product?.mainImage || product?.image)}
+                  alt={product?.title || "Product image"}
                   className="h-24 w-24 rounded-md object-cover object-center sm:h-48 sm:w-48"
                 />
               </div>
