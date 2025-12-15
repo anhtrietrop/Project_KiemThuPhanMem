@@ -7,6 +7,7 @@ export type ProductInCart = {
   title: string;
   price: number;
   image: string;
+  mainImage?: string;
   amount: number;
   quantity: number;
 };
