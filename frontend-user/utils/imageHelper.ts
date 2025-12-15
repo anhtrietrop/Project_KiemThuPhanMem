@@ -29,17 +29,18 @@ export function getImageSrc(imagePath: string | null | undefined, fallback: stri
   }
 
   // If it's just a filename without extension or path (e.g., "image1", "product1")
-  // Assume it's a Cloudinary image and construct the URL
+  // Try Cloudinary first, but use fallback if Cloudinary not configured
   const cloudinaryBaseUrl = process.env.NEXT_PUBLIC_CLOUDINARY_BASE_URL;
-  if (cloudinaryBaseUrl) {
-    // Remove file extension if present
-    const fileNameWithoutExt = imagePath.replace(/\.(jpg|jpeg|png|webp|gif)$/i, '');
-    // Construct Cloudinary URL - assuming images are in 'products' folder
-    return `${cloudinaryBaseUrl}/image/upload/products/${fileNameWithoutExt}`;
+  if (cloudinaryBaseUrl && imagePath) {
+    // If filename has extension, use it as-is, otherwise add .webp
+    const hasExtension = /\.(jpg|jpeg|png|webp|gif)$/i.test(imagePath);
+    const fileName = hasExtension ? imagePath : `${imagePath}.webp`;
+    // Construct Cloudinary URL without 'products' folder
+    return `${cloudinaryBaseUrl}/image/upload/${fileName}`;
   }
 
-  // Fallback to local path
-  return `/${imagePath}`;
+  // Fallback to placeholder if all else fails
+  return fallback;
 }
 
 /**
