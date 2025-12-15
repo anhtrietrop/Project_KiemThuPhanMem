@@ -17,7 +17,7 @@ const createOrderProduct = asyncHandler(async (request, response) => {
 
   // Verify that the customer order exists
   const existingOrder = await prisma.customer_order.findUnique({
-    where: { id: customerOrderId }
+    where: { id: customerOrderId },
   });
 
   if (!existingOrder) {
@@ -26,7 +26,7 @@ const createOrderProduct = asyncHandler(async (request, response) => {
 
   // Verify that the product exists and check stock
   const existingProduct = await prisma.product.findUnique({
-    where: { id: productId }
+    where: { id: productId },
   });
 
   if (!existingProduct) {
@@ -35,35 +35,41 @@ const createOrderProduct = asyncHandler(async (request, response) => {
 
   // Check if there's enough stock
   if (existingProduct.quantity < quantity) {
-    throw new AppError(`Insufficient stock. Available: ${existingProduct.quantity}, Requested: ${quantity}`, 400);
+    throw new AppError(
+      `Insufficient stock. Available: ${existingProduct.quantity}, Requested: ${quantity}`,
+      400
+    );
   }
 
   // Use transaction to ensure data consistency
-  const result = await prisma.$transaction(async (tx) => {
-    // Create the order product
-    const orderProduct = await tx.customer_order_product.create({
-      data: {
-        customerOrderId: customerOrderId,
-        productId: productId,
-        quantity: parseInt(quantity)
-      }
-    });
+  const result = await prisma.$transaction(
+    async (tx) => {
+      // Create the order product
+      const orderProduct = await tx.customer_order_product.create({
+        data: {
+          customerOrderId: customerOrderId,
+          productId: productId,
+          quantity: parseInt(quantity),
+        },
+      });
 
-    // Update product quantity (subtract the ordered quantity)
-    await tx.product.update({
-      where: { id: productId },
-      data: {
-        quantity: {
-          decrement: parseInt(quantity)
-        }
-      }
-    });
+      // Update product quantity (subtract the ordered quantity)
+      await tx.product.update({
+        where: { id: productId },
+        data: {
+          quantity: {
+            decrement: parseInt(quantity),
+          },
+        },
+      });
 
-    return orderProduct;
-  }, {
-    maxWait: 5000, // Wait max 5s to start transaction
-    timeout: 10000, // Transaction timeout 10s
-  });
+      return orderProduct;
+    },
+    {
+      maxWait: 5000, // Wait max 5s to start transaction
+      timeout: 10000, // Transaction timeout 10s
+    }
+  );
 
   return response.status(201).json(result);
 });
@@ -78,8 +84,8 @@ const updateProductOrder = asyncHandler(async (request, response) => {
 
   const existingOrder = await prisma.customer_order_product.findUnique({
     where: {
-      id: id
-    }
+      id: id,
+    },
   });
 
   if (!existingOrder) {
@@ -93,13 +99,13 @@ const updateProductOrder = asyncHandler(async (request, response) => {
 
   const updatedOrder = await prisma.customer_order_product.update({
     where: {
-      id: existingOrder.id
+      id: existingOrder.id,
     },
     data: {
       customerOrderId: customerOrderId || existingOrder.customerOrderId,
       productId: productId || existingOrder.productId,
-      quantity: quantity !== undefined ? quantity : existingOrder.quantity
-    }
+      quantity: quantity !== undefined ? quantity : existingOrder.quantity,
+    },
   });
 
   return response.json(updatedOrder);
@@ -113,7 +119,7 @@ const deleteProductOrder = asyncHandler(async (request, response) => {
   }
 
   const existingOrder = await prisma.customer_order_product.findUnique({
-    where: { id }
+    where: { id },
   });
 
   if (!existingOrder) {
@@ -122,8 +128,8 @@ const deleteProductOrder = asyncHandler(async (request, response) => {
 
   await prisma.customer_order_product.deleteMany({
     where: {
-      customerOrderId: id
-    }
+      customerOrderId: id,
+    },
   });
   return response.status(204).send();
 });
@@ -137,11 +143,11 @@ const getProductOrder = asyncHandler(async (request, response) => {
 
   const order = await prisma.customer_order_product.findMany({
     where: {
-      customerOrderId: id
+      customerOrderId: id,
     },
     include: {
-      product: true
-    }
+      product: true,
+    },
   });
 
   if (!order || order.length === 0) {
@@ -169,10 +175,10 @@ const getAllProductOrders = asyncHandler(async (request, response) => {
           postalCode: true,
           dateTime: true,
           status: true,
-          total: true
-        }
-      }
-    }
+          total: true,
+        },
+      },
+    },
   });
 
   const ordersMap = new Map();
@@ -183,15 +189,15 @@ const getAllProductOrders = asyncHandler(async (request, response) => {
 
     const product = await prisma.product.findUnique({
       where: {
-        id: productId
+        id: productId,
       },
       select: {
         id: true,
         title: true,
         mainImage: true,
         price: true,
-        slug: true
-      }
+        slug: true,
+      },
     });
 
     if (ordersMap.has(id)) {
@@ -200,7 +206,7 @@ const getAllProductOrders = asyncHandler(async (request, response) => {
       ordersMap.set(id, {
         customerOrderId: id,
         customerOrder: orderDetails,
-        products: [{ ...product, quantity }]
+        products: [{ ...product, quantity }],
       });
     }
   }
@@ -215,5 +221,5 @@ module.exports = {
   updateProductOrder,
   deleteProductOrder,
   getProductOrder,
-  getAllProductOrders
+  getAllProductOrders,
 };

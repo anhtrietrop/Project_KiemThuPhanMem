@@ -295,7 +295,7 @@ async function handlePaymentCallback(req, res) {
   console.log("Request Method:", req?.method);
   console.log("Request URL:", req?.url);
   console.log("Request Headers:", JSON.stringify(req?.headers, null, 2));
-  
+
   try {
     const {
       partnerCode,

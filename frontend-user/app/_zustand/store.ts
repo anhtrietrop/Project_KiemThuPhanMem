@@ -62,19 +62,21 @@ export const useProductStore = create<State & Actions>()(
           const response = await cartService.getCart(userId);
 
           if (response.success && response.data) {
-            const products = cartService.convertCartToProducts(response.data.cart);
+            const products = cartService.convertCartToProducts(
+              response.data.cart
+            );
             set({
               products,
               allQuantity: response.data.allQuantity,
               total: response.data.total,
-              isLoading: false
+              isLoading: false,
             });
           } else {
-            console.error('Failed to load cart:', response.error);
+            console.error("Failed to load cart:", response.error);
             set({ isLoading: false });
           }
         } catch (error) {
-          console.error('Error loading cart:', error);
+          console.error("Error loading cart:", error);
           set({ isLoading: false });
         }
       },
@@ -87,20 +89,25 @@ export const useProductStore = create<State & Actions>()(
 
           if (currentProducts.length > 0) {
             // Có sản phẩm trong localStorage, đồng bộ lên server
-            const response = await cartService.syncCart(userId, currentProducts);
+            const response = await cartService.syncCart(
+              userId,
+              currentProducts
+            );
 
             if (response.success && response.data) {
-              const products = cartService.convertCartToProducts(response.data.cart);
+              const products = cartService.convertCartToProducts(
+                response.data.cart
+              );
               set({
                 products,
                 allQuantity: response.data.allQuantity,
                 total: response.data.total,
                 isLoggedIn: true,
                 userId,
-                isLoading: false
+                isLoading: false,
               });
             } else {
-              console.error('Failed to sync cart:', response.error);
+              console.error("Failed to sync cart:", response.error);
               set({ isLoggedIn: true, userId, isLoading: false });
             }
           } else {
@@ -109,7 +116,7 @@ export const useProductStore = create<State & Actions>()(
             set({ isLoggedIn: true, userId });
           }
         } catch (error) {
-          console.error('Error syncing cart:', error);
+          console.error("Error syncing cart:", error);
           set({ isLoggedIn: true, userId, isLoading: false });
         }
       },
@@ -121,17 +128,21 @@ export const useProductStore = create<State & Actions>()(
           // User đã đăng nhập - gọi API
           try {
             set({ isLoading: true });
-            const response = await cartService.addToCart(userId, newProduct.id, newProduct.amount);
+            const response = await cartService.addToCart(
+              userId,
+              newProduct.id,
+              newProduct.amount
+            );
 
             if (response.success) {
               // Reload cart từ server để đảm bảo đồng bộ
               await get().loadCartFromAPI(userId);
             } else {
-              console.error('Failed to add to cart:', response.error);
+              console.error("Failed to add to cart:", response.error);
               set({ isLoading: false });
             }
           } catch (error) {
-            console.error('Error adding to cart:', error);
+            console.error("Error adding to cart:", error);
             set({ isLoading: false });
           }
         } else {
@@ -145,7 +156,10 @@ export const useProductStore = create<State & Actions>()(
             } else {
               const updatedProducts = state.products.map((product) => {
                 if (product.id === cartItem.id) {
-                  return { ...product, amount: product.amount + newProduct.amount };
+                  return {
+                    ...product,
+                    amount: product.amount + newProduct.amount,
+                  };
                 }
                 return product;
               });
@@ -169,11 +183,11 @@ export const useProductStore = create<State & Actions>()(
               // Reload cart từ server
               await get().loadCartFromAPI(userId);
             } else {
-              console.error('Failed to remove from cart:', response.error);
+              console.error("Failed to remove from cart:", response.error);
               set({ isLoading: false });
             }
           } catch (error) {
-            console.error('Error removing from cart:', error);
+            console.error("Error removing from cart:", error);
             set({ isLoading: false });
           }
         } else {
@@ -195,17 +209,21 @@ export const useProductStore = create<State & Actions>()(
           // User đã đăng nhập - gọi API
           try {
             set({ isLoading: true });
-            const response = await cartService.updateCartItem(userId, id, amount);
+            const response = await cartService.updateCartItem(
+              userId,
+              id,
+              amount
+            );
 
             if (response.success) {
               // Reload cart từ server
               await get().loadCartFromAPI(userId);
             } else {
-              console.error('Failed to update cart:', response.error);
+              console.error("Failed to update cart:", response.error);
               set({ isLoading: false });
             }
           } catch (error) {
-            console.error('Error updating cart:', error);
+            console.error("Error updating cart:", error);
             set({ isLoading: false });
           }
         } else {
@@ -237,14 +255,14 @@ export const useProductStore = create<State & Actions>()(
                 products: [],
                 allQuantity: 0,
                 total: 0,
-                isLoading: false
+                isLoading: false,
               });
             } else {
-              console.error('Failed to clear cart:', response.error);
+              console.error("Failed to clear cart:", response.error);
               set({ isLoading: false });
             }
           } catch (error) {
-            console.error('Error clearing cart:', error);
+            console.error("Error clearing cart:", error);
             set({ isLoading: false });
           }
         } else {

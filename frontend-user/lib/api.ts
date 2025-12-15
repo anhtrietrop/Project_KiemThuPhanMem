@@ -1,5 +1,5 @@
-import config from './config';
-import { getSession } from 'next-auth/react';
+import config from "./config";
+import { getSession } from "next-auth/react";
 
 export const apiClient = {
   baseUrl: config.apiBaseUrl,
@@ -13,8 +13,8 @@ export const apiClient = {
 
     const defaultOptions: RequestInit = {
       headers: {
-        'Content-Type': 'application/json',
-        ...(userId && { 'X-User-Id': userId }),
+        "Content-Type": "application/json",
+        ...(userId && { "X-User-Id": userId }),
         ...options.headers,
       },
     };
@@ -24,24 +24,24 @@ export const apiClient = {
 
   // Convenience methods
   get: (endpoint: string, options?: RequestInit) =>
-    apiClient.request(endpoint, { ...options, method: 'GET' }),
+    apiClient.request(endpoint, { ...options, method: "GET" }),
 
   post: <T>(endpoint: string, data?: T, options?: RequestInit) =>
     apiClient.request(endpoint, {
       ...options,
-      method: 'POST',
+      method: "POST",
       body: data ? JSON.stringify(data) : undefined,
     }),
 
   put: <T>(endpoint: string, data?: T, options?: RequestInit) =>
     apiClient.request(endpoint, {
       ...options,
-      method: 'PUT',
+      method: "PUT",
       body: data ? JSON.stringify(data) : undefined,
     }),
 
   delete: (endpoint: string, options?: RequestInit) =>
-    apiClient.request(endpoint, { ...options, method: 'DELETE' }),
+    apiClient.request(endpoint, { ...options, method: "DELETE" }),
 };
 
 export default apiClient;

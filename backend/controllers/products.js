@@ -6,7 +6,13 @@ const {
 } = require("../utills/errorHandler");
 
 // Security: Define whitelists for allowed filter types and operators
-const ALLOWED_FILTER_TYPES = ["price", "rating", "category", "quantity", "inStock"];
+const ALLOWED_FILTER_TYPES = [
+  "price",
+  "rating",
+  "category",
+  "quantity",
+  "inStock",
+];
 const ALLOWED_OPERATORS = ["gte", "lte", "gt", "lt", "equals", "contains"];
 const ALLOWED_SORT_VALUES = [
   "defaultSort",
@@ -82,7 +88,8 @@ function buildSafeFilterObject(filterArray) {
 
     // Build safe filter object
     // Map inStock to quantity for database query
-    const dbFieldName = item.filterType === "inStock" ? "quantity" : item.filterType;
+    const dbFieldName =
+      item.filterType === "inStock" ? "quantity" : item.filterType;
     filterObj[dbFieldName] = {
       [item.filterOperator]: sanitizedValue,
     };

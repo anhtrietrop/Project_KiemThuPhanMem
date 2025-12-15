@@ -8,7 +8,10 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import apiClient from "@/lib/api";
 import MomoPayment from "@/components/MomoPayment";
-import { ValidationTooltip, VALIDATION_RULES } from "@/components/ValidationTooltip";
+import {
+  ValidationTooltip,
+  VALIDATION_RULES,
+} from "@/components/ValidationTooltip";
 import { formatCurrencyVND } from "@/utils/currency";
 import { getImageSrc } from "@/utils/imageHelper";
 
@@ -25,8 +28,13 @@ const CheckoutPage = () => {
     orderNotice: "",
   });
 
-  const [checkoutStep, setCheckoutStep] = useState<"form" | "payment" | "success">("form");
-  const [createdOrder, setCreatedOrder] = useState<{ id: string; total: number; } | null>(null);
+  const [checkoutStep, setCheckoutStep] = useState<
+    "form" | "payment" | "success"
+  >("form");
+  const [createdOrder, setCreatedOrder] = useState<{
+    id: string;
+    total: number;
+  } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { products, total, clearCart } = useProductStore();
   const router = useRouter();
@@ -49,18 +57,25 @@ const CheckoutPage = () => {
     }
 
     // Lastname validation
-    if (!checkoutForm.lastname.trim() || checkoutForm.lastname.trim().length < 2) {
+    if (
+      !checkoutForm.lastname.trim() ||
+      checkoutForm.lastname.trim().length < 2
+    ) {
       errors.push("Lastname must be at least 2 characters");
     }
 
     // Email validation
-    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-    if (!checkoutForm.email.trim() || !emailRegex.test(checkoutForm.email.trim())) {
+    const emailRegex =
+      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    if (
+      !checkoutForm.email.trim() ||
+      !emailRegex.test(checkoutForm.email.trim())
+    ) {
       errors.push("Please enter a valid email address");
     }
 
     // Phone validation (must be at least 10 digits)
-    const phoneDigits = checkoutForm.phone.replace(/[^0-9]/g, '');
+    const phoneDigits = checkoutForm.phone.replace(/[^0-9]/g, "");
     if (!checkoutForm.phone.trim() || phoneDigits.length < 10) {
       errors.push("Phone number must be at least 10 digits");
     }
@@ -84,7 +99,7 @@ const CheckoutPage = () => {
     // Client-side validation first
     const validationErrors = validateForm();
     if (validationErrors.length > 0) {
-      validationErrors.forEach(error => {
+      validationErrors.forEach((error) => {
         toast.error(error);
       });
       return;
@@ -92,11 +107,16 @@ const CheckoutPage = () => {
 
     // Basic client-side checks for required fields (UX only)
     const requiredFields = [
-      'name', 'lastname', 'phone', 'email', 'adress', 'city'
+      "name",
+      "lastname",
+      "phone",
+      "email",
+      "adress",
+      "city",
     ];
 
-    const missingFields = requiredFields.filter(field =>
-      !checkoutForm[field as keyof typeof checkoutForm]?.trim()
+    const missingFields = requiredFields.filter(
+      (field) => !checkoutForm[field as keyof typeof checkoutForm]?.trim()
     );
 
     if (missingFields.length > 0) {
@@ -123,14 +143,22 @@ const CheckoutPage = () => {
       let userId = null;
       if (session?.user?.email) {
         try {
-          console.log("🔍 Getting user ID for logged-in user:", session.user.email);
-          const userResponse = await apiClient.get(`/api/users/email/${session.user.email}`);
+          console.log(
+            "🔍 Getting user ID for logged-in user:",
+            session.user.email
+          );
+          const userResponse = await apiClient.get(
+            `/api/users/email/${session.user.email}`
+          );
           if (userResponse.ok) {
             const userData = await userResponse.json();
             userId = userData.id;
             console.log("✅ Found user ID:", userId);
           } else {
-            console.log("❌ Could not find user with email:", session.user.email);
+            console.log(
+              "❌ Could not find user with email:",
+              session.user.email
+            );
           }
         } catch (userError) {
           console.log("⚠️  Error getting user ID:", userError);
@@ -149,7 +177,7 @@ const CheckoutPage = () => {
         total: total,
         city: checkoutForm.city.trim(),
         orderNotice: checkoutForm.orderNotice.trim(),
-        userId: userId // Add user ID for notifications
+        userId: userId, // Add user ID for notifications
       };
 
       console.log("📋 Order data being sent:", orderData);
@@ -164,7 +192,11 @@ const CheckoutPage = () => {
 
       // Check if response is ok before parsing
       if (!response.ok) {
-        console.error("❌ Response not OK:", response.status, response.statusText);
+        console.error(
+          "❌ Response not OK:",
+          response.status,
+          response.statusText
+        );
         const errorText = await response.text();
         console.error("Error response body:", errorText);
 
@@ -176,14 +208,16 @@ const CheckoutPage = () => {
           // Handle different error types
           if (response.status === 409) {
             // Duplicate order error
-            toast.error(errorData.details || errorData.error || "Duplicate order detected");
+            toast.error(
+              errorData.details || errorData.error || "Duplicate order detected"
+            );
             return; // Don't throw, just return to stop execution
           } else if (errorData.details && Array.isArray(errorData.details)) {
             // Validation errors
             errorData.details.forEach((detail: any) => {
               toast.error(`${detail.field}: ${detail.message}`);
             });
-          } else if (typeof errorData.details === 'string') {
+          } else if (typeof errorData.details === "string") {
             // Single error message in details
             toast.error(errorData.details);
           } else {
@@ -210,14 +244,16 @@ const CheckoutPage = () => {
         throw new Error("Order ID not received from server");
       }
 
-      console.log("✅ Order ID validation passed, proceeding with product addition...");
+      console.log(
+        "✅ Order ID validation passed, proceeding with product addition..."
+      );
 
       // Add products to order
       for (let i = 0; i < products.length; i++) {
         console.log(`🛍️ Adding product ${i + 1}/${products.length}:`, {
           orderId,
           productId: products[i].id,
-          quantity: products[i].amount
+          quantity: products[i].amount,
         });
 
         await addOrderProduct(orderId, products[i].id, products[i].amount);
@@ -242,9 +278,9 @@ const CheckoutPage = () => {
       // Refresh notification count if user is logged in
       try {
         // This will trigger a refresh of notifications in the background
-        window.dispatchEvent(new CustomEvent('orderCompleted'));
+        window.dispatchEvent(new CustomEvent("orderCompleted"));
       } catch (error) {
-        console.log('Note: Could not trigger notification refresh');
+        console.log("Note: Could not trigger notification refresh");
       }
 
       console.log("✅ Order created, proceeding to payment step.");
@@ -276,7 +312,9 @@ const CheckoutPage = () => {
           toast.error("Validation failed");
         }
       } else if (error.response?.status === 409) {
-        toast.error("Duplicate order detected. Please wait before creating another order.");
+        toast.error(
+          "Duplicate order detected. Please wait before creating another order."
+        );
       } else {
         console.log("🔍 Handling generic error...");
         if (error.message.includes("Insufficient stock")) {
@@ -299,7 +337,7 @@ const CheckoutPage = () => {
       console.log("️ Adding product to order:", {
         customerOrderId: orderId,
         productId,
-        quantity: productQuantity
+        quantity: productQuantity,
       });
 
       const response = await apiClient.post("/api/order-product", {
@@ -317,7 +355,10 @@ const CheckoutPage = () => {
         // Try to parse error message for stock issues
         try {
           const errorData = JSON.parse(errorText);
-          if (errorData.error && errorData.error.includes("Insufficient stock")) {
+          if (
+            errorData.error &&
+            errorData.error.includes("Insufficient stock")
+          ) {
             throw new Error(errorData.error);
           }
         } catch (parseError) {
@@ -329,7 +370,6 @@ const CheckoutPage = () => {
 
       const data = await response.json();
       console.log("✅ Product order successful:", data);
-
     } catch (error) {
       console.error("💥 Error creating product order:", error);
       throw error;
@@ -389,8 +429,14 @@ const CheckoutPage = () => {
     <div className="bg-white">
       <SectionTitle title="Checkout" path="Home | Cart | Checkout" />
 
-      <div className="hidden h-full w-1/2 bg-white lg:block" aria-hidden="true" />
-      <div className="hidden h-full w-1/2 bg-gray-50 lg:block" aria-hidden="true" />
+      <div
+        className="hidden h-full w-1/2 bg-white lg:block"
+        aria-hidden="true"
+      />
+      <div
+        className="hidden h-full w-1/2 bg-gray-50 lg:block"
+        aria-hidden="true"
+      />
 
       <main className="relative mx-auto grid max-w-screen-2xl grid-cols-1 gap-x-16 lg:grid-cols-2 lg:px-8 xl:gap-x-48">
         <h1 className="sr-only">Order information</h1>
@@ -401,7 +447,10 @@ const CheckoutPage = () => {
           className="bg-gray-50 px-4 pb-10 pt-16 sm:px-6 lg:col-start-2 lg:row-start-1 lg:bg-transparent lg:px-0 lg:pb-16"
         >
           <div className="mx-auto max-w-lg lg:max-w-none">
-            <h2 id="summary-heading" className="text-lg font-medium text-gray-900">
+            <h2
+              id="summary-heading"
+              className="text-lg font-medium text-gray-900"
+            >
               Order summary
             </h2>
 
@@ -410,7 +459,10 @@ const CheckoutPage = () => {
               className="divide-y divide-gray-200 text-sm font-medium text-gray-900"
             >
               {products.map((product) => (
-                <li key={product?.id} className="flex items-start space-x-4 py-6">
+                <li
+                  key={product?.id}
+                  className="flex items-start space-x-4 py-6"
+                >
                   <Image
                     src={getImageSrc(product?.mainImage || product?.image)}
                     alt={product?.title}
@@ -445,7 +497,9 @@ const CheckoutPage = () => {
               <div className="flex items-center justify-between border-t border-gray-200 pt-6">
                 <dt className="text-base">Tổng cộng</dt>
                 <dd className="text-base">
-                  {formatCurrencyVND(total === 0 ? 0 : Math.round(total + total / 5 + 5000))}
+                  {formatCurrencyVND(
+                    total === 0 ? 0 : Math.round(total + total / 5 + 5000)
+                  )}
                 </dd>
               </div>
             </dl>
@@ -581,8 +635,16 @@ const CheckoutPage = () => {
               <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
                 <div className="flex">
                   <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    <svg
+                      className="h-5 w-5 text-blue-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div className="ml-3">
@@ -590,7 +652,10 @@ const CheckoutPage = () => {
                       Payment Information
                     </h3>
                     <div className="mt-2 text-sm text-blue-700">
-                      <p>Payment will be processed after order confirmation. You will be contacted for payment details.</p>
+                      <p>
+                        Payment will be processed after order confirmation. You
+                        will be contacted for payment details.
+                      </p>
                     </div>
                   </div>
                 </div>

@@ -1,19 +1,19 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-const CLOUDINARY_BASE_URL = 'https://res.cloudinary.com/dpsiy73bv/image/upload';
+const CLOUDINARY_BASE_URL = "https://res.cloudinary.com/dpsiy73bv/image/upload";
 
 async function updateProductImages() {
   try {
-    console.log('Starting product image update...');
+    console.log("Starting product image update...");
 
     // Get all products
     const products = await prisma.product.findMany({
       select: {
         id: true,
         mainImage: true,
-        title: true
-      }
+        title: true,
+      },
     });
 
     console.log(`Found ${products.length} products`);
@@ -25,7 +25,10 @@ async function updateProductImages() {
       const { id, mainImage, title } = product;
 
       // Skip if already a full URL
-      if (mainImage && (mainImage.startsWith('http://') || mainImage.startsWith('https://'))) {
+      if (
+        mainImage &&
+        (mainImage.startsWith("http://") || mainImage.startsWith("https://"))
+      ) {
         console.log(`Skipping "${title}" - already has full URL`);
         skippedCount++;
         continue;
@@ -46,21 +49,20 @@ async function updateProductImages() {
       // Update product
       await prisma.product.update({
         where: { id },
-        data: { mainImage: newImageUrl }
+        data: { mainImage: newImageUrl },
       });
 
       console.log(`✓ Updated "${title}": ${mainImage} → ${newImageUrl}`);
       updatedCount++;
     }
 
-    console.log('\n=== Summary ===');
+    console.log("\n=== Summary ===");
     console.log(`Total products: ${products.length}`);
     console.log(`Updated: ${updatedCount}`);
     console.log(`Skipped: ${skippedCount}`);
-    console.log('Done!');
-
+    console.log("Done!");
   } catch (error) {
-    console.error('Error updating images:', error);
+    console.error("Error updating images:", error);
     process.exit(1);
   } finally {
     await prisma.$disconnect();
