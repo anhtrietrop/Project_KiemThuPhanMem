@@ -60,6 +60,9 @@ const createOrderProduct = asyncHandler(async (request, response) => {
     });
 
     return orderProduct;
+  }, {
+    maxWait: 5000, // Wait max 5s to start transaction
+    timeout: 10000, // Transaction timeout 10s
   });
 
   return response.status(201).json(result);
