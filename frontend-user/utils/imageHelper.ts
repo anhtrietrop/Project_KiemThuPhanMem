@@ -28,7 +28,8 @@ export function getImageSrc(imagePath: string | null | undefined, fallback: stri
     return imagePath;
   }
 
-  // Otherwise, prepend / for local paths
+  // If it's just a filename (e.g., "product1.webp"), prepend /
+  // This handles legacy data that might just store filenames
   return `/${imagePath}`;
 }
 
