@@ -1,4 +1,6 @@
 "use client";
+export const dynamic = "force-dynamic";
+
 import { CustomButton, SectionTitle } from "@/components";
 import { useSession } from "next-auth/react";
 import Image from "next/image";

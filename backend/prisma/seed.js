@@ -1,17 +1,5 @@
 /**
- * Database Seed Script for Development & Testing
- * 
- * Purpose: Create consistent sample data across all team members
- * Usage: npx prisma db seed
- * 
- * This creates:
- * - Admin user
- * - Sample categories
- * - Sample products
- * - Sample users
- * - Sample orders
- * 
- * All IDs are deterministic (same every run)
+ * Database Seed Script - Simplified for E-commerce Project
  */
 
 const { PrismaClient } = require('@prisma/client');
@@ -22,7 +10,6 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Starting database seeding...');
 
-  // Clear existing data (optional - for clean slate)
   console.log('🗑️  Cleaning existing data...');
   await prisma.customer_order_product.deleteMany();
   await prisma.customer_order.deleteMany();
@@ -67,44 +54,38 @@ async function main() {
     });
     users.push(user);
   }
-  }
 
   // 3. Create Categories
   console.log('📂 Creating categories...');
   const categories = await Promise.all([
     prisma.category.create({
       data: {
+        id: 'cat-001',
         name: 'Electronics',
-        slug: 'electronics',
-        description: 'Electronic devices and gadgets',
       },
     }),
     prisma.category.create({
       data: {
+        id: 'cat-002',
         name: 'Fashion',
-        slug: 'fashion',
-        description: 'Clothing and accessories',
       },
     }),
     prisma.category.create({
       data: {
+        id: 'cat-003',
         name: 'Home & Living',
-        slug: 'home-living',
-        description: 'Furniture and home decor',
       },
     }),
     prisma.category.create({
       data: {
+        id: 'cat-004',
         name: 'Books',
-        slug: 'books',
-        description: 'Books and magazines',
       },
     }),
     prisma.category.create({
       data: {
+        id: 'cat-005',
         name: 'Sports',
-        slug: 'sports',
-        description: 'Sports equipment and accessories',
       },
     }),
   ]);
