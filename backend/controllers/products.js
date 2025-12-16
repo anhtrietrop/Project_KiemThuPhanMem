@@ -322,6 +322,31 @@ const createProduct = asyncHandler(async (request, response) => {
     throw new AppError("Missing required field: mainImage", 400);
   }
 
+  // Determine slug: prefer provided slug, otherwise generate from title
+  let finalSlug = null;
+  if (slug && typeof slug === "string" && slug.trim().length > 0) {
+    finalSlug = slugify(slug);
+  } else if (title) {
+    finalSlug = slugify(title) || `product-${Date.now()}`;
+  } else {
+    finalSlug = `product-${Date.now()}`;
+  }
+
+  // Ensure slug uniqueness
+  try {
+    const existingProduct = await prisma.product.findUnique({
+      where: { slug: finalSlug },
+    });
+    if (existingProduct) {
+      finalSlug = `${finalSlug}-${Date.now()}`;
+    }
+  } catch (e) {
+    console.warn(
+      "Error checking slug uniqueness during create:",
+      e && e.message ? e.message : e
+    );
+  }
+
   const product = await prisma.product.create({
     data: {
       slug: finalSlug,
@@ -513,21 +538,59 @@ const getProductById = asyncHandler(async (request, response) => {
     throw new AppError("Product ID is required", 400);
   }
 
-  const product = await prisma.product.findUnique({
-    where: {
-      id: id,
-    },
-    include: {
-      category: true,
-    },
-  });
+  // Helper function to check if string is a valid UUID format
+  const isUUID = (str) => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(str);
+  };
 
+  let product = null;
+  let searchMethod = "id";
+
+  // Try to find by ID first (if it looks like a UUID or numeric ID)
+  if (isUUID(id) || /^\d+$/.test(id)) {
+    try {
+      product = await prisma.product.findUnique({
+        where: {
+          id: id,
+        },
+        include: {
+          category: true,
+        },
+      });
+      searchMethod = "id";
+    } catch (error) {
+      console.log(`Error finding product by ID ${id}:`, error.message);
+    }
+  }
+
+  // If not found by ID, try to find by slug
+  if (!product) {
+    try {
+      product = await prisma.product.findUnique({
+        where: {
+          slug: id,
+        },
+        include: {
+          category: true,
+        },
+      });
+      searchMethod = "slug";
+    } catch (error) {
+      console.log(`Error finding product by slug ${id}:`, error.message);
+    }
+  }
+
+  // Log the result
   console.log(
-    `getProductById - id: ${id}, slug: ${product ? product.slug : "NOT_FOUND"}`
+    `getProductById - searched by ${searchMethod}, value: ${id}, found: ${product ? "YES" : "NO"}, slug: ${product ? product.slug || "null" : "NOT_FOUND"}`
   );
 
   if (!product) {
-    throw new AppError("Product not found", 404);
+    throw new AppError(
+      `Product not found with ${searchMethod === "id" ? "ID" : "slug"}: ${id}`,
+      404
+    );
   }
 
   return response.status(200).json(product);
