@@ -1,13 +1,19 @@
 "use client";
 import React from "react";
+import { useSession } from "next-auth/react";
 import DashboardOrdersTable from "@/components/dashboard/DashboardOrdersTable";
 import DashboardProductsTable from "@/components/dashboard/DashboardProductsTable";
 import { useRecentOrders } from "@/hooks/useRecentOrders";
 import { useTopProducts } from "@/hooks/useTopProducts";
 
 const AdminDashboardPage = () => {
+  const { data: session } = useSession();
   const { orders, isLoading: ordersLoading } = useRecentOrders(10);
   const { products, isLoading: productsLoading } = useTopProducts(10);
+
+  const displayName = session?.user?.name || "Admin User";
+  const displayEmail = session?.user?.email || "admin@example.com";
+  const initial = (session?.user?.name || session?.user?.email || "A")[0].toUpperCase();
 
   return (
     <>
@@ -20,11 +26,11 @@ const AdminDashboardPage = () => {
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-sm font-medium text-slate-900">Admin User</p>
-              <p className="text-xs text-slate-500">admin@example.com</p>
+              <p className="text-sm font-medium text-slate-900">{displayName}</p>
+              <p className="text-xs text-slate-500">{displayEmail}</p>
             </div>
             <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center text-white font-semibold">
-              A
+              {initial}
             </div>
           </div>
         </div>
