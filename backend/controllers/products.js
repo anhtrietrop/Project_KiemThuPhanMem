@@ -90,9 +90,12 @@ function buildSafeFilterObject(filterArray) {
     // Map inStock to quantity for database query
     const dbFieldName =
       item.filterType === "inStock" ? "quantity" : item.filterType;
-    filterObj[dbFieldName] = {
-      [item.filterOperator]: sanitizedValue,
-    };
+
+    if (!filterObj[dbFieldName]) {
+      filterObj[dbFieldName] = {};
+    }
+
+    filterObj[dbFieldName][item.filterOperator] = sanitizedValue;
   }
 
   return filterObj;
@@ -116,86 +119,52 @@ const getAllProducts = asyncHandler(async (request, response) => {
     const validatedPage = page && page > 0 ? page : 1;
 
     if (dividerLocation !== -1) {
-      const queryArray = request.url
-        .substring(dividerLocation + 1, request.url.length)
-        .split("&");
+      const queryString = request.url.substring(dividerLocation + 1);
+      const decodedQueryString = decodeURIComponent(queryString);
+      console.log("DEBUG_DECODED_QUERY:", decodedQueryString);
+      const queryArray = decodedQueryString.split("&");
 
+      console.log("DEBUG_QUERY_ARRAY:", queryArray);
       let filterType;
       let filterArray = [];
 
       for (let i = 0; i < queryArray.length; i++) {
-        // Security: Use more robust parsing with validation
         const queryParam = queryArray[i];
+        if (!queryParam.includes("filters")) continue;
 
-        // Extract filter type safely
-        if (queryParam.includes("filters")) {
-          if (queryParam.includes("price")) {
-            filterType = "price";
-          } else if (queryParam.includes("rating")) {
-            filterType = "rating";
-          } else if (queryParam.includes("category")) {
-            filterType = "category";
-          } else if (queryParam.includes("quantity")) {
-            filterType = "quantity";
-          } else if (queryParam.includes("inStock")) {
-            filterType = "inStock";
-          } else {
-            // Skip unknown filter types
+        // Regex to parse: filters=TYPE$OP=VALUE
+        // Example: filters=price$gte=10000000
+        const match = queryParam.match(/filters=([^$]+)\$([^=]+)=(.+)/);
+        if (match) {
+          const [, type, operator, value] = match;
+
+          // Validate Type
+          if (!validateFilterType(type)) {
             continue;
           }
-        }
 
-        if (queryParam.includes("sort")) {
-          // Security: Validate sort value
-          const extractedSortValue = queryParam.substring(
-            queryParam.indexOf("=") + 1
-          );
-          if (validateSortValue(extractedSortValue)) {
-            sortByValue = extractedSortValue;
-          }
-        }
-
-        // Security: Extract filter parameters safely
-        if (queryParam.includes("filters") && filterType) {
-          let filterValue;
-
-          // Extract filter value based on type
-          if (filterType === "category") {
-            filterValue = queryParam.substring(queryParam.indexOf("=") + 1);
-          } else {
-            const numValue = parseInt(
-              queryParam.substring(queryParam.indexOf("=") + 1)
-            );
-            filterValue = isNaN(numValue) ? null : numValue;
+          // Validate Operator
+          if (!validateOperator(operator)) {
+            continue;
           }
 
-          // Extract operator safely
-          const operatorStart = queryParam.indexOf("$") + 1;
-          const operatorEnd = queryParam.indexOf("=") - 1;
+          // Sanitize Value
+          const sanitizedValue = validateAndSanitizeFilterValue(type, value);
+          if (sanitizedValue === null) continue;
 
-          if (operatorStart > 0 && operatorEnd > operatorStart) {
-            const filterOperator = queryParam.substring(
-              operatorStart,
-              operatorEnd
-            );
+          const dbFieldName = type === "inStock" ? "quantity" : type;
 
-            // Only add to filter array if all values are valid
-            if (filterValue !== null && filterOperator) {
-              filterArray.push({
-                filterType,
-                filterOperator,
-                filterValue,
-              });
-            }
+          if (!filterObj[dbFieldName]) {
+            filterObj[dbFieldName] = {};
           }
+          filterObj[dbFieldName][operator] = sanitizedValue;
         }
       }
 
-      // Security: Build filter object using safe function
-      filterObj = buildSafeFilterObject(filterArray);
     }
 
     let whereClause = { ...filterObj };
+    // console.log("DEBUG_WHERE_CLAUSE:", JSON.stringify(whereClause, null, 2));
 
     // Security: Handle category filter separately with validation
     if (filterObj.category && filterObj.category.equals) {
@@ -319,20 +288,24 @@ const createProduct = asyncHandler(async (request, response) => {
 
   if (!price) {
     throw new AppError("Missing required field: price", 400);
+  }
 
-    // Validate price is not negative
-    if (price < 0) {
-      throw new AppError("Price cannot be negative", 400);
-    }
+  // Validate price is not negative
+  if (price < 0) {
+    throw new AppError("Price cannot be negative", 400);
+  }
 
-    // Validate costPrice if provided
-    if (costPrice !== undefined && costPrice < 0) {
-      throw new AppError("Cost price cannot be negative", 400);
-    }
+  // Validate costPrice if provided
+  if (costPrice !== undefined && costPrice < 0) {
+    throw new AppError("Cost price cannot be negative", 400);
   }
 
   if (!categoryId) {
     throw new AppError("Missing required field: categoryId", 400);
+  }
+
+  if (!mainImage) {
+    throw new AppError("Missing required field: mainImage", 400);
   }
 
   const product = await prisma.product.create({
