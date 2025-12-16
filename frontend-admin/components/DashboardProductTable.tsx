@@ -10,7 +10,7 @@
 
 "use client";
 import { nanoid } from "nanoid";
-import Image from "next/image";
+// Use native <img> in admin table to avoid Next image optimizer in dev
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import CustomButton from "./CustomButton";
@@ -23,7 +23,8 @@ const DashboardProductTable = () => {
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    apiClient.get("/api/products?mode=admin", { cache: "no-store" })
+    apiClient
+      .get("/api/products?mode=admin", { cache: "no-store" })
       .then((res) => {
         return res.json();
       })
@@ -70,26 +71,31 @@ const DashboardProductTable = () => {
               products.map((product) => (
                 <tr key={nanoid()}>
                   <th>
-
-                    <input type="checkbox" className="checkbox" aria-label="." />
-
+                    <input
+                      type="checkbox"
+                      className="checkbox"
+                      aria-label="."
+                    />
                   </th>
 
                   <td>
                     <div className="flex items-center gap-3">
                       <div className="avatar">
                         <div className="mask mask-squircle w-12 h-12">
-                          <Image
-                            width={48}
-                            height={48}
+                          <img
                             src={getImageSrc(product?.mainImage)}
                             alt={sanitize(product?.title) || "Product image"}
                             className="w-auto h-auto"
+                            width={48}
+                            height={48}
+                            loading="lazy"
                           />
                         </div>
                       </div>
                       <div>
-                        <div className="font-bold">{sanitize(product?.title)}</div>
+                        <div className="font-bold">
+                          {sanitize(product?.title)}
+                        </div>
                         <div className="text-sm opacity-50">
                           {sanitize(product?.manufacturer)}
                         </div>
@@ -98,15 +104,23 @@ const DashboardProductTable = () => {
                   </td>
 
                   <td>
-                    {(product?.quantity ?? 0) > 0 ? (<span className="badge badge-success text-white badge-sm">
-                      In stock
-                    </span>) : (<span className="badge badge-error text-white badge-sm">
-                      Out of stock
-                    </span>)}
+                    {(product?.quantity ?? 0) > 0 ? (
+                      <span className="badge badge-success text-white badge-sm">
+                        In stock
+                      </span>
+                    ) : (
+                      <span className="badge badge-error text-white badge-sm">
+                        Out of stock
+                      </span>
+                    )}
                   </td>
                   <td>{product?.quantity || 0}</td>
                   <td>{formatCurrencyVND(product?.price)}</td>
-                  <td>{product?.costPrice ? formatCurrencyVND(product.costPrice) : 'N/A'}</td>
+                  <td>
+                    {product?.costPrice
+                      ? formatCurrencyVND(product.costPrice)
+                      : "N/A"}
+                  </td>
                   <th>
                     <Link
                       href={`/admin/products/${product.id}`}

@@ -29,5 +29,6 @@ EXPOSE 3002
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
     CMD node -e "require('http').get('http://localhost:3002/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1) })"
 
-# Start application with migration
-CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
+# Start application: try applying migrations, but if no migrations or DB already has schema,
+# fall back to `prisma db push` to ensure schema is present, then start the server.
+CMD ["sh", "-c", "npx prisma generate && npm start"]

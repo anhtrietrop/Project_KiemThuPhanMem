@@ -3,14 +3,16 @@ import apiClient from "@/lib/api";
 import { convertCategoryNameToURLFriendly as convertSlugToURLFriendly } from "@/utils/categoryFormating";
 import { sanitizeFormData } from "@/lib/form-sanitize";
 import { getImageSrc } from "@/utils/imageHelper";
-import Image from "next/image";
+// Use native <img> for admin preview to avoid Next image optimizer errors in dev
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 const AddNewProduct = () => {
   const [product, setProduct] = useState<{
     merchantId?: string;
     title: string;
+    slug?: string;
     price: number;
     manufacturer: string;
     inStock: number;
@@ -21,6 +23,7 @@ const AddNewProduct = () => {
   }>({
     merchantId: "",
     title: "",
+    slug: "",
     price: 0,
     manufacturer: "",
     inStock: 1,
@@ -32,10 +35,11 @@ const AddNewProduct = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [merchants, setMerchants] = useState<Merchant[]>([]);
   const [uploading, setUploading] = useState(false);
+  const router = useRouter();
 
   const addProduct = async () => {
     if (
-      !product.merchantId ||
+      !product?.merchantId ||
       product.title === "" ||
       product.description == ""
     ) {
@@ -49,28 +53,17 @@ const AddNewProduct = () => {
 
       console.log("Sending product data:", sanitizedProduct);
 
-      // Correct usage of apiClient.post
       const response = await apiClient.post(`/api/products`, sanitizedProduct);
 
       if (response.status === 201) {
         const data = await response.json();
         console.log("Product created successfully:", data);
         toast.success("Product added successfully");
-        setProduct({
-          merchantId: "",
-          title: "",
-          price: 0,
-          manufacturer: "",
-          inStock: 1,
-          quantity: 0,
-          mainImage: "",
-          description: "",
-          categoryId: categories[0]?.id || "",
-        });
+        router.push("/admin/products");
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         console.error("Failed to create product:", errorData);
-        toast.error(`"Error:" ${errorData.message || "Failed to add product"}`);
+        toast.error(errorData.message || "Failed to add product");
       }
     } catch (error) {
       console.error("Error adding product:", error);
@@ -129,16 +122,30 @@ const AddNewProduct = () => {
       })
       .then((data) => {
         setCategories(data);
-        setProduct({
-          merchantId: product.merchantId || "",
-          title: "",
-          price: 0,
-          manufacturer: "",
-          inStock: 1,
-          quantity: 0,
-          mainImage: "",
-          description: "",
-          categoryId: data[0]?.id,
+        // Only set defaults if user hasn't already entered product title/slug.
+        setProduct((prev) => {
+          if (prev && prev.title && prev.title.length > 0) {
+            // preserve user-entered values (including slug)
+            return {
+              ...prev,
+              merchantId: prev?.merchantId || "",
+              categoryId: prev?.categoryId || data[0]?.id || "",
+            };
+          }
+
+          // otherwise initialize defaults
+          return {
+            merchantId: prev?.merchantId || "",
+            title: "",
+            slug: "",
+            price: 0,
+            manufacturer: "",
+            inStock: 1,
+            quantity: 0,
+            mainImage: "",
+            description: "",
+            categoryId: data[0]?.id || "",
+          };
         });
       });
   };
@@ -188,7 +195,31 @@ const AddNewProduct = () => {
               className="input input-bordered w-full max-w-xs"
               value={product?.title}
               onChange={(e) =>
-                setProduct({ ...product, title: e.target.value })
+                setProduct((prev) => ({
+                  ...prev,
+                  title: e.target.value,
+                  // auto-fill slug from title if user hasn't provided one
+                  slug:
+                    prev && prev.slug && prev.slug.length > 0
+                      ? prev.slug
+                      : convertSlugToURLFriendly(e.target.value),
+                }))
+              }
+            />
+          </label>
+        </div>
+
+        <div>
+          <label className="form-control w-full max-w-xs">
+            <div className="label">
+              <span className="label-text">Slug (URL friendly):</span>
+            </div>
+            <input
+              type="text"
+              className="input input-bordered w-full max-w-xs"
+              value={product?.slug}
+              onChange={(e) =>
+                setProduct((prev) => ({ ...prev, slug: e.target.value }))
               }
             />
           </label>
@@ -227,6 +258,25 @@ const AddNewProduct = () => {
               value={product?.price}
               onChange={(e) =>
                 setProduct({ ...product, price: Number(e.target.value) })
+              }
+            />
+          </label>
+        </div>
+        {/* Manufacturer input */}
+        <div>
+          <label className="form-control w-full max-w-xs">
+            <div className="label">
+              <span className="label-text">Manufacturer:</span>
+            </div>
+            <input
+              type="text"
+              className="input input-bordered w-full max-w-xs"
+              value={product?.manufacturer}
+              onChange={(e) =>
+                setProduct((prev) => ({
+                  ...prev,
+                  manufacturer: e.target.value,
+                }))
               }
             />
           </label>
@@ -294,12 +344,16 @@ const AddNewProduct = () => {
           {product?.mainImage && (
             <div className="mt-3">
               <p className="text-sm text-gray-500 mb-2">Xem trước:</p>
-              <Image
+              <img
                 src={getImageSrc(product.mainImage)}
                 alt={product?.title || "Product preview"}
-                className="w-auto h-auto rounded-lg border"
-                width={150}
-                height={150}
+                className="max-w-[150px] h-auto rounded-lg border"
+                loading="lazy"
+                onError={(e) => {
+                  console.error("Image load error:", product.mainImage);
+                  (e.currentTarget as HTMLImageElement).src =
+                    "/placeholder-image.jpg";
+                }}
               />
             </div>
           )}

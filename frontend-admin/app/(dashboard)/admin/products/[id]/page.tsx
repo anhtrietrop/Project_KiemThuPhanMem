@@ -1,6 +1,6 @@
 "use client";
 import { CustomButton, SectionTitle } from "@/components";
-import Image from "next/image";
+// Use native <img> for admin preview to avoid Next image optimizer errors in dev
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState, use } from "react";
 import toast from "react-hot-toast";
@@ -34,17 +34,16 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
     apiClient
       .delete(`/api/products/${id}`, requestOptions)
       .then((response) => {
-        if (response.status !== 204) {
-          if (response.status === 400) {
-            toast.error(
-              "Cannot delete the product because of foreign key constraint"
-            );
-          } else {
-            throw Error("There was an error while deleting product");
-          }
-        } else {
+        // Backend may return 200 with message or 204 on success depending on code path
+        if (response.status === 200 || response.status === 204) {
           toast.success("Product deleted successfully");
           router.push("/admin/products");
+        } else if (response.status === 400) {
+          toast.error(
+            "Cannot delete the product because of foreign key constraint"
+          );
+        } else {
+          throw Error("There was an error while deleting product");
         }
       })
       .catch((error) => {
@@ -54,12 +53,15 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
 
   // functionality for updating product
   const updateProduct = async () => {
+    // Robust validation: treat missing/empty values as invalid.
     if (
-      product?.title === "" ||
-      product?.slug === "" ||
-      product?.price.toString() === "" ||
-      product?.manufacturer === "" ||
-      product?.description === ""
+      !product ||
+      !product.title ||
+      !product.slug ||
+      product.price == null ||
+      product.price === "" ||
+      !product.manufacturer ||
+      !product.description
     ) {
       toast.error("You need to enter values in input fields");
       return;
@@ -76,7 +78,11 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
           throw Error("There was an error while updating product");
         }
       })
-      .then((data) => toast.success("Product successfully updated"))
+      .then((data) => {
+        toast.success("Product successfully updated");
+        // After updating in admin, go back to admin products list
+        router.push("/admin/products");
+      })
       .catch((error) => {
         toast.error("There was an error while updating product");
       });
@@ -100,7 +106,8 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
         setProduct((prev) => (prev ? { ...prev, mainImage: data.url } : prev));
         toast.success("Tải ảnh lên thành công!");
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Upload error:", errorData);
         toast.error(errorData.message || "Lỗi khi tải ảnh lên");
       }
     } catch (error) {
@@ -113,20 +120,22 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
 
   // fetching main product data including other product images
   const fetchProductData = async () => {
-    apiClient
-      .get(`/api/products/${id}`)
-      .then((res) => {
-        return res.json();
-      })
-      .then((data) => {
-        setProduct(data);
-      });
+    try {
+      const productRes = await apiClient.get(`/api/products/${id}`);
+      if (!productRes.ok) throw new Error("Failed to fetch product");
+      const productData = await productRes.json();
+      setProduct(productData);
 
-    const imagesData = await apiClient.get(`/api/images/${id}`, {
-      cache: "no-store",
-    });
-    const images = await imagesData.json();
-    setOtherImages((currentImages) => images);
+      const imagesRes = await apiClient.get(`/api/images/${id}`, {
+        cache: "no-store",
+      });
+      if (!imagesRes.ok) throw new Error("Failed to fetch images");
+      const images = await imagesRes.json();
+      setOtherImages(images);
+    } catch (error) {
+      console.error("Fetch error:", error);
+      toast.error("Không thể tải dữ liệu sản phẩm");
+    }
   };
 
   // fetching all product categories. It will be used for displaying categories in select category input
@@ -167,6 +176,22 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
             />
           </label>
         </div>
+        {/* Slug input */}
+        <div>
+          <label className="form-control w-full max-w-xs">
+            <div className="label">
+              <span className="label-text">Slug (URL friendly):</span>
+            </div>
+            <input
+              type="text"
+              className="input input-bordered w-full max-w-xs"
+              value={product?.slug || ""}
+              onChange={(e) =>
+                setProduct({ ...product!, slug: e.target.value })
+              }
+            />
+          </label>
+        </div>
         {/* Product name input div - end */}
         {/* Product price input div - start */}
 
@@ -186,6 +211,23 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
           </label>
         </div>
         {/* Product price input div - end */}
+        {/* Manufacturer input div - start */}
+        <div>
+          <label className="form-control w-full max-w-xs">
+            <div className="label">
+              <span className="label-text">Manufacturer:</span>
+            </div>
+            <input
+              type="text"
+              className="input input-bordered w-full max-w-xs"
+              value={product?.manufacturer || ""}
+              onChange={(e) =>
+                setProduct({ ...product!, manufacturer: e.target.value })
+              }
+            />
+          </label>
+        </div>
+        {/* Manufacturer input div - end */}
         {/* Product inStock select input div - start */}
 
         <div>
@@ -282,12 +324,16 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
           {product?.mainImage && (
             <div className="mt-3">
               <p className="text-sm text-gray-500 mb-2">Xem trước:</p>
-              <Image
+              <img
                 src={getImageSrc(product.mainImage)}
                 alt={product?.title || "Product image"}
-                className="w-auto h-auto rounded-lg border"
-                width={150}
-                height={150}
+                className="max-w-[150px] h-auto rounded-lg border"
+                loading="lazy"
+                onError={(e) => {
+                  console.error("Image load error:", product?.mainImage);
+                  (e.currentTarget as HTMLImageElement).src =
+                    "/placeholder-image.jpg";
+                }}
               />
             </div>
           )}
@@ -295,15 +341,19 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
         {/* Main image file upload div - end */}
         {/* Other images file upload div - start */}
         <div className="flex gap-x-1">
-          {otherImages &&
+          {Array.isArray(otherImages) &&
             otherImages.map((image) => (
-              <Image
+              <img
                 src={getImageSrc(image.image)}
                 key={nanoid()}
                 alt="product image"
-                width={100}
-                height={100}
-                className="w-auto h-auto rounded border"
+                className="max-w-[100px] h-auto rounded border"
+                loading="lazy"
+                onError={(e) => {
+                  console.error("Image load error:", image.image);
+                  (e.currentTarget as HTMLImageElement).src =
+                    "/placeholder-image.jpg";
+                }}
               />
             ))}
         </div>

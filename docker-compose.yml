@@ -6,9 +6,7 @@ services:
     restart: unless-stopped
     env_file:
       - .env.docker
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    # Environment variables are provided via .env.docker (env_file)
     ports:
       - "3307:3306" # Map to 3307 để tránh conflict với MySQL local
     volumes:
@@ -42,17 +40,7 @@ services:
       - .env.docker
     ports:
       - "3002:3002"
-    environment:
-      DATABASE_URL: ${DATABASE_URL}
-      JWT_SECRET: ${JWT_SECRET}
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
-      MOMO_PARTNER_CODE: ${MOMO_PARTNER_CODE}
-      MOMO_ACCESS_KEY: ${MOMO_ACCESS_KEY}
-      MOMO_SECRET_KEY: ${MOMO_SECRET_KEY}
-      MOMO_ENDPOINT: ${MOMO_ENDPOINT}
-      MOMO_RETURN_URL: ${MOMO_RETURN_URL}
-      MOMO_NOTIFY_URL: ${MOMO_NOTIFY_URL}
-      NODE_ENV: ${NODE_ENV:-development}
+    # Environment variables are provided via .env.docker (env_file)
     depends_on:
       db:
         condition: service_healthy
@@ -72,15 +60,10 @@ services:
       - .env.docker
     ports:
       - "3000:3000"
+    # Ensure DATABASE_URL is available to Next.js at runtime (use Docker internal DB service)
     environment:
-      NEXTAUTH_URL: ${NEXTAUTH_URL_USER}
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
-      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
-      DATABASE_URL: ${DATABASE_URL}
-      MOMO_PARTNER_CODE: ${MOMO_PARTNER_CODE}
-      MOMO_ACCESS_KEY: ${MOMO_ACCESS_KEY}
-      MOMO_SECRET_KEY: ${MOMO_SECRET_KEY}
-      NODE_ENV: ${NODE_ENV:-development}
+      - DATABASE_URL=mysql://root:rootpassword123@db:3306/singitronic_nextjs_db
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:3002
     depends_on:
       - backend
       - db
@@ -102,12 +85,10 @@ services:
       - .env.docker
     ports:
       - "3001:3001"
+    # Ensure DATABASE_URL is available to Next.js at runtime (use Docker internal DB service)
     environment:
-      NEXTAUTH_URL: ${NEXTAUTH_URL_ADMIN}
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
-      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
-      DATABASE_URL: ${DATABASE_URL}
-      NODE_ENV: ${NODE_ENV:-development}
+      - DATABASE_URL=mysql://root:rootpassword123@db:3306/singitronic_nextjs_db
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:3002
     depends_on:
       - backend
       - db

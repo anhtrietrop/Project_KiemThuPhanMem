@@ -51,6 +51,12 @@ const nextConfig = {
         hostname: "res.cloudinary.com",
         port: "",
       },
+      // Allow local backend uploads during development
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "3002",
+      },
     ],
   },
 

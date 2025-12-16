@@ -10,9 +10,9 @@ Cypress.Commands.add("loginUser", (email, password) => {
   cy.visit(Cypress.env("userUrl") + "/login");
   cy.get('input[name="email"], input[type="email"]').type(email);
   cy.get('input[name="password"], input[type="password"]').type(password);
-  cy.get('button[type="submit"]')
-    .contains(/đăng nhập|login/i)
-    .click();
+  cy.contains("button", /đăng nhập|login|sign\s?in|signin|sign-in/i, {
+    timeout: 10000,
+  }).click();
   cy.url().should("not.include", "/login");
 });
 
@@ -24,9 +24,9 @@ Cypress.Commands.add("loginAdmin", (email, password) => {
   cy.visit(Cypress.env("adminUrl") + "/login");
   cy.get('input[name="email"], input[type="email"]').type(email);
   cy.get('input[name="password"], input[type="password"]').type(password);
-  cy.get('button[type="submit"]')
-    .contains(/đăng nhập|login/i)
-    .click();
+  cy.contains("button", /đăng nhập|login|sign\s?in|signin|sign-in/i, {
+    timeout: 10000,
+  }).click();
   cy.url().should("not.include", "/login");
 });
 
@@ -34,7 +34,9 @@ Cypress.Commands.add("loginAdmin", (email, password) => {
  * Command để đăng xuất
  */
 Cypress.Commands.add("logout", () => {
-  cy.contains(/đăng xuất|logout|sign out/i).click({ force: true });
+  cy.contains(/log\s?out|đăng xuất|logout|sign\s?out|sign-out/i, {
+    timeout: 5000,
+  }).click({ force: true });
 });
 
 /**
@@ -113,7 +115,7 @@ Cypress.Commands.add("createProduct", (productData) => {
     }
   });
 
-  cy.get('button[type="submit"]')
-    .contains(/save|lưu|tạo|create/i)
+  cy.contains("button", /save|lưu|tạo|create/i, { timeout: 10000 })
+    .should("be.visible")
     .click();
 });

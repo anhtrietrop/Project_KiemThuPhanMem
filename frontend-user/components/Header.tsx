@@ -31,7 +31,8 @@ const Header = () => {
   const { wishlist, setWishlist, wishQuantity } = useWishlistStore();
 
   const handleLogout = () => {
-    setTimeout(() => signOut(), 1000);
+    // Call signOut immediately to avoid delayed UI state and flaky tests
+    signOut();
     toast.success("Logout successful!");
   };
 
@@ -47,11 +48,20 @@ const Header = () => {
         title: string;
         price: number;
         image: string;
-        slug: string
+        slug: string;
         stockAvailabillity: number;
       }[] = [];
 
-      wishlist.map((item: any) => productArray.push({ id: item?.product?.id, title: item?.product?.title, price: item?.product?.price, image: item?.product?.mainImage, slug: item?.product?.slug, stockAvailabillity: item?.product?.inStock }));
+      wishlist.map((item: any) =>
+        productArray.push({
+          id: item?.product?.id,
+          title: item?.product?.title,
+          price: item?.product?.price,
+          image: item?.product?.mainImage,
+          slug: item?.product?.slug,
+          stockAvailabillity: item?.product?.inStock,
+        })
+      );
 
       setWishlist(productArray);
     };
@@ -59,10 +69,10 @@ const Header = () => {
     // getting user by email so I can get his user id
     const getUserByEmail = async () => {
       if (session?.user?.email) {
-
-        apiClient.get(`/api/users/email/${session?.user?.email}`, {
-          cache: "no-store",
-        })
+        apiClient
+          .get(`/api/users/email/${session?.user?.email}`, {
+            cache: "no-store",
+          })
           .then((response) => response.json())
           .then((data) => {
             getWishlistByUserId(data?.id);
@@ -79,7 +89,13 @@ const Header = () => {
       {pathname.startsWith("/admin") === false && (
         <div className="h-32 bg-white flex items-center justify-between px-16 max-[1320px]:px-16 max-md:px-6 max-lg:flex-col max-lg:gap-y-7 max-lg:justify-center max-lg:h-60 max-w-screen-2xl mx-auto">
           <Link href="/">
-            <Image src="/logo v1 svg.svg" width={300} height={300} alt="singitronic logo" className="relative right-5 max-[1023px]:w-56" />
+            <Image
+              src="/logo v1 svg.svg"
+              width={300}
+              height={300}
+              alt="singitronic logo"
+              className="relative right-5 max-[1023px]:w-56"
+            />
           </Link>
           <SearchInput />
           <div className="flex gap-x-10 items-center">
@@ -122,8 +138,10 @@ const Header = () => {
                 <li>
                   <a>Profile</a>
                 </li>
-                <li onClick={handleLogout}>
-                  <a href="#">Logout</a>
+                <li>
+                  <button onClick={handleLogout} className="w-full text-left">
+                    Logout
+                  </button>
                 </li>
               </ul>
             </div>

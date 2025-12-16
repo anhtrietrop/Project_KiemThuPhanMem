@@ -91,8 +91,18 @@ if "%TARGET%"=="docker" (
     if exist "%BACKUP_DIR%\data_only.sql" (
         type "%BACKUP_DIR%\data_only.sql" | docker compose exec -T db mysql -uroot -prootpassword123 singitronic_nextjs_db
         echo Data imported successfully!
+    ) else if exist "%BACKUP_DIR%\data_import.sql" (
+        echo [INFO] Found data_import.sql — filtering GTID lines before import
+        rem Filter out GTID-related lines to avoid GTID_PURGED errors during import
+        type "%BACKUP_DIR%\data_import.sql" | findstr /V "GTID_PURGED GTID" | docker compose exec -T db mysql -uroot -prootpassword123 singitronic_nextjs_db
+        if errorlevel 1 (
+            echo [ERROR] Import of data_import.sql failed!
+            exit /b 1
+        ) else (
+            echo Data imported successfully from data_import.sql (GTID lines removed)
+        )
     ) else (
-        echo [SKIP] No data_only.sql found, running seed instead...
+        echo [SKIP] No data_only.sql or data_import.sql found, running seed instead...
         docker compose exec backend npm run db:seed 2>nul
     )
     

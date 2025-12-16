@@ -10,22 +10,29 @@ interface Props {
 // sending api request for search results for a given search text
 const SearchPage = async ({ searchParams }: Props) => {
   const sp = await searchParams;
-  let products = [];
+  const query = (sp?.search ?? "").toString();
+  let products: any[] = [];
 
-  try {
-    const data = await apiClient.get(
-      `/api/search?query=${sp?.search || ""}`
-    );
+  // If query is empty, treat as empty results (do not call API)
+  if (query.trim() !== "") {
+    try {
+      const data = await apiClient.get(
+        `/api/search?query=${encodeURIComponent(query)}`
+      );
 
-    if (!data.ok) {
-      console.error('Failed to fetch search results:', data.statusText);
+      if (!data.ok) {
+        // For non-empty queries we only log unexpected server errors
+        console.error("Failed to fetch search results:", data.statusText);
+        products = [];
+      } else {
+        const result = await data.json();
+        products = Array.isArray(result) ? result : [];
+      }
+    } catch (error) {
+      console.error("Error fetching search results:", error);
       products = [];
-    } else {
-      const result = await data.json();
-      products = Array.isArray(result) ? result : [];
     }
-  } catch (error) {
-    console.error('Error fetching search results:', error);
+  } else {
     products = [];
   }
 

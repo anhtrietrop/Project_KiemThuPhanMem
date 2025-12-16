@@ -11,15 +11,28 @@ export const apiClient = {
     const session = await getSession();
     const userId = (session?.user as any)?.id;
 
-    const defaultOptions: RequestInit = {
-      headers: {
-        "Content-Type": "application/json",
-        ...(userId && { "X-User-Id": userId }),
-        ...options.headers,
-      },
+    const headers = {
+      "Content-Type": "application/json",
+      ...(userId && { "X-User-Id": userId }),
+      ...(options.headers || {}),
     };
 
-    return fetch(url, { ...defaultOptions, ...options });
+    const fetchOptions: RequestInit = {
+      ...options,
+      headers,
+    };
+
+    try {
+      if (!this.baseUrl) throw new Error("apiBaseUrl is not configured");
+      const response = await fetch(url, fetchOptions);
+      return response;
+    } catch (err) {
+      // Provide a clearer message in logs to help debugging network/CORS issues
+      // Keep original error for callers to handle
+      // eslint-disable-next-line no-console
+      console.error("apiClient.request failed:", url, err);
+      throw err instanceof Error ? err : new Error(String(err));
+    }
   },
 
   // Convenience methods

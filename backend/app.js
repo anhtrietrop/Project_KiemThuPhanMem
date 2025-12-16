@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const fileUpload = require("express-fileupload");
@@ -94,14 +95,58 @@ const corsOptions = {
     return callback(new Error(msg), false);
   },
   methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-User-Id"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  // Allow common custom headers used by the frontends
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-User-Id",
+    "x-user-id",
+    "X-Request-ID",
+    "x-request-id",
+  ],
   credentials: true, // Allow cookies and authorization headers
 };
 
 // IMPORTANT: Parse body BEFORE other middleware
 app.use(express.json());
 app.use(cors(corsOptions));
+// Ensure preflight requests are handled and include our CORS options
+app.options("*", cors(corsOptions));
 app.use(fileUpload());
+
+// Fallback CORS headers middleware: ensures Access-Control-Allow-* headers
+// are returned even if preflight isn't handled by other middleware (helps Docker/proxy envs)
+app.use((req, res, next) => {
+  const origin = req.get("Origin");
+  const allowOrigin = (() => {
+    if (!origin) return undefined;
+    if (allowedOrigins.includes(origin)) return origin;
+    if (origin.includes(".vercel.app")) return origin;
+    if (
+      process.env.NODE_ENV === "development" &&
+      origin.startsWith("http://localhost:")
+    )
+      return origin;
+    return undefined;
+  })();
+
+  if (allowOrigin) {
+    res.setHeader("Access-Control-Allow-Origin", allowOrigin);
+  }
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, X-User-Id, x-user-id, X-Request-ID, x-request-id"
+  );
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
 
 // Serve static files from public directory (for local image uploads)
 app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
@@ -204,6 +249,8 @@ if (process.env.NODE_ENV !== "test") {
   const PORT = process.env.PORT || 3002;
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    console.log("CORS allowed origins:", allowedOrigins);
+    console.log("CORS allowed headers:", corsOptions.allowedHeaders);
     console.log("Rate limiting and request logging enabled for all endpoints");
     console.log("Logs are being written to server/logs/ directory");
   });

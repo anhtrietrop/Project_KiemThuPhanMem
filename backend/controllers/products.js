@@ -22,6 +22,20 @@ const ALLOWED_SORT_VALUES = [
   "highPrice",
 ];
 
+// Helper: create URL-friendly slug from title
+function slugify(text) {
+  if (!text) return "";
+  return text
+    .toString()
+    .normalize("NFD") // split accented characters
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-");
+}
+
 // Security: Input validation functions
 function validateFilterType(filterType) {
   return ALLOWED_FILTER_TYPES.includes(filterType);
@@ -299,6 +313,7 @@ const createProduct = asyncHandler(async (request, response) => {
   const {
     merchantId,
     title,
+    slug, // optional slug provided by client
     mainImage,
     price,
     costPrice,
@@ -335,8 +350,31 @@ const createProduct = asyncHandler(async (request, response) => {
     throw new AppError("Missing required field: categoryId", 400);
   }
 
+  // Determine slug: prefer client-provided slug (sanitized), otherwise generate from title
+  let finalSlug =
+    slug && typeof slug === "string" && slug.trim().length > 0
+      ? slugify(slug)
+      : slugify(title) || `product-${Date.now()}`;
+
+  // Ensure slug uniqueness: if already exists, append timestamp suffix
+  try {
+    const existing = await prisma.product.findUnique({
+      where: { slug: finalSlug },
+    });
+    if (existing) {
+      finalSlug = `${finalSlug}-${Date.now()}`;
+    }
+  } catch (e) {
+    // Non-fatal: proceed and let DB handle constraint errors if any
+    console.warn(
+      "Error while checking slug uniqueness:",
+      e && e.message ? e.message : e
+    );
+  }
+
   const product = await prisma.product.create({
     data: {
+      slug: finalSlug,
       merchantId,
       title,
       mainImage,
@@ -349,6 +387,7 @@ const createProduct = asyncHandler(async (request, response) => {
       categoryId,
     },
   });
+  console.log(`Product created - id: ${product.id}, slug: ${product.slug}`);
   return response.status(201).json(product);
 });
 
@@ -358,6 +397,7 @@ const updateProduct = asyncHandler(async (request, response) => {
   const {
     merchantId,
     title,
+    slug, // optional client-provided slug
     mainImage,
     price,
     costPrice,
@@ -385,6 +425,31 @@ const updateProduct = asyncHandler(async (request, response) => {
   }
 
   // Updating found product
+  // Determine new slug: prefer provided slug, otherwise keep existing or generate from title
+  let finalSlug = existingProduct.slug;
+  if (slug && typeof slug === "string" && slug.trim().length > 0) {
+    finalSlug = slugify(slug);
+  } else if (!finalSlug && title) {
+    finalSlug = slugify(title) || `product-${Date.now()}`;
+  }
+
+  // Ensure uniqueness when slug changed
+  try {
+    if (finalSlug && finalSlug !== existingProduct.slug) {
+      const found = await prisma.product.findUnique({
+        where: { slug: finalSlug },
+      });
+      if (found) {
+        finalSlug = `${finalSlug}-${Date.now()}`;
+      }
+    }
+  } catch (e) {
+    console.warn(
+      "Error checking slug uniqueness during update:",
+      e && e.message ? e.message : e
+    );
+  }
+
   const updatedProduct = await prisma.product.update({
     where: {
       id,
@@ -392,6 +457,7 @@ const updateProduct = asyncHandler(async (request, response) => {
     data: {
       merchantId: merchantId,
       title: title,
+      slug: finalSlug,
       mainImage: mainImage,
       price: price,
       costPrice: costPrice,
@@ -402,6 +468,9 @@ const updateProduct = asyncHandler(async (request, response) => {
       categoryId: categoryId,
     },
   });
+  console.log(
+    `Product updated - id: ${updatedProduct.id}, slug: ${updatedProduct.slug}`
+  );
 
   return response.status(200).json(updatedProduct);
 });
@@ -424,16 +493,51 @@ const deleteProduct = asyncHandler(async (request, response) => {
     throw new AppError("Product not found", 404);
   }
 
-  // Delete product - Cascade will handle related records automatically
-  // (cartitem, wishlist, customer_order_product, review)
-  await prisma.product.delete({
-    where: { id },
-  });
+  // Try to remove related records first to avoid FK constraint issues.
+  // We'll remove common dependent records referencing productId.
+  try {
+    const ops = [];
+    if (prisma.cartitem)
+      ops.push(prisma.cartitem.deleteMany({ where: { productId: id } }));
+    if (prisma.wishlist)
+      ops.push(prisma.wishlist.deleteMany({ where: { productId: id } }));
+    if (prisma.customer_order_product)
+      ops.push(
+        prisma.customer_order_product.deleteMany({ where: { productId: id } })
+      );
+    if (prisma.orderItem)
+      ops.push(prisma.orderItem.deleteMany({ where: { productId: id } }));
+    if (prisma.review)
+      ops.push(prisma.review.deleteMany({ where: { productId: id } }));
+    if (prisma.productImage)
+      ops.push(prisma.productImage.deleteMany({ where: { productId: id } }));
 
-  return response.status(200).json({
-    message: "Product deleted successfully",
-    deletedProductId: id,
-  });
+    if (ops.length > 0) {
+      await prisma.$transaction(ops);
+    }
+
+    // Finally delete the product itself
+    await prisma.product.delete({ where: { id } });
+
+    return response.status(200).json({
+      message: "Product and related records deleted successfully",
+      deletedProductId: id,
+    });
+  } catch (err) {
+    // If transaction fails due to missing model or constraint, attempt a best-effort deletion
+    try {
+      await prisma.product.delete({ where: { id } });
+      return response.status(200).json({
+        message:
+          "Product deleted (best-effort). Some related records may remain.",
+        deletedProductId: id,
+      });
+    } catch (e) {
+      // If still failing, bubble up an error
+      console.error("Failed to delete product and related records:", e);
+      throw new AppError("Failed to delete product", 500);
+    }
+  }
 });
 
 const searchProducts = asyncHandler(async (request, response) => {
@@ -467,6 +571,10 @@ const getProductById = asyncHandler(async (request, response) => {
       category: true,
     },
   });
+
+  console.log(
+    `getProductById - id: ${id}, slug: ${product ? product.slug : "NOT_FOUND"}`
+  );
 
   if (!product) {
     throw new AppError("Product not found", 404);

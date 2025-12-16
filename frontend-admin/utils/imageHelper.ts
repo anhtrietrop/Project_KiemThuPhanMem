@@ -1,30 +1,37 @@
 /**
  * Helper function to get the correct image source URL
  * Supports Cloudinary URLs, API URLs, and local file paths
- * 
+ *
  * @param imagePath - The image path or URL
  * @param fallback - Fallback image if imagePath is empty
  * @returns The correct image source URL
  */
-export function getImageSrc(imagePath: string | null | undefined, fallback: string = '/product_placeholder.jpg'): string {
+export function getImageSrc(
+  imagePath: string | null | undefined,
+  fallback: string = "/product_placeholder.jpg"
+): string {
   if (!imagePath) {
     return fallback;
   }
 
   // If it's already a full URL (Cloudinary, API, or any other), return as is
-  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
     return imagePath;
   }
 
   // If it's an /uploads/ path from local backend storage
-  if (imagePath.startsWith('/uploads/')) {
-    // Prepend API base URL for backend-served images
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+  if (imagePath.startsWith("/uploads/")) {
+    // Prepend API base URL for backend-served images. In development, default
+    // to the local backend at http://localhost:3002 if NEXT_PUBLIC_API_BASE_URL
+    // is not provided so Next image optimization can fetch the file correctly.
+    const apiBaseUrl =
+      process.env.NEXT_PUBLIC_API_BASE_URL ||
+      (process.env.NODE_ENV === "development" ? "http://localhost:3002" : "");
     return apiBaseUrl ? `${apiBaseUrl}${imagePath}` : imagePath;
   }
 
   // If it's a local path, ensure it starts with /
-  if (imagePath.startsWith('/')) {
+  if (imagePath.startsWith("/")) {
     return imagePath;
   }
 
@@ -39,7 +46,7 @@ export function getImageSrc(imagePath: string | null | undefined, fallback: stri
  */
 export function isCloudinaryUrl(url: string | null | undefined): boolean {
   if (!url) return false;
-  return url.includes('cloudinary.com');
+  return url.includes("cloudinary.com");
 }
 
 /**
@@ -53,19 +60,19 @@ export function getOptimizedCloudinaryUrl(
   options: {
     width?: number;
     height?: number;
-    quality?: 'auto' | number;
-    format?: 'auto' | 'webp' | 'jpg' | 'png';
+    quality?: "auto" | number;
+    format?: "auto" | "webp" | "jpg" | "png";
   } = {}
 ): string {
   if (!isCloudinaryUrl(url)) {
     return url;
   }
 
-  const { width, height, quality = 'auto', format = 'auto' } = options;
+  const { width, height, quality = "auto", format = "auto" } = options;
 
   // Build transformation string
   const transforms: string[] = [];
-  
+
   if (width) transforms.push(`w_${width}`);
   if (height) transforms.push(`h_${height}`);
   if (quality) transforms.push(`q_${quality}`);
@@ -75,8 +82,8 @@ export function getOptimizedCloudinaryUrl(
     return url;
   }
 
-  const transformString = transforms.join(',');
+  const transformString = transforms.join(",");
 
   // Insert transformation after /upload/
-  return url.replace('/upload/', `/upload/${transformString}/`);
+  return url.replace("/upload/", `/upload/${transformString}/`);
 }

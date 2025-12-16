@@ -10,6 +10,7 @@ import { sanitize } from "@/lib/sanitize";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useEffect } from "react";
 import { formatCurrencyVND } from "@/utils/currency";
 import { getImageSrc } from "@/utils/imageHelper";
 
@@ -18,6 +19,33 @@ export const CartModule = () => {
   const router = useRouter();
   const { products, removeFromCart, calculateTotals, total, isLoading } =
     useProductStore();
+
+  // Hydrate from localStorage persisted key in case client state wasn't populated
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (products && products.length > 0) return;
+
+    try {
+      const raw = localStorage.getItem("products-storage");
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      const data = parsed?.state || parsed;
+      const persistedProducts = data?.products || [];
+      const persistedTotal = data?.total || 0;
+      const persistedAllQuantity = data?.allQuantity || 0;
+      if (persistedProducts && persistedProducts.length > 0) {
+        useProductStore.setState({
+          products: persistedProducts,
+          total: persistedTotal,
+          allQuantity: persistedAllQuantity,
+        });
+        // Ensure totals calculated for UI
+        calculateTotals();
+      }
+    } catch (err) {
+      // ignore parse errors
+    }
+  }, []);
   const [removingItems, setRemovingItems] = useState<Set<string>>(new Set());
 
   const handleRemoveItem = async (id: string) => {
@@ -64,7 +92,11 @@ export const CartModule = () => {
           className="divide-y divide-gray-200 border-b border-t border-gray-200"
         >
           {products.map((product) => (
-            <li key={product.id} className="flex py-6 sm:py-10">
+            <li
+              key={product.id}
+              data-cy={`cart-item-${product.id}`}
+              className="flex py-6 sm:py-10"
+            >
               <div className="flex-shrink-0">
                 <Image
                   width={192}
@@ -103,13 +135,19 @@ export const CartModule = () => {
                     <QuantityInputCart product={product} />
                     <div className="absolute right-0 top-0">
                       <button
+                        aria-label="Remove item"
+                        data-testid="remove-cart-item"
                         onClick={() => handleRemoveItem(product.id)}
                         type="button"
+                        data-cy="remove-item"
                         disabled={isLoading || removingItems.has(product.id)}
                         className="-m-2 inline-flex p-2 text-gray-400 hover:text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <span className="sr-only">Remove</span>
                         <FaXmark className="h-5 w-5" aria-hidden="true" />
+                        <span aria-hidden="true" className="ml-1">
+                          ×
+                        </span>
                       </button>
                     </div>
                   </div>

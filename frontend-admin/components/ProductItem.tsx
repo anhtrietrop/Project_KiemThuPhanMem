@@ -1,5 +1,5 @@
 // *********************
-// Role of the component: Product item component 
+// Role of the component: Product item component
 // Name of the component: ProductItem.tsx
 // Developer: Aleksandar Kuzmanovic
 // Version: 1.0
@@ -8,7 +8,7 @@
 // Output: Product item component that contains product image, title, link to the single product page, price, button...
 // *********************
 
-import Image from "next/image";
+// Use native <img> to avoid Next image optimizer errors in development
 import React from "react";
 import Link from "next/link";
 import ProductItemRating from "./ProductItemRating";
@@ -26,13 +26,11 @@ const ProductItem = ({
   return (
     <div className="flex flex-col items-center gap-y-2">
       <Link href={`/product/${product.slug}`}>
-        <Image
+        <img
           src={getImageSrc(product.mainImage)}
-          width="0"
-          height="0"
-          sizes="100vw"
           className="w-auto h-[300px]"
           alt={sanitize(product?.title) || "Product image"}
+          loading="lazy"
         />
       </Link>
       <Link

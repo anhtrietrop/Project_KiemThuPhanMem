@@ -1,5 +1,5 @@
 // *********************
-// Role of the component: Product item component 
+// Role of the component: Product item component
 // Name of the component: ProductItem.tsx
 // Developer: Aleksandar Kuzmanovic
 // Version: 1.0
@@ -8,6 +8,7 @@
 // Output: Product item component that contains product image, title, link to the single product page, price, button...
 // *********************
 
+"use client";
 import Image from "next/image";
 import React from "react";
 import Link from "next/link";
@@ -26,14 +27,35 @@ const ProductItem = ({
   return (
     <div className="flex flex-col items-center gap-y-2">
       <Link href={`/product/${product.slug}`}>
-        <Image
-          src={getImageSrc(product.mainImage)}
-          width="0"
-          height="0"
-          sizes="100vw"
-          className="w-auto h-[300px]"
-          alt={sanitize(product?.title) || "Product image"}
-        />
+        {(() => {
+          const src = getImageSrc(product.mainImage);
+          // If image comes from backend uploads (local /uploads path), use native <img>
+          if (src.includes("/uploads/")) {
+            return (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={src}
+                className="w-auto h-[300px] object-contain"
+                alt={sanitize(product?.title) || "Product image"}
+                onError={(e) => {
+                  const t = e.target as HTMLImageElement;
+                  t.src = "/product_placeholder.jpg";
+                }}
+              />
+            );
+          }
+
+          return (
+            <Image
+              src={src}
+              width={0}
+              height={0}
+              sizes="100vw"
+              className="w-auto h-[300px]"
+              alt={sanitize(product?.title) || "Product image"}
+            />
+          );
+        })()}
       </Link>
       <Link
         href={`/product/${product.slug}`}
@@ -63,7 +85,8 @@ const ProductItem = ({
             : "text-sm text-white font-normal"
         }
       >
-        Quantity: {product.quantity > 0 ? `${product.quantity} in stock` : 'Out of stock'}
+        Quantity:{" "}
+        {product.quantity > 0 ? `${product.quantity} in stock` : "Out of stock"}
       </p>
       <Link
         href={`/product/${product?.slug}`}

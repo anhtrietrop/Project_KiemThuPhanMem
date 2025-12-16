@@ -6,7 +6,6 @@ import {
   AddToWishlistBtn,
 } from "@/components";
 import apiClient from "@/lib/api";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import React from "react";
 import { formatCurrencyVND } from "@/utils/currency";
@@ -15,6 +14,8 @@ import { FaSquareXTwitter } from "react-icons/fa6";
 import { FaSquarePinterest } from "react-icons/fa6";
 import { sanitize } from "@/lib/sanitize";
 import { getImageSrc } from "@/utils/imageHelper";
+import ProductImage from "@/components/ProductImage";
+import Image from "next/image";
 
 interface ImageItem {
   imageID: string;
@@ -32,9 +33,15 @@ const SingleProductPage = async ({ params }: SingleProductPageProps) => {
   const data = await apiClient.get(`/api/slugs/${paramsAwaited?.productSlug}`);
   const product = await data.json();
 
-  // sending API request for more than 1 product image if it exists
-  const imagesData = await apiClient.get(`/api/images/${paramsAwaited?.id}`);
-  const images = await imagesData.json();
+  // fetching product images using the product id (params.id can be undefined)
+  let images: any = [];
+  if (!product || !product.id) return;
+  try {
+    const imagesData = await apiClient.get(`/api/images/${product.id}`);
+    images = await imagesData.json();
+  } catch (err) {
+    images = [];
+  }
 
   if (!product || product.error) {
     notFound();
@@ -45,24 +52,25 @@ const SingleProductPage = async ({ params }: SingleProductPageProps) => {
       <div className="max-w-screen-2xl mx-auto">
         <div className="flex justify-center gap-x-16 pt-10 max-lg:flex-col items-center gap-y-5 px-5">
           <div>
-            <Image
+            <ProductImage
               src={getImageSrc(product?.mainImage)}
               width={500}
               height={500}
-              alt="main image"
+              alt={sanitize(product?.title) || "Product image"}
               className="w-auto h-auto"
             />
             <div className="flex justify-around mt-5 flex-wrap gap-y-1 max-[500px]:justify-center max-[500px]:gap-x-1">
-              {images?.map((imageItem: ImageItem, key: number) => (
-                <Image
-                  key={imageItem.imageID + key}
-                  src={getImageSrc(imageItem.image)}
-                  width={100}
-                  height={100}
-                  alt="laptop image"
-                  className="w-auto h-auto"
-                />
-              ))}
+              {Array.isArray(images) &&
+                images.map((imageItem: ImageItem, key: number) => (
+                  <ProductImage
+                    key={imageItem.imageID + key}
+                    src={getImageSrc(imageItem.image)}
+                    width={100}
+                    height={100}
+                    alt={sanitize(imageItem.image) || "Product thumbnail"}
+                    className="w-auto h-auto"
+                  />
+                ))}
             </div>
           </div>
           <div className="flex flex-col gap-y-7 text-black max-[500px]:text-center">

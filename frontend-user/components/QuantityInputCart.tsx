@@ -17,7 +17,7 @@ import toast from "react-hot-toast";
 
 const QuantityInputCart = ({ product }: { product: ProductInCart }) => {
     const [quantityCount, setQuantityCount] = useState<number>(product.amount);
-  const { updateCartAmount, calculateTotals, isLoading } = useProductStore();
+  const { updateCartAmount, calculateTotals, isLoading, removeFromCart } = useProductStore();
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleQuantityChange = async (actionName: string) => {
@@ -32,6 +32,18 @@ const QuantityInputCart = ({ product }: { product: ProductInCart }) => {
     } else if (actionName === "minus") {
       newQuantity = quantityCount - 1;
       if (newQuantity < 1) {
+        // When quantity would go below 1 treat as removal
+        setIsUpdating(true);
+        try {
+          await removeFromCart(product.id);
+          setQuantityCount(0);
+          calculateTotals();
+        } catch (err) {
+          toast.error("Failed to remove product from cart.");
+          console.error("Error removing from cart via decrement:", err);
+        } finally {
+          setIsUpdating(false);
+        }
         return;
       }
     } else {
@@ -63,8 +75,8 @@ const QuantityInputCart = ({ product }: { product: ProductInCart }) => {
       <div className="flex items-center justify-center rounded border border-gray-200 w-32">
         <button
           type="button"
-          aria-label="Decrease quantity"
-          disabled={isUpdating || isLoading || quantityCount <= 1}
+            aria-label="Decrease quantity"
+            disabled={isUpdating || isLoading || quantityCount <= 0}
           className="size-10 leading-10 text-gray-600 transition hover:opacity-75 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={() => handleQuantityChange("minus")}
         >

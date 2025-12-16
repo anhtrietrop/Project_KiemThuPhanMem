@@ -21,8 +21,12 @@ export function getImageSrc(
 
   // If it's an /uploads/ path from local backend storage
   if (imagePath.startsWith("/uploads/")) {
-    // Prepend API base URL for backend-served images
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+    // Prepend API base URL for backend-served images. In development, default
+    // to the local backend at http://localhost:3002 if NEXT_PUBLIC_API_BASE_URL
+    // is not provided so Next image optimization can fetch the file correctly.
+    const apiBaseUrl =
+      process.env.NEXT_PUBLIC_API_BASE_URL ||
+      (process.env.NODE_ENV === "development" ? "http://localhost:3002" : "");
     return apiBaseUrl ? `${apiBaseUrl}${imagePath}` : imagePath;
   }
 

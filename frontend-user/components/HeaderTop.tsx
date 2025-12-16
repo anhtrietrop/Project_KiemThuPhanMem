@@ -19,12 +19,13 @@ import { FaLocationDot } from "react-icons/fa6";
 import { FaRegUser } from "react-icons/fa6";
 
 const HeaderTop = () => {
-  const { data: session }: any = useSession();
+  const { data: session, status }: any = useSession();
 
   const handleLogout = () => {
-    setTimeout(() => signOut(), 1000);
+    // Call signOut immediately to avoid delayed UI state and flaky tests
+    signOut();
     toast.success("Logout successful!");
-  }
+  };
   return (
     <div className="h-10 text-white bg-blue-500 max-lg:px-5 max-lg:h-16 max-[573px]:px-0">
       <div className="flex justify-between h-full max-lg:flex-col max-lg:justify-center max-lg:items-center max-w-screen-2xl mx-auto px-12 max-[573px]:px-0">
@@ -39,36 +40,53 @@ const HeaderTop = () => {
           </li>
         </ul>
         <ul className="flex items-center gap-x-5 h-full max-[370px]:text-sm max-[370px]:gap-x-2 font-semibold">
-          {!session ? (
+          {status === "unauthenticated" ? (
             <>
               <li className="flex items-center">
-                <Link href="/login" className="flex items-center gap-x-2 font-semibold">
+                <Link
+                  href="/login"
+                  className="flex items-center gap-x-2 font-semibold"
+                >
                   <FaRegUser className="text-white" />
                   <span>Login</span>
                 </Link>
               </li>
               <li className="flex items-center">
-                <Link href="/register" className="flex items-center gap-x-2 font-semibold">
+                <Link
+                  href="/register"
+                  className="flex items-center gap-x-2 font-semibold"
+                >
                   <FaRegUser className="text-white" />
                   <span>Register</span>
                 </Link>
               </li>
             </>
-          ) : (<>
-            <li className="flex items-center">
-              <Link href="/my-orders" className="flex items-center gap-x-2 font-semibold">
-                <FaRegUser className="text-white" />
-                <span>Đơn hàng của tôi</span>
-              </Link>
-            </li>
-            <span className="ml-10 text-base">{session.user?.email}</span>
-            <li className="flex items-center">
-              <button onClick={() => handleLogout()} className="flex items-center gap-x-2 font-semibold">
-                <FaRegUser className="text-white" />
-                <span>Log out</span>
-              </button>
-            </li>
-          </>)}
+          ) : status === "authenticated" ? (
+            <>
+              <li className="flex items-center">
+                <Link
+                  href="/my-orders"
+                  className="flex items-center gap-x-2 font-semibold"
+                >
+                  <FaRegUser className="text-white" />
+                  <span>Đơn hàng của tôi</span>
+                </Link>
+              </li>
+              <li className="ml-10 text-base">{session.user?.email}</li>
+              <li className="flex items-center">
+                <button
+                  onClick={() => handleLogout()}
+                  className="flex items-center gap-x-2 font-semibold"
+                >
+                  <FaRegUser className="text-white" />
+                  <span>Log out</span>
+                </button>
+              </li>
+            </>
+          ) : (
+            // while loading, avoid flashing auth links
+            <></>
+          )}
         </ul>
       </div>
     </div>

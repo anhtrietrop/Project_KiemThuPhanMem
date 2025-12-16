@@ -10,17 +10,28 @@ export const apiClient = {
     // Get session token for authentication
     const session = await getSession();
 
-    const defaultOptions: RequestInit = {
-      headers: {
-        "Content-Type": "application/json",
-        ...(session?.user?.email
-          ? { Authorization: `Bearer ${session.user.email}` }
-          : {}),
-        ...options.headers,
-      },
+    const headers = {
+      "Content-Type": "application/json",
+      ...(session?.user?.email
+        ? { Authorization: `Bearer ${session.user.email}` }
+        : {}),
+      ...(options.headers || {}),
     };
 
-    return fetch(url, { ...defaultOptions, ...options });
+    const fetchOptions: RequestInit = {
+      ...options,
+      headers,
+    };
+
+    try {
+      if (!this.baseUrl) throw new Error("apiBaseUrl is not configured");
+      const response = await fetch(url, fetchOptions);
+      return response;
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("apiClient.request failed:", url, err);
+      throw err instanceof Error ? err : new Error(String(err));
+    }
   },
 
   // Convenience methods
