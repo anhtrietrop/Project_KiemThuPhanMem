@@ -207,6 +207,7 @@ class TestDatabaseHelper {
     }
 
     const data = TestDataFactory.createProductData(productData);
+    console.log('DEBUG: createProduct data:', JSON.stringify(data, null, 2));
     const product = await prisma.product.create({ data });
     return product;
   }
