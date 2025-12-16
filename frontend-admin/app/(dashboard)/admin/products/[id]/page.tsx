@@ -59,6 +59,8 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
       !product.title ||
       !product.slug ||
       product.price == null ||
+      isNaN(product.price) ||
+      product.price < 0 ||
       !product.manufacturer ||
       !product.description
     ) {
@@ -202,7 +204,7 @@ const DashboardProductDetails = ({ params }: DashboardProductDetailsProps) => {
             <input
               type="text"
               className="input input-bordered w-full max-w-xs"
-              value={product?.price || ""}
+              value={product?.price != null ? String(product.price) : ""}
               onChange={(e) =>
                 setProduct({ ...product!, price: Number(e.target.value) })
               }

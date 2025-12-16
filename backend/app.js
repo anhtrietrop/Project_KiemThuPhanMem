@@ -1,4 +1,10 @@
-require("dotenv").config();
+// Load dotenv only if available (optional for production)
+try {
+  require("dotenv").config();
+} catch (error) {
+  // dotenv not available, environment variables should be set directly
+  console.log("dotenv not available, using environment variables directly");
+}
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const fileUpload = require("express-fileupload");
