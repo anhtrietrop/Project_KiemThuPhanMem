@@ -60,7 +60,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64
+          # Build single arch to speed up CI. Change to multi-arch only if needed.
+          platforms: linux/amd64
 
       - name: Image Digest
         run: |

@@ -49,261 +49,303 @@ describe("Thanh toán - Luồng", () => {
 
       // ===== GO TO CART =====
       cy.visit(Cypress.env("userUrl") + "/cart");
+      cy.wait(2000);
 
-      cy.contains("button", /checkout|thanh toán/i, { timeout: 10000 })
-        .should("be.visible")
-        .should("not.be.disabled")
-        .click();
+      // ===== CLICK CHECKOUT BUTTON =====
+      cy.get("body").then(($body) => {
+        const checkoutBtn = $body
+          .find("button")
+          .filter((i, el) => {
+            const text = (el.innerText || "").toLowerCase();
+            return text.includes("checkout") || text.includes("thanh toán");
+          })
+          .first();
 
-      // ===== KIỂM TRA CÓ BỊ REDIRECT VỀ LOGIN KHÔNG =====
-      cy.url().then((currentUrl) => {
-        if (currentUrl.includes("/login")) {
-          console.log("⚠️ Bị redirect về login, đăng nhập lại...");
-          // Đăng nhập lại
-          cy.get('input[type="email"], input[name="email"]').type(email, {
-            force: true,
-          });
-          cy.get('input[type="password"], input[name="password"]').type(
-            password,
-            { force: true }
-          );
-          cy.get(
-            'button[type="submit"], button:contains("Login"), button:contains("Đăng nhập")'
-          ).click({ force: true });
-
-          // Chờ redirect về checkout
-          cy.url({ timeout: 10000 }).should("include", "/checkout");
+        if (checkoutBtn.length) {
+          cy.wrap(checkoutBtn).click({ force: true });
+          console.log("Đã click nút checkout");
         }
       });
 
-      // ===== ĐẢM BẢO ĐÃ Ở TRANG CHECKOUT =====
-      cy.url({ timeout: 10000 }).should("include", "/checkout");
+      // ===== CHỜ CHECKOUT PAGE LOAD =====
+      cy.wait(3000);
 
-      // Chờ form tải hoàn toàn
-      cy.get("body").should("not.contain", "Loading");
-      cy.wait(1000);
+      // DEBUG: CHỤP ẢNH ĐỂ XEM FORM
+      cy.screenshot("checkout-page");
 
-      // ===== KIỂM TRA FORM CÓ TỒN TẠI KHÔNG =====
+      // DEBUG: IN RA TẤT CẢ ELEMENT
       cy.get("body").then(($body) => {
-        // Kiểm tra xem có form checkout không
-        const hasCheckoutForm =
-          $body.find('form, input, button:contains("Place Order")').length > 0;
+        console.log("=== DEBUG FORM CHECKOUT ===");
 
-        if (!hasCheckoutForm) {
-          console.log("Không tìm thấy form checkout, thử reload");
-          cy.reload();
-          cy.wait(2000);
-        }
-      });
-
-      // ===== ĐIỀN FORM CHECKOUT - CÁCH LINH HOẠT HƠN =====
-
-      // 1. Tìm tất cả input trống và điền theo thứ tự
-      cy.get("body").then(($body) => {
-        console.log("=== BẮT ĐẦU ĐIỀN FORM ===");
-
-        // Lấy tất cả input text trống
-        const emptyTextInputs = $body
-          .find('input[type="text"]')
-          .filter((i, el) => {
-            return !el.value || el.value.trim() === "";
+        // 1. Tìm tất cả input
+        const inputs = $body.find("input");
+        console.log(`Tổng số input: ${inputs.length}`);
+        inputs.each((index, el) => {
+          console.log(`Input ${index}:`, {
+            tag: el.tagName,
+            type: el.type,
+            name: el.name,
+            id: el.id,
+            placeholder: el.placeholder,
+            value: el.value,
+            className: el.className,
           });
-
-        const emptyEmailInputs = $body
-          .find('input[type="email"]')
-          .filter((i, el) => {
-            return !el.value || el.value.trim() === "";
-          });
-
-        const emptyTelInputs = $body
-          .find('input[type="tel"]')
-          .filter((i, el) => {
-            return !el.value || el.value.trim() === "";
-          });
-
-        console.log(
-          `Tìm thấy: ${emptyTextInputs.length} text input trống, ${emptyEmailInputs.length} email trống, ${emptyTelInputs.length} tel trống`
-        );
-
-        // Điền theo thứ tự phổ biến: Name -> Lastname -> Phone -> Email -> Address -> City
-        if (emptyTextInputs.length >= 1) {
-          cy.wrap(emptyTextInputs[0])
-            .clear()
-            .type("Anh Triết", { force: true, delay: 100 });
-          console.log("Điền Name vào input thứ 1");
-        }
-
-        if (emptyTextInputs.length >= 2) {
-          cy.wrap(emptyTextInputs[1])
-            .clear()
-            .type("Đỗ", { force: true, delay: 100 });
-          console.log("Điền Lastname vào input thứ 2");
-        }
-
-        // Điền phone (có thể là type="tel")
-        if (emptyTelInputs.length >= 1) {
-          cy.wrap(emptyTelInputs[0])
-            .clear()
-            .type("0899517129", { force: true, delay: 100 });
-          console.log("Điền Phone vào tel input");
-        } else if (emptyTextInputs.length >= 3) {
-          cy.wrap(emptyTextInputs[2])
-            .clear()
-            .type("0899517129", { force: true, delay: 100 });
-          console.log("Điền Phone vào input thứ 3");
-        }
-
-        // Điền email
-        if (emptyEmailInputs.length >= 1) {
-          cy.wrap(emptyEmailInputs[0])
-            .clear()
-            .type(email || "anhtrietrop@gmail.com", {
-              force: true,
-              delay: 100,
-            });
-          console.log("Điền Email vào email input");
-        } else if (emptyTextInputs.length >= 4) {
-          cy.wrap(emptyTextInputs[3])
-            .clear()
-            .type(email || "anhtrietrop@gmail.com", {
-              force: true,
-              delay: 100,
-            });
-          console.log("Điền Email vào input thứ 4");
-        }
-
-        // Điền address (có thể là input tiếp theo)
-        if (emptyTextInputs.length >= 5) {
-          cy.wrap(emptyTextInputs[4])
-            .clear()
-            .type("273 An Dương Vương", { force: true, delay: 100 });
-          console.log("Điền Address vào input thứ 5");
-        }
-
-        // Điền apartment (optional)
-        if (emptyTextInputs.length >= 6) {
-          cy.wrap(emptyTextInputs[5])
-            .clear()
-            .type("Lầu 5", { force: true, delay: 100 });
-          console.log("Điền Apartment vào input thứ 6");
-        }
-
-        // Điền city
-        if (emptyTextInputs.length >= 7) {
-          cy.wrap(emptyTextInputs[6])
-            .clear()
-            .type("Thành phố Hồ Chí Minh", { force: true, delay: 100 });
-          console.log("Điền City vào input thứ 7");
-        }
-      });
-
-      // 2. Tìm và điền vào textarea (order notice)
-      cy.get("body").then(($body) => {
-        const textareas = $body.find("textarea").filter((i, el) => {
-          return !el.value || el.value.trim() === "";
         });
 
-        if (textareas.length > 0) {
-          cy.wrap(textareas[0])
-            .clear()
-            .type("Giao hàng giờ hành chính", { force: true, delay: 100 });
-          console.log("Điền Order notice");
+        // 2. Tìm tất cả label
+        const labels = $body.find("label");
+        console.log(`Tổng số label: ${labels.length}`);
+        labels.each((index, el) => {
+          console.log(`Label ${index}: "${el.innerText.trim()}"`, {
+            htmlFor: el.htmlFor,
+            className: el.className,
+          });
+        });
+      });
+
+      // ===== TÌM VÀ ĐIỀN FORM THEO NHIỀU CÁCH =====
+
+      // CÁCH 1: Tìm input gần label "Name *"
+      cy.contains("label", /name/i).then(($label) => {
+        if ($label.length) {
+          console.log("Tìm thấy label Name:", $label.text());
+
+          // Cách 1A: Tìm input bằng for attribute
+          const forId = $label.attr("for");
+          if (forId) {
+            cy.get(`#${forId}`).then(($input) => {
+              if ($input.length) {
+                cy.wrap($input).clear().type("Anh Triết", { force: true });
+                console.log("Đã điền Name bằng for attribute");
+                return;
+              }
+            });
+          }
+
+          // Cách 1B: Tìm input trong cùng container
+          const container = $label.parent();
+          const input = container.find("input").first();
+          if (input.length) {
+            cy.wrap(input).clear().type("Anh Triết", { force: true });
+            console.log("Đã điền Name bằng parent container");
+            return;
+          }
+
+          // Cách 1C: Tìm input sau label
+          const nextInput = $label.next("input");
+          if (nextInput.length) {
+            cy.wrap(nextInput).clear().type("Anh Triết", { force: true });
+            console.log("Đã điền Name bằng next sibling");
+            return;
+          }
+        }
+
+        // Nếu không tìm thấy bằng label, thử cách khác
+        console.log("Không tìm thấy bằng label, thử cách khác...");
+
+        // CÁCH 2: Tìm input đầu tiên có type="text" và trống
+        cy.get('input[type="text"]').then(($inputs) => {
+          const emptyInputs = $inputs.filter(
+            (i, el) => !el.value || el.value.trim() === ""
+          );
+          if (emptyInputs.length > 0) {
+            cy.wrap(emptyInputs[0]).clear().type("Anh Triết", { force: true });
+            console.log("Đã điền Name vào input text đầu tiên");
+          }
+        });
+      });
+
+      // CÁCH 3: Điền Lastname
+      cy.contains("label", /lastname|last name/i).then(($label) => {
+        if ($label.length) {
+          const forId = $label.attr("for");
+          if (forId) {
+            cy.get(`#${forId}`).clear().type("Đỗ", { force: true });
+          } else {
+            const container = $label.parent();
+            const input = container.find("input").first();
+            if (input.length) {
+              cy.wrap(input).clear().type("Đỗ", { force: true });
+            }
+          }
+        } else {
+          // Tìm input text thứ 2
+          cy.get('input[type="text"]').then(($inputs) => {
+            const emptyInputs = $inputs.filter(
+              (i, el) => !el.value || el.value.trim() === ""
+            );
+            if (emptyInputs.length > 1) {
+              cy.wrap(emptyInputs[1]).clear().type("Đỗ", { force: true });
+            }
+          });
+        }
+      });
+
+      // CÁCH 4: Điền Phone number
+      cy.contains("label", /phone|số điện thoại/i).then(($label) => {
+        if ($label.length) {
+          const forId = $label.attr("for");
+          if (forId) {
+            cy.get(`#${forId}`).clear().type("0899517129", { force: true });
+          }
+        } else {
+          // Tìm input type="tel" hoặc input text thứ 3
+          cy.get('input[type="tel"]').then(($telInputs) => {
+            if ($telInputs.length > 0) {
+              cy.wrap($telInputs[0])
+                .clear()
+                .type("0899517129", { force: true });
+            } else {
+              cy.get('input[type="text"]').then(($inputs) => {
+                const emptyInputs = $inputs.filter(
+                  (i, el) => !el.value || el.value.trim() === ""
+                );
+                if (emptyInputs.length > 2) {
+                  cy.wrap(emptyInputs[2])
+                    .clear()
+                    .type("0899517129", { force: true });
+                }
+              });
+            }
+          });
+        }
+      });
+
+      // CÁCH 5: Điền Email address
+      cy.contains("label", /email/i).then(($label) => {
+        if ($label.length) {
+          const forId = $label.attr("for");
+          if (forId) {
+            cy.get(`#${forId}`)
+              .clear()
+              .type(email || "anhtrietrop@gmail.com", { force: true });
+          }
+        } else {
+          // Tìm input type="email"
+          cy.get('input[type="email"]').then(($emailInputs) => {
+            if ($emailInputs.length > 0) {
+              cy.wrap($emailInputs[0])
+                .clear()
+                .type(email || "anhtrietrop@gmail.com", { force: true });
+            } else {
+              cy.get('input[type="text"]').then(($inputs) => {
+                const emptyInputs = $inputs.filter(
+                  (i, el) => !el.value || el.value.trim() === ""
+                );
+                if (emptyInputs.length > 3) {
+                  cy.wrap(emptyInputs[3])
+                    .clear()
+                    .type(email || "anhtrietrop@gmail.com", { force: true });
+                }
+              });
+            }
+          });
+        }
+      });
+
+      // CÁCH 6: Điền các field Shipping Address
+      // Tìm section Shipping Address
+      cy.contains(/shipping address/i).then(($section) => {
+        if ($section.length) {
+          console.log("Tìm thấy Shipping Address section");
+
+          // Điền Address
+          cy.contains("label", /address/i).then(($label) => {
+            if ($label.length) {
+              const input =
+                $label.next("input").first() ||
+                $label.parent().find("input").first();
+              if (input.length) {
+                cy.wrap(input)
+                  .clear()
+                  .type("273 An Dương Vương", { force: true });
+              }
+            }
+          });
+
+          // Điền City
+          cy.contains("label", /city/i).then(($label) => {
+            if ($label.length) {
+              const input =
+                $label.next("input").first() ||
+                $label.parent().find("input").first();
+              if (input.length) {
+                cy.wrap(input)
+                  .clear()
+                  .type("Thành phố Hồ Chí Minh", { force: true });
+              }
+            }
+          });
+        } else {
+          // Nếu không tìm thấy section, điền input tiếp theo
+          cy.get('input[type="text"]').then(($inputs) => {
+            const emptyInputs = $inputs.filter(
+              (i, el) => !el.value || el.value.trim() === ""
+            );
+            if (emptyInputs.length > 4) {
+              cy.wrap(emptyInputs[4])
+                .clear()
+                .type("273 An Dương Vương", { force: true }); // Address
+            }
+            if (emptyInputs.length > 5) {
+              cy.wrap(emptyInputs[5])
+                .clear()
+                .type("Thành phố Hồ Chí Minh", { force: true }); // City
+            }
+          });
         }
       });
 
       // ===== KIỂM TRA FORM ĐÃ ĐƯỢC ĐIỀN =====
       cy.wait(1000);
       cy.get("body").then(($body) => {
-        const filledInputs = $body.find("input, textarea").filter((i, el) => {
-          return el.value && el.value.trim() !== "";
-        });
+        const filledInputs = $body
+          .find("input")
+          .filter((i, el) => el.value && el.value.trim() !== "");
+        console.log(`Đã điền được ${filledInputs.length} field`);
 
-        console.log(`=== ĐÃ ĐIỀN ${filledInputs.length} FIELD ===`);
+        // Nếu chưa đủ, thử điền bằng cách đơn giản nhất
         if (filledInputs.length < 4) {
-          console.warn("⚠️ Có thể chưa điền đủ form!");
-        }
-      });
+          console.log("Chưa điền đủ, thử cách đơn giản...");
 
-      // ===== SELECT PAYMENT METHOD =====
-      cy.get("body").then(($body) => {
-        // Tìm tất cả radio buttons
-        const radios = $body.find('input[type="radio"]');
-        if (radios.length > 0) {
-          // Chọn cái đầu tiên hoặc cái có value chứa "momo"
-          const momoRadio = radios
-            .filter((i, el) => {
-              return (el.value || "").toLowerCase().includes("momo");
-            })
-            .first();
+          // Điền tất cả input text trống
+          const textInputs = $body.find(
+            'input[type="text"], input[type="email"], input[type="tel"]'
+          );
+          const values = [
+            "Anh Triết",
+            "Đỗ",
+            "0899517129",
+            email || "anhtrietrop@gmail.com",
+            "273 An Dương Vương",
+            "Thành phố Hồ Chí Minh",
+          ];
 
-          if (momoRadio.length) {
-            cy.wrap(momoRadio).check({ force: true });
-            console.log("Đã chọn MoMo payment");
-          } else {
-            // Chọn radio đầu tiên
-            cy.wrap(radios[0]).check({ force: true });
-            console.log("Đã chọn payment method đầu tiên");
-          }
+          textInputs.each((index, el) => {
+            if (
+              index < values.length &&
+              (!el.value || el.value.trim() === "")
+            ) {
+              cy.wrap(el).clear().type(values[index], { force: true });
+            }
+          });
         }
       });
 
       // ===== PLACE ORDER =====
-      // Tìm và click nút Place Order
-      cy.get("body").then(($body) => {
-        const placeOrderButtons = $body.find("button").filter((i, el) => {
-          const text = (el.textContent || el.innerText || "").toLowerCase();
-          return (
-            text.includes("place order") ||
-            text.includes("đặt hàng") ||
-            text.includes("thanh toán") ||
-            text.includes("hoàn tất")
-          );
-        });
-
-        if (placeOrderButtons.length > 0) {
-          const button = placeOrderButtons[0];
-          const isDisabled = button.disabled || button.hasAttribute("disabled");
-
-          if (!isDisabled) {
-            cy.wrap(button).click({ force: true });
-            console.log("Đã click Place Order");
-          } else {
-            console.log("Nút Place Order bị disabled, kiểm tra form");
-            // Kiểm tra validation
-            cy.get("body").then(($body) => {
-              const errors = $body.find(
-                '.error, .text-red-500, [aria-invalid="true"]'
-              );
-              console.log(`Validation errors: ${errors.length}`);
-            });
-          }
-        } else {
-          console.log("Không tìm thấy nút Place Order");
-        }
-      });
+      cy.get('button:contains("Place Order"), button:contains("Đặt hàng")', {
+        timeout: 10000,
+      })
+        .should("be.visible")
+        .should("not.be.disabled")
+        .click({ force: true });
 
       // ===== VERIFY SUCCESS =====
-      // Chờ chuyển trang hoặc hiển thị thông báo thành công
-      cy.wait(3000);
-
-      // Kiểm tra URL hoặc thông báo thành công
-      cy.get("body").then(($body) => {
-        const successText = $body.text();
-        const hasSuccess =
-          /thank you|cảm ơn|order received|order confirmed|payment successful|thanh toán thành công|đặt hàng thành công/i.test(
-            successText
-          );
-
-        if (hasSuccess) {
-          console.log("✓ Thanh toán thành công!");
-        } else {
-          console.log("Chưa thấy thông báo thành công, kiểm tra URL...");
-          cy.url().should(
-            "match",
-            /success|thank|order|complete|confirmation|thanh-cong/i
-          );
-        }
-      });
+      cy.wait(5000);
+      cy.contains(
+        /thank you|cảm ơn|order received|success|đặt hàng thành công/i,
+        { timeout: 30000 }
+      ).should("exist");
     });
   });
 });
