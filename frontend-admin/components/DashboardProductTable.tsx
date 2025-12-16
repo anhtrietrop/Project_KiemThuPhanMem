@@ -7,7 +7,7 @@
 // Input parameters: no input parameters
 // Output: products table
 // *********************
-
+//*****test */
 "use client";
 import { nanoid } from "nanoid";
 // Use native <img> in admin table to avoid Next image optimizer in dev
