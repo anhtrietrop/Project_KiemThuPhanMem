@@ -5,13 +5,13 @@ import { getServerSession } from "next-auth/next";
 
 export const dynamic = "force-dynamic";
 import { authOptions } from "@/lib/auth-config";
-import 'svgmap/dist/svgMap.min.css';
+import "svgmap/dist/svgMap.min.css";
 import SessionProvider from "@/utils/SessionProvider";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Providers from "@/Providers";
 import SessionTimeoutWrapper from "@/components/SessionTimeoutWrapper";
-import CartManager from '@/components/CartManager';
+import CartManager from "@/components/CartManager";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -33,9 +33,7 @@ export default async function RootLayout({
           <CartManager />
           <SessionTimeoutWrapper />
           <Header />
-          <Providers>
-            {children}
-          </Providers>
+          <Providers>{children}</Providers>
           <Footer />
         </SessionProvider>
       </body>

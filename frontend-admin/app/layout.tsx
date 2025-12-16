@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth/next";
 
 export const dynamic = "force-dynamic";
 import { authOptions } from "@/lib/auth-config";
-import 'svgmap/dist/svgMap.min.css';
+import "svgmap/dist/svgMap.min.css";
 import SessionProvider from "@/utils/SessionProvider";
 import Providers from "@/Providers";
 import SessionTimeoutWrapper from "@/components/SessionTimeoutWrapper";
@@ -28,9 +28,7 @@ export default async function RootLayout({
       <body className={inter.className}>
         <SessionProvider session={session}>
           <SessionTimeoutWrapper />
-          <Providers>
-            {children}
-          </Providers>
+          <Providers>{children}</Providers>
         </SessionProvider>
       </body>
     </html>
