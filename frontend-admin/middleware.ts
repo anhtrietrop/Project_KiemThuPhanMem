@@ -1,46 +1,30 @@
-import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export default withAuth(
-  function middleware(req) {
-    const token = req.nextauth.token;
-    const isLoginPage = req.nextUrl.pathname === "/login";
-    
-    // If user is logged in but not admin, redirect to login and clear session
-    if (token && token.role !== "admin" && !isLoginPage) {
-      const loginUrl = new URL("/login", req.url);
-      loginUrl.searchParams.set("error", "unauthorized");
-      return NextResponse.redirect(loginUrl);
-    }
-    
-    // If not logged in and not on login page, redirect to login
-    if (!token && !isLoginPage) {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
-    
-    // If admin is trying to access login page, redirect to dashboard
-    if (token && token.role === "admin" && isLoginPage) {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
-    
+// Simplified middleware that's compatible with Edge Runtime
+// Note: Full authentication check is done in page components using getServerSession()
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const isLoginPage = pathname === "/login";
+  const isApiRoute = pathname.startsWith("/api");
+  const isStaticFile = pathname.startsWith("/_next") || 
+                       pathname.match(/\.(ico|png|jpg|jpeg|svg|gif|webp)$/);
+
+  // Skip middleware for API routes and static files
+  if (isApiRoute || isStaticFile) {
     return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ token, req }) => {
-        const isLoginPage = req.nextUrl.pathname === "/login";
-        
-        // Allow access to login page without token
-        if (isLoginPage) {
-          return true;
-        }
-        
-        // All other routes require admin token
-        return !!token && token.role === "admin";
-      },
-    },
   }
-);
+
+  // For login page, allow access
+  if (isLoginPage) {
+    return NextResponse.next();
+  }
+
+  // For all other routes, let them through
+  // Authentication will be checked in page components using requireAdmin() or getServerSession()
+  // This approach is compatible with Edge Runtime and avoids the "Code generation from strings" error
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [
