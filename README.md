@@ -1,159 +1,181 @@
-Môn Kiểm thử phần mêm
-Thành viên nhóm:
--Đỗ Anh Triết 3122411223
--Nguyễn Võ Minh Thư 3122411201
--Trần Nguyễn Phúc Mạnh 3112241121
+# 🛍️ E-Commerce System - Project_KiemThuPhanMem
 
-# Electronics eCommerce - Tách Admin và User
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-v18+-green.svg)](https://nodejs.org/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0+-orange.svg)](https://www.mysql.com/)
+[![Tests](https://img.shields.io/badge/tests-197%20passed-brightgreen.svg)](./full_test_report.md)
 
-> **📖 Xem [DOCUMENTATION_STRUCTURE.md](./DOCUMENTATION_STRUCTURE.md) để tìm hiểu toàn bộ tài liệu dự án**
-
-Dự án này đã được tách thành 3 phần riêng biệt:
-
-- **Frontend User**: Giao diện người dùng (shop, product, cart, checkout, wishlist)
-- **Frontend Admin**: Giao diện quản trị (CRUD products, categories)
-- **Backend**: API Server (Node.js + Express + Prisma + MySQL)
-
-## 📁 Cấu trúc thư mục
-
-```
-web-electronic/
-├── frontend-user/          # Next.js User Frontend (Port 3000)
-├── frontend-admin/         # Next.js Admin Frontend (Port 3001)
-├── backend/               # Node.js API Server (Port 3002)
-└── README.md             # File này
-```
-
-## 🚀 Hướng dẫn cài đặt và chạy
-
-### ⚡ Cách nhanh nhất (Khuyến nghị)
-
-**Sử dụng Docker + Scripts tự động:**
-
-```bash
-# 1. Start Docker containers
-docker-manager start
-
-# 2. Initialize database
-db init
-
-# 3. Open browser
-# - User: http://localhost:3000
-# - Admin: http://localhost:3001
-# - Backend: http://localhost:3002
-```
-
-**Các commands hữu ích:**
-
-```bash
-# Database
-db status      # Check migration status
-db studio      # Open database GUI
-db dev         # Create new migration
-
-# Docker
-docker-manager logs backend    # View logs
-docker-manager restart         # Restart containers
-docker-manager check           # Check ports
-```
-
-> 📚 **Chi tiết**: Xem [scripts/README.md](./scripts/README.md) và [DATABASE_SYNC_README.md](./DATABASE_SYNC_README.md)
+**Team Members:**
+- Đỗ Anh Triết - 3122411223
+- Nguyễn Võ Minh Thư - 3122411201
+- Trần Nguyễn Phúc Mạnh - 3112241121
 
 ---
 
-### Cách thủ công (Local development)
+## 📚 Overview
 
-#### Yêu cầu
+**E-Commerce System** is an end-to-end full-stack application designed for electronic commerce with a focus on scalability, maintainability, and rigorous testing. This project demonstrates a complete Software Testing Life Cycle (STLC) implementation with comprehensive Unit Testing, Integration Testing, and CI/CD automation.
 
-- Node.js v18+
-- MySQL 8.0+
-- npm hoặc yarn
+The platform goes beyond basic CRUD functionality — it showcases a professional development workflow with separated frontend applications for Users and Admins, a unified Node.js/Express backend, and automated quality assurance through GitHub Actions pipelines.
 
-### 🎯 Cấu hình Port (Đã tách riêng)
+This system is built for the **Software Testing Course** (Môn Kiểm thử phần mềm) and demonstrates best practices in modern web development and quality assurance.
 
-- **Backend**: Port 3002
-- **Frontend User**: Port 3000
-- **Frontend Admin**: Port 3001
+---
 
-**✅ Lợi ích:** Session độc lập, có thể đăng nhập User và Admin đồng thời trên các tab khác nhau
+## 🧩 Architecture
 
-### Bước 1: Cài đặt MySQL và tạo database
+The system follows a microservice-like architecture with three distinct components:
 
-1. Tải và cài đặt MySQL: https://dev.mysql.com/downloads/installer/
-2. Mở MySQL và tạo database:
-
-```sql
-CREATE DATABASE singitronic_nextjs_db;
+```
+┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
+│  Frontend User  │      │ Frontend Admin  │      │    Backend API  │
+│   (Next.js)     │◄────►│   (Next.js)     │◄────►│  (Express.js)   │
+│   Port 3000     │      │   Port 3001     │      │   Port 3002     │
+└─────────────────┘      └─────────────────┘      └────────┬────────┘
+                                                            │
+                                                            ▼
+                                                   ┌─────────────────┐
+                                                   │  MySQL Database │
+                                                   │  (Prisma ORM)   │
+                                                   └─────────────────┘
 ```
 
-### Bước 2: Tạo file cấu hình môi trường
+**Key Features:**
+- **Independent Sessions:** User and Admin can be logged in simultaneously on different ports
+- **API-First Design:** All business logic centralized in the backend
+- **Database Abstraction:** Prisma ORM provides type-safe database access
 
-**Cách 1: Tự động (Khuyến nghị)**
+---
+
+## 🧱 Stack Overview
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Frontend (User)** | Next.js 14, React, TailwindCSS | Customer-facing e-commerce interface |
+| **Frontend (Admin)** | Next.js 14, React, TailwindCSS | Admin dashboard for management |
+| **Backend API** | Node.js, Express.js, Prisma | RESTful API server with business logic |
+| **Database** | MySQL 8.0 | Relational data storage |
+| **Authentication** | JWT, bcryptjs, NextAuth | Secure user authentication |
+| **Testing** | Jest, Supertest | Unit and Integration testing |
+| **DevOps** | Docker, GitHub Actions | Containerization and CI/CD |
+
+---
+
+## 📁 Table of Contents
+
+- [📚 Overview](#-overview)
+- [🧩 Architecture](#-architecture)
+- [🧱 Stack Overview](#-stack-overview)
+- [⚙️ Environment Setup](#️-environment-setup)
+- [🧪 Local Development](#-local-development)
+- [🎯 Testing Strategy](#-testing-strategy)
+- [📦 Features by Role](#-features-by-role)
+- [🛠️ Useful Scripts](#️-useful-scripts)
+- [🐛 Troubleshooting](#-troubleshooting)
+- [📄 Documentation](#-documentation)
+- [📞 Support](#-support)
+- [📄 License](#-license)
+
+---
+
+## ⚙️ Environment Setup
+
+### 1. Prerequisites
+
+Ensure you have the following installed:
+- **Node.js** v18+ ([Download](https://nodejs.org/))
+- **MySQL** 8.0+ ([Download](https://dev.mysql.com/downloads/))
+- **Git**
+- **npm** or **yarn**
+
+### 2. Clone the Repository
 
 ```bash
-# Chạy script này để tạo tất cả file .env cần thiết
+git clone https://github.com/your-username/Project_KiemThuPhanMem.git
+cd Project_KiemThuPhanMem
+```
+
+### 3. Configure Environment Variables
+
+**Option 1: Automated (Recommended)**
+```bash
+# Windows
 create-env-files.bat
 ```
 
-**Cách 2: Thủ công**
-**Thay thế user name(thường là root) và password của bạn**
-Tạo file `backend/.env`:
+**Option 2: Manual Configuration**
 
+Create `backend/.env`:
 ```env
 NODE_ENV=development
 DATABASE_URL="mysql://username:password@localhost:3306/singitronic_nextjs_db"
 PORT=3002
-FRONTEND_USER_URL=http://localhost:3000
-FRONTEND_ADMIN_URL=http://localhost:3001
+JWT_SECRET="your-secret-key-change-in-production"
+JWT_EXPIRES_IN="24h"
 ```
 
-Tạo file `frontend-user/.env.local`:
-
+Create `frontend-user/.env.local` and `frontend-admin/.env.local`:
 ```env
 NEXT_PUBLIC_API_BASE_URL=http://localhost:3002
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-secret-key-change-this-in-production
-DATABASE_URL="mysql://root:password@localhost:3306/singitronic_nextjs_db"
-NODE_ENV=development
+NEXTAUTH_URL=http://localhost:3000  # or 3001 for admin
+NEXTAUTH_SECRET="your-secret-key"
+DATABASE_URL="mysql://username:password@localhost:3306/singitronic_nextjs_db"
 ```
 
-Tạo file `frontend-admin/.env.local`:
+---
 
-```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:3002
-NEXTAUTH_URL=http://localhost:3001
-NEXTAUTH_SECRET=your-secret-key-change-this-in-production
-DATABASE_URL="mysql://root:password@localhost:3306/singitronic_nextjs_db"
-NODE_ENV=development
-```
+## 🧪 Local Development
 
-### Bước 3: Cấu hình Backend
+You can start the project using Docker (recommended) or run services manually.
+
+### 1. Quick Start with Docker
 
 ```bash
+# Start all services (MySQL, Backend, Frontends)
+docker-manager start
+
+# Initialize database schema and seed data
+db init
+
+# View logs
+docker-manager logs backend
+
+# Check service status
+docker-manager check
+```
+
+**Access Points:**
+- 🛒 **User Store:** http://localhost:3000
+- 🔧 **Admin Panel:** http://localhost:3001
+- 🔌 **Backend API:** http://localhost:3002
+
+### 2. Manual Setup
+
+**Step 1: Setup Database**
+```bash
+# Create MySQL database
+mysql -u root -p
+CREATE DATABASE singitronic_nextjs_db;
+```
+
+**Step 2: Backend**
+```bash
 cd backend
-
-# Cài đặt dependencies
 npm install
-
-# Chạy Prisma migration
 npx prisma migrate dev
+npx prisma generate
 
-# Insert demo data
+# Seed demo data
 cd utills
 node insertDemoData.js
 node insertAdminUser.js
 cd ..
 
-# Chạy backend server
+# Start server
 npm start
 ```
 
-Backend sẽ chạy tại: **http://localhost:3002**
-
-### Bước 4: Cấu hình và chạy Frontends
-
-**Terminal 2 - Frontend User:**
-
+**Step 3: Frontend User (Terminal 2)**
 ```bash
 cd frontend-user
 npm install
@@ -161,10 +183,7 @@ npx prisma generate
 npm run dev
 ```
 
-Frontend User sẽ chạy tại: **http://localhost:3000**
-
-**Terminal 3 - Frontend Admin:**
-
+**Step 4: Frontend Admin (Terminal 3)**
 ```bash
 cd frontend-admin
 npm install
@@ -172,109 +191,175 @@ npx prisma generate
 npm run dev
 ```
 
-Frontend Admin sẽ chạy tại: **http://localhost:3001**
+### 3. Verify Installation
 
-## 🛠️ Scripts tiện ích
+After setup, you should see:
+- ✅ Backend running on port 3002
+- ✅ Frontend User on port 3000
+- ✅ Frontend Admin on port 3001
+- ✅ Database populated with demo data
 
-| Script                 | Mô tả                                    |
-| ---------------------- | ---------------------------------------- |
-| `create-env-files.bat` | Tạo tất cả file cấu hình môi trường      |
-| `setup-all.bat`        | Cài đặt dependencies cho tất cả projects |
-| `start-all.bat`        | Chạy tất cả services cùng lúc            |
-| `stop-all.bat`         | Dừng tất cả services                     |
-| `check-ports.bat`      | Kiểm tra ports có bị chiếm không         |
+---
 
-## 📝 Thông tin đăng nhập
+## 🎯 Testing Strategy
 
-Sau khi chạy `insertDemoData.js`, bạn sẽ có sẵn các tài khoản:
+This project emphasizes **Quality Assurance** with a comprehensive testing suite.
 
-### Admin Account
+> 📊 **Current Status:** **197 Tests Passed** (100% Success Rate)  
+> 📄 **Full Report:** [View Test Report](./full_test_report.md)
 
-- **URL**: http://localhost:3001/login (Trang đăng nhập riêng dành cho admin với giao diện nền xanh đậm)
-- **Email**: admin@example.com
-- **Password**: admin123
-- **⚠️ LƯU Ý**: Chỉ tài khoản có `role='admin'` mới đăng nhập được vào Admin Panel. Script insertAdminUser.js tạo user này; thay đổi password trong production.
+### 1. Unit Testing
+**Scope:** Business logic validation (Price, Quantity, Slug generation, JWT tokens)  
+**Tools:** Jest  
+**Coverage:** 60%+ target  
+**Command:**
+```bash
+cd backend
+npm run test:unit
+```
 
-### User Account
+**Example Tests:**
+- ✅ Password hashing with bcrypt
+- ✅ JWT token generation and validation
+- ✅ Email and password format validation
+- ✅ Product slug generation
 
-- **URL**: http://localhost:3000/login
-- **Email**: user@example.com (hoặc tạo mới)
-- **Password**: (tạo khi register)
-- **⚠️ LƯU Ý**: Tài khoản user KHÔNG thể đăng nhập vào Admin Panel
+### 2. Integration Testing
+**Scope:** API endpoints with real database interactions  
+**Tools:** Jest + Supertest + MySQL Test Database  
+**Coverage:** All critical API flows  
+**Command:**
+```bash
+cd backend
+npm run test:integration
+```
 
-## 🔧 Chức năng theo vai trò
+**Example Tests:**
+- ✅ User registration and authentication
+- ✅ Product CRUD operations
+- ✅ Product filtering and search
+- ✅ Protected route access control
 
-### User (Frontend User - Port 3000)
+### 3. CI/CD Pipelines
+**Platform:** GitHub Actions  
+**Workflows:**
+- **CI Pipeline:** Runs on every PR (Lint → Unit Tests → Integration Tests → Coverage Check)
+- **CD Pipeline:** Deploys to production on merge to `main`
+- **Database Migration Check:** Validates Prisma schema changes
 
-- ✅ Đăng nhập / Đăng ký (Email/Password)
-- ✅ Xem danh sách sản phẩm (không cần đăng nhập)
-- ✅ Xem chi tiết sản phẩm (không cần đăng nhập)
-- ✅ Tìm kiếm sản phẩm (không cần đăng nhập)
-- ✅ Thêm vào giỏ hàng (không cần đăng nhập)
-- ✅ **Thanh toán (BẮT BUỘC đăng nhập)** 🔒
-- ✅ Wishlist (yêu cầu đăng nhập)
-- ✅ Xem danh mục (không cần đăng nhập)
+See [CI/CD Architecture Diagram](./full_test_report.md#7-cicd--devops-pipeline-architecture) for details.
 
-### Admin (Frontend Admin - Port 3001)
+---
 
-- ✅ Đăng nhập (Email/Password - **CHỈ ADMIN**)
-- ✅ CRUD Products (Thêm, Sửa, Xóa sản phẩm)
-- ✅ CRUD Categories (Thêm, Sửa, Xóa danh mục)
-- ✅ Quản lý Orders
-- ✅ Quản lý Users
-- ✅ Quản lý Merchants
+## 📦 Features by Role
+
+### User Features (Port 3000)
+- ✅ User registration and authentication
+- ✅ Browse products (no login required)
+- ✅ Product search and filtering
+- ✅ Shopping cart management
+- ✅ Checkout (requires login)
+- ✅ Wishlist management
+- ✅ Order history
+
+### Admin Features (Port 3001)
+- ✅ Admin-only authentication
+- ✅ Product CRUD operations
+- ✅ Category management
+- ✅ Order management
+- ✅ User management
+- ✅ Merchant management
+
+**Credentials (Demo Data):**
+```
+Admin:
+  URL: http://localhost:3001/login
+  Email: admin@example.com
+  Password: admin123
+
+User:
+  URL: http://localhost:3000/login
+  Email: user@example.com
+  Password: (create on registration)
+```
+
+---
+
+## 🛠️ Useful Scripts
+
+### Database Scripts
+```bash
+db status              # Check migration status
+db studio              # Open Prisma Studio (Database GUI)
+db init                # Initialize and seed database
+db dev                 # Create new migration
+```
+
+### Docker Scripts
+```bash
+docker-manager start   # Start all containers
+docker-manager stop    # Stop all containers
+docker-manager logs    # View service logs
+docker-manager check   # Check port availability
+docker-manager restart # Restart services
+```
+
+### Development Scripts
+```bash
+# Backend
+npm start              # Start server
+npm run test           # Run all tests
+npm run test:coverage  # Run tests with coverage
+
+# Frontend
+npm run dev            # Development mode
+npm run build          # Build for production
+npm run lint           # Code linting
+```
+
+---
 
 ## 🐛 Troubleshooting
 
-### Lỗi kết nối database
+### Database Connection Errors
+- ✅ Verify MySQL service is running
+- ✅ Check username/password in `.env` files
+- ✅ Ensure database `singitronic_nextjs_db` exists
 
-- Kiểm tra MySQL đã chạy chưa
-- Kiểm tra username/password trong file .env
-- Kiểm tra database đã được tạo chưa
+### Port Already in Use
+- ✅ Check if services are running: `check-ports.bat`
+- ✅ Kill process using port: `npx kill-port 3002`
 
-### Lỗi port đã được sử dụng
-
-- Đảm bảo mỗi service chạy trên port khác nhau:
-  - Backend: 3002
-  - Frontend User: 3000
-  - Frontend Admin: 3001
-
-### Lỗi không tìm thấy module
-
-- Chạy `npm install` trong từng thư mục
-
-### Lỗi "@prisma/client did not initialize yet"
-
-- Chạy lệnh sau trong thư mục gặp lỗi:
-
+### Prisma Client Not Generated
 ```bash
 npx prisma generate
 ```
 
-### Lỗi "Access denied. Admin account required"
+### Admin Login Fails
+- ✅ Only accounts with `role='admin'` can access Admin Panel
+- ✅ Verify user role in database: `npx prisma studio`
 
-- Admin Panel chỉ cho phép tài khoản có `role='admin'`
-- Kiểm tra database xem user có `role='admin'` chưa
-- Tài khoản user thường KHÔNG thể đăng nhập vào Admin Panel
+---
 
-### Lỗi "Vui lòng đăng nhập để tiếp tục thanh toán"
+## 📄 Documentation
 
-- Đây là tính năng bảo mật mới
-- Người dùng PHẢI đăng nhập trước khi checkout
-- Có thể thêm vào giỏ hàng không cần đăng nhập, nhưng thanh toán bắt buộc đăng nhập
+- 📊 [Full Test Report](./full_test_report.md) - Complete testing documentation
+- 🗂️ [Documentation Structure](./DOCUMENTATION_STRUCTURE.md) - Project documentation index
+- 🔄 [Database Sync Guide](./DATABASE_SYNC_README.md) - Database migration guide
+- 📝 [Scripts Guide](./scripts/README.md) - Automated scripts documentation
 
-## 📦 Scripts hữu ích
+---
 
-### Backend
+## 📞 Support
 
-```bash
-npm run start              # Chạy server
-npm run logs              # Xem logs
-npx prisma studio         # Mở Prisma Studio để xem database
-```
+If you encounter issues:
 
-### Frontend
+1. Check logs in terminal
+2. Verify database connection
+3. Ensure all dependencies are installed
+4. Check `.env` files are created correctly
 
+<<<<<<< Updated upstream
 ```bash
 npm run dev               # Chạy development mode
 npm run build             # Build production
@@ -309,7 +394,14 @@ Nếu gặp vấn đề, vui lòng:
 2. Kiểm tra database connection
 3. Đảm bảo tất cả dependencies đã được cài đặt
 4. Kiểm tra file .env đã được tạo đúng chưa
+=======
+---
+>>>>>>> Stashed changes
 
 ## 📄 License
 
-MIT License - Xem file LICENSE để biết thêm chi tiết.
+MIT License - See [LICENSE](./LICENSE) for details.
+
+---
+
+**Made with ❤️ for Software Testing Course**
