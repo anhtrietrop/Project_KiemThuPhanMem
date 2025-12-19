@@ -5,10 +5,13 @@
 [![MySQL](https://img.shields.io/badge/MySQL-8.0+-orange.svg)](https://www.mysql.com/)
 [![Tests](https://img.shields.io/badge/tests-197%20passed-brightgreen.svg)](./full_test_report.md)
 
+**Team 8**
+
 **Team Members:**
+
 - Đỗ Anh Triết - 3122411223
 - Nguyễn Võ Minh Thư - 3122411201
-- Trần Nguyễn Phúc Mạnh - 3112241121
+- Trần Nguyễn Phúc Mạnh - 312241121
 
 ---
 
@@ -41,6 +44,7 @@ The system follows a microservice-like architecture with three distinct componen
 ```
 
 **Key Features:**
+
 - **Independent Sessions:** User and Admin can be logged in simultaneously on different ports
 - **API-First Design:** All business logic centralized in the backend
 - **Database Abstraction:** Prisma ORM provides type-safe database access
@@ -49,15 +53,15 @@ The system follows a microservice-like architecture with three distinct componen
 
 ## 🧱 Stack Overview
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **Frontend (User)** | Next.js 14, React, TailwindCSS | Customer-facing e-commerce interface |
-| **Frontend (Admin)** | Next.js 14, React, TailwindCSS | Admin dashboard for management |
-| **Backend API** | Node.js, Express.js, Prisma | RESTful API server with business logic |
-| **Database** | MySQL 8.0 | Relational data storage |
-| **Authentication** | JWT, bcryptjs, NextAuth | Secure user authentication |
-| **Testing** | Jest, Supertest | Unit and Integration testing |
-| **DevOps** | Docker, GitHub Actions | Containerization and CI/CD |
+| Layer                | Technology                     | Purpose                                |
+| -------------------- | ------------------------------ | -------------------------------------- |
+| **Frontend (User)**  | Next.js 14, React, TailwindCSS | Customer-facing e-commerce interface   |
+| **Frontend (Admin)** | Next.js 14, React, TailwindCSS | Admin dashboard for management         |
+| **Backend API**      | Node.js, Express.js, Prisma    | RESTful API server with business logic |
+| **Database**         | MySQL 8.0                      | Relational data storage                |
+| **Authentication**   | JWT, bcryptjs, NextAuth        | Secure user authentication             |
+| **Testing**          | Jest, Supertest                | Unit and Integration testing           |
+| **DevOps**           | Docker, GitHub Actions         | Containerization and CI/CD             |
 
 ---
 
@@ -83,6 +87,7 @@ The system follows a microservice-like architecture with three distinct componen
 ### 1. Prerequisites
 
 Ensure you have the following installed:
+
 - **Node.js** v18+ ([Download](https://nodejs.org/))
 - **MySQL** 8.0+ ([Download](https://dev.mysql.com/downloads/))
 - **Git**
@@ -98,6 +103,7 @@ cd Project_KiemThuPhanMem
 ### 3. Configure Environment Variables
 
 **Option 1: Automated (Recommended)**
+
 ```bash
 # Windows
 create-env-files.bat
@@ -106,6 +112,7 @@ create-env-files.bat
 **Option 2: Manual Configuration**
 
 Create `backend/.env`:
+
 ```env
 NODE_ENV=development
 DATABASE_URL="mysql://username:password@localhost:3306/singitronic_nextjs_db"
@@ -115,6 +122,7 @@ JWT_EXPIRES_IN="24h"
 ```
 
 Create `frontend-user/.env.local` and `frontend-admin/.env.local`:
+
 ```env
 NEXT_PUBLIC_API_BASE_URL=http://localhost:3002
 NEXTAUTH_URL=http://localhost:3000  # or 3001 for admin
@@ -145,6 +153,7 @@ docker-manager check
 ```
 
 **Access Points:**
+
 - 🛒 **User Store:** http://localhost:3000
 - 🔧 **Admin Panel:** http://localhost:3001
 - 🔌 **Backend API:** http://localhost:3002
@@ -152,6 +161,7 @@ docker-manager check
 ### 2. Manual Setup
 
 **Step 1: Setup Database**
+
 ```bash
 # Create MySQL database
 mysql -u root -p
@@ -159,6 +169,7 @@ CREATE DATABASE singitronic_nextjs_db;
 ```
 
 **Step 2: Backend**
+
 ```bash
 cd backend
 npm install
@@ -176,6 +187,7 @@ npm start
 ```
 
 **Step 3: Frontend User (Terminal 2)**
+
 ```bash
 cd frontend-user
 npm install
@@ -184,6 +196,7 @@ npm run dev
 ```
 
 **Step 4: Frontend Admin (Terminal 3)**
+
 ```bash
 cd frontend-admin
 npm install
@@ -194,6 +207,7 @@ npm run dev
 ### 3. Verify Installation
 
 After setup, you should see:
+
 - ✅ Backend running on port 3002
 - ✅ Frontend User on port 3000
 - ✅ Frontend Admin on port 3001
@@ -209,40 +223,48 @@ This project emphasizes **Quality Assurance** with a comprehensive testing suite
 > 📄 **Full Report:** [View Test Report](./full_test_report.md)
 
 ### 1. Unit Testing
+
 **Scope:** Business logic validation (Price, Quantity, Slug generation, JWT tokens)  
 **Tools:** Jest  
 **Coverage:** 60%+ target  
 **Command:**
+
 ```bash
 cd backend
 npm run test:unit
 ```
 
 **Example Tests:**
+
 - ✅ Password hashing with bcrypt
 - ✅ JWT token generation and validation
 - ✅ Email and password format validation
 - ✅ Product slug generation
 
 ### 2. Integration Testing
+
 **Scope:** API endpoints with real database interactions  
 **Tools:** Jest + Supertest + MySQL Test Database  
 **Coverage:** All critical API flows  
 **Command:**
+
 ```bash
 cd backend
 npm run test:integration
 ```
 
 **Example Tests:**
+
 - ✅ User registration and authentication
 - ✅ Product CRUD operations
 - ✅ Product filtering and search
 - ✅ Protected route access control
 
 ### 3. CI/CD Pipelines
+
 **Platform:** GitHub Actions  
 **Workflows:**
+
 - **CI Pipeline:** Runs on every PR (Lint → Unit Tests → Integration Tests → Coverage Check)
 - **CD Pipeline:** Deploys to production on merge to `main`
 - **Database Migration Check:** Validates Prisma schema changes
@@ -254,6 +276,7 @@ See [CI/CD Architecture Diagram](./full_test_report.md#7-cicd--devops-pipeline-a
 ## 📦 Features by Role
 
 ### User Features (Port 3000)
+
 - ✅ User registration and authentication
 - ✅ Browse products (no login required)
 - ✅ Product search and filtering
@@ -263,6 +286,7 @@ See [CI/CD Architecture Diagram](./full_test_report.md#7-cicd--devops-pipeline-a
 - ✅ Order history
 
 ### Admin Features (Port 3001)
+
 - ✅ Admin-only authentication
 - ✅ Product CRUD operations
 - ✅ Category management
@@ -271,6 +295,7 @@ See [CI/CD Architecture Diagram](./full_test_report.md#7-cicd--devops-pipeline-a
 - ✅ Merchant management
 
 **Credentials (Demo Data):**
+
 ```
 Admin:
   URL: http://localhost:3001/login
@@ -288,6 +313,7 @@ User:
 ## 🛠️ Useful Scripts
 
 ### Database Scripts
+
 ```bash
 db status              # Check migration status
 db studio              # Open Prisma Studio (Database GUI)
@@ -296,6 +322,7 @@ db dev                 # Create new migration
 ```
 
 ### Docker Scripts
+
 ```bash
 docker-manager start   # Start all containers
 docker-manager stop    # Stop all containers
@@ -305,6 +332,7 @@ docker-manager restart # Restart services
 ```
 
 ### Development Scripts
+
 ```bash
 # Backend
 npm start              # Start server
@@ -322,20 +350,24 @@ npm run lint           # Code linting
 ## 🐛 Troubleshooting
 
 ### Database Connection Errors
+
 - ✅ Verify MySQL service is running
 - ✅ Check username/password in `.env` files
 - ✅ Ensure database `singitronic_nextjs_db` exists
 
 ### Port Already in Use
+
 - ✅ Check if services are running: `check-ports.bat`
 - ✅ Kill process using port: `npx kill-port 3002`
 
 ### Prisma Client Not Generated
+
 ```bash
 npx prisma generate
 ```
 
 ### Admin Login Fails
+
 - ✅ Only accounts with `role='admin'` can access Admin Panel
 - ✅ Verify user role in database: `npx prisma studio`
 
@@ -360,6 +392,7 @@ If you encounter issues:
 4. Check `.env` files are created correctly
 
 <<<<<<< Updated upstream
+
 ```bash
 npm run dev               # Chạy development mode
 npm run build             # Build production
@@ -393,10 +426,11 @@ Nếu gặp vấn đề, vui lòng:
 1. Kiểm tra logs trong terminal
 2. Kiểm tra database connection
 3. Đảm bảo tất cả dependencies đã được cài đặt
-4. Kiểm tra file .env đã được tạo đúng chưa
-=======
+4. # Kiểm tra file .env đã được tạo đúng chưa
+
 ---
->>>>>>> Stashed changes
+
+> > > > > > > Stashed changes
 
 ## 📄 License
 
